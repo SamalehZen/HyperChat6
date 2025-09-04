@@ -22,9 +22,9 @@ export const buildCoreMessagesFromThreadItems = ({
                     content:
                         imgs.length > 0
                             ? ([
-                                  { type: 'text' as const, text: item.query || '' },
-                                  ...imgs.map(img => ({ type: 'image' as const, image: img })),
-                              ] as const)
+                                  { type: 'text', text: item.query || '' },
+                                  ...imgs.map(img => ({ type: 'image', image: img })),
+                              ])
                             : item.query || '',
                 },
                 {
@@ -38,9 +38,9 @@ export const buildCoreMessagesFromThreadItems = ({
             content:
                 (imageAttachments && imageAttachments.length > 0)
                     ? ([
-                          { type: 'text' as const, text: query || '' },
-                          ...imageAttachments.map(img => ({ type: 'image' as const, image: img })),
-                      ] as const)
+                          { type: 'text', text: query || '' },
+                          ...imageAttachments.map(img => ({ type: 'image', image: img })),
+                      ])
                     : query || '',
         },
     ];
