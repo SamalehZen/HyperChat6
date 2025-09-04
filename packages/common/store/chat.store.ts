@@ -496,11 +496,8 @@ export const useChatStore = create(
         },
 
         addImageAttachment: (imageAttachment: ImageAttachmentData) => {
-            console.log('🏪 Store: addImageAttachment appelé avec:', imageAttachment.name, imageAttachment.id);
-            console.log('🏪 Store: imageAttachments avant ajout:', get().imageAttachments.length);
             set(state => {
                 state.imageAttachments.push(imageAttachment);
-                console.log('🏪 Store: imageAttachments après ajout:', state.imageAttachments.length);
             });
         },
 
