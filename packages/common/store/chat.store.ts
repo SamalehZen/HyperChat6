@@ -67,6 +67,7 @@ type State = {
     editor: any;
     chatMode: ChatMode;
     context: string;
+    inputValue: string;
     imageAttachment: { base64?: string; file?: File };
     abortController: AbortController | null;
     threads: Thread[];
@@ -92,6 +93,7 @@ type Actions = {
     setModel: (model: Model) => void;
     setEditor: (editor: any) => void;
     setContext: (context: string) => void;
+    setInputValue: (inputValue: string) => void;
     fetchRemainingCredits: () => Promise<void>;
     setImageAttachment: (imageAttachment: { base64?: string; file?: File }) => void;
     clearImageAttachment: () => void;
@@ -440,6 +442,7 @@ export const useChatStore = create(
         isGenerating: false,
         editor: undefined,
         context: '',
+        inputValue: '',
         threads: [],
         chatMode: ChatMode.GEMINI_2_5_FLASH,
         threadItems: [],
@@ -608,6 +611,11 @@ export const useChatStore = create(
         setContext: context =>
             set(state => {
                 state.context = context;
+            }),
+
+        setInputValue: inputValue =>
+            set(state => {
+                state.inputValue = inputValue;
             }),
 
         setIsGenerating: isGenerating => {

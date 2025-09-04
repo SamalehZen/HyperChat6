@@ -40,3 +40,6 @@ export * from './use-toast';
 export * from './input-otp';
 export * from './animated-ai-input';
 export * from './shine-border';
+
+// Export specific components that are needed
+export { AI_Prompt, ModelIcons } from './animated-ai-input';

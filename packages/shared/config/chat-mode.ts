@@ -3,6 +3,7 @@ export enum ChatMode {
     Deep = 'deep',
     CORRECTION = 'correction',
     CLASSIFICATION = 'classification',
+    REVISION_DE_PRIX = 'revision-de-prix',
     O4_Mini = 'o4-mini',
     GPT_4_1 = 'gpt-4.1',
     GPT_4_1_Mini = 'gpt-4.1-mini',
@@ -49,6 +50,13 @@ export const ChatModeConfig: Record<
         webSearch: false,
         imageUpload: false,
         retry: true,
+        isAuthRequired: false,
+    },
+    [ChatMode.REVISION_DE_PRIX]: {
+        webSearch: false,
+        imageUpload: true,
+        retry: true,
+        isNew: true,
         isAuthRequired: false,
     },
     [ChatMode.GPT_4_1]: {
@@ -137,6 +145,7 @@ export const CHAT_MODE_CREDIT_COSTS = {
     [ChatMode.Pro]: 2,
     [ChatMode.CORRECTION]: 1,
     [ChatMode.CLASSIFICATION]: 1,
+    [ChatMode.REVISION_DE_PRIX]: 2,
     [ChatMode.LLAMA_4_SCOUT]: 1,
     [ChatMode.GPT_4o_Mini]: 1,
     [ChatMode.GPT_4_1]: 5,
@@ -161,6 +170,8 @@ export const getChatModeName = (mode: ChatMode) => {
             return 'Correction';
         case ChatMode.CLASSIFICATION:
             return 'Classification Structure';
+        case ChatMode.REVISION_DE_PRIX:
+            return 'Révision de Prix';
         case ChatMode.GPT_4_1:
             return 'GPT 4.1';
         case ChatMode.GPT_4_1_Mini:
