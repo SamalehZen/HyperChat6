@@ -10,7 +10,7 @@ import { useRootContext } from '@repo/common/context';
 import { AgentProvider } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
 import { plausible } from '@repo/shared/utils';
-import { Badge, Button, Flex, Toaster } from '@repo/ui';
+import { Badge, Button, Flex, Toaster, cn } from '@repo/ui';
 import { IconMoodSadDizzy, IconX } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -28,6 +28,9 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 
     const containerClass =
         'relative flex flex-1 flex-row h-[calc(99dvh)] border border-border rounded-sm bg-secondary w-full overflow-hidden shadow-sm';
+
+    const pathname = usePathname();
+    const isChat = pathname.startsWith('/chat');
 
     useEffect(() => {
         plausible.trackPageview();
@@ -68,7 +71,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
             <Flex className="flex-1 overflow-hidden">
                 <motion.div className="flex w-full py-1 pr-1">
                     <AgentProvider>
-                        <div className={containerClass}>
+                        <div className={cn(containerClass, isChat && 'chat-theme')}>
                             <div className="relative flex h-full w-0 flex-1 flex-row">
                                 <div className="flex w-full flex-col gap-2 overflow-y-auto">
                                     <div className="from-secondary to-secondary/0 via-secondary/70 absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12"></div>

@@ -8,7 +8,7 @@ export default function ChatPageLayout({
     params: { threadId: string };
 }) {
     return (
-        <div className="relative flex h-full w-full flex-col">
+        <div className="chat-theme relative flex h-full w-full flex-col">
             {children}
             <AnimatedChatInput />
         </div>
