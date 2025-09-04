@@ -9,11 +9,11 @@ import { toast } from 'sonner';
 import { ImageMessage } from './image-message';
 type MessageProps = {
     message: string;
-    imageAttachment?: string;
+    imageAttachments?: string[];
     threadItem: ThreadItem;
 };
 
-export const Message = memo(({ message, imageAttachment, threadItem }: MessageProps) => {
+export const Message = memo(({ message, imageAttachments, threadItem }: MessageProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const messageRef = useRef<HTMLDivElement>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -37,7 +37,9 @@ export const Message = memo(({ message, imageAttachment, threadItem }: MessagePr
 
     return (
         <div className="flex w-full flex-col items-end gap-2 pt-4">
-            {imageAttachment && <ImageMessage imageAttachment={imageAttachment} />}
+            {Array.isArray(imageAttachments) && imageAttachments.length > 0 && (
+                <ImageMessage imageAttachments={imageAttachments} />
+            )}
             <div
                 className={cn(
                     'text-foreground bg-tertiary group relative max-w-[80%] overflow-hidden rounded-lg',
@@ -147,7 +149,15 @@ export const EditMessage = memo(({ message, onCancel, threadItem, width }: TEdit
 
         const formData = new FormData();
         formData.append('query', query);
-        formData.append('imageAttachment', threadItem.imageAttachment || '');
+        const imgs = Array.isArray(threadItem.imageAttachment)
+            ? threadItem.imageAttachment
+            : threadItem.imageAttachment
+            ? [threadItem.imageAttachment as unknown as string]
+            : [];
+        imgs.forEach((img, index) => {
+            if (img) formData.append(`imageAttachment_${index}`, img);
+        });
+        formData.append('imageAttachmentCount', imgs.length.toString());
         const threadItems = await getThreadItems(threadItem.threadId);
 
         handleSubmit({

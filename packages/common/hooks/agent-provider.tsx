@@ -371,7 +371,18 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
             const optimisticAiThreadItemId = existingThreadItemId || nanoid();
             const query = formData.get('query') as string;
-            const imageAttachment = formData.get('imageAttachment') as string;
+            const countStr = formData.get('imageAttachmentCount') as string;
+            const count = parseInt(countStr || '0', 10);
+            const imageAttachments: string[] = [];
+            if (!isNaN(count) && count > 0) {
+                for (let i = 0; i < count; i++) {
+                    const val = formData.get(`imageAttachment_${i}`) as string;
+                    if (val) imageAttachments.push(val);
+                }
+            } else {
+                const single = formData.get('imageAttachment') as string;
+                if (single) imageAttachments.push(single);
+            }
 
             const aiThreadItem: ThreadItem = {
                 id: optimisticAiThreadItemId,
@@ -380,7 +391,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 status: 'QUEUED',
                 threadId,
                 query,
-                imageAttachment,
+                imageAttachment: imageAttachments,
                 mode,
             };
 
@@ -399,7 +410,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             const coreMessages = buildCoreMessagesFromThreadItems({
                 messages: messages || [],
                 query,
-                imageAttachment,
+                imageAttachments,
             });
 
             if (hasApiKeyForChatMode(mode)) {

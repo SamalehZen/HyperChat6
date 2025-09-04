@@ -57,8 +57,8 @@ export const ChatInput = ({
     const useWebSearch = useChatStore(state => state.useWebSearch);
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
-    const imageAttachment = useChatStore(state => state.imageAttachment);
-    const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
+    const imageAttachments = useChatStore(state => state.imageAttachments);
+    const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const hasTextInput = !!editor?.getText();
     const { dropzonProps, handleImageUpload } = useImageAttachment();
@@ -91,7 +91,16 @@ export const ChatInput = ({
         // First submit the message
         const formData = new FormData();
         formData.append('query', editor.getText());
-        imageAttachment?.base64 && formData.append('imageAttachment', imageAttachment?.base64);
+        if (imageAttachments && imageAttachments.length > 0) {
+            imageAttachments.forEach((img, index) => {
+                if (img.base64) {
+                    formData.append(`imageAttachment_${index}`, img.base64);
+                }
+            });
+            formData.append('imageAttachmentCount', imageAttachments.length.toString());
+        } else {
+            formData.append('imageAttachmentCount', '0');
+        }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
 
         console.log('threadItems', threadItems);
@@ -106,7 +115,7 @@ export const ChatInput = ({
         });
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
-        clearImageAttachment();
+        clearImageAttachments();
     };
 
     const renderChatInput = () => (
@@ -163,8 +172,8 @@ export const ChatInput = ({
                                                 {/* <ToolsMenu /> */}
                                                 <ImageUpload
                                                     id="image-attachment"
-                                                    label="Image"
-                                                    tooltip="Image Attachment"
+                                                    label="Images"
+                                                    tooltip="Attach images"
                                                     showIcon={true}
                                                     handleImageUpload={handleImageUpload}
                                                 />

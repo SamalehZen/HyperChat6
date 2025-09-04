@@ -78,7 +78,7 @@ export type ThreadItem = {
     persistToDB?: boolean;
     sources?: Source[];
     object?: Record<string, any>;
-    imageAttachment?: string;
+    imageAttachment?: string[];
 };
 
 export type MessageGroup = {
