@@ -17,7 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
-import { NewIcon, BYOKIcon } from '../icons';
+import { NewIcon } from '../icons';
 import {
     IconAtom,
     IconNorthStar,
@@ -235,13 +235,7 @@ export const AnimatedChatInput = ({
         name: (
             <div className="flex items-center gap-2">
                 <span>{model.name}</span>
-                {model.isNew && <NewIcon />}
-                {model.creditCost > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                        {model.creditCost} crédit{model.creditCost > 1 ? 's' : ''}
-                    </span>
-                )}
-                {!model.isAuthRequired && !isSignedIn && <BYOKIcon />}
+                {ChatModeConfig[model.id]?.isNew && <NewIcon />}
             </div>
         ),
     }));

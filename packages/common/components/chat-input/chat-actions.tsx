@@ -28,7 +28,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { BYOKIcon, NewIcon, NomenclatureDouaniereIcon } from '../icons';
+import { NewIcon, NomenclatureDouaniereIcon } from '../icons';
 
 export const chatOptions = [
     {
@@ -251,7 +251,6 @@ export const ChatModeOptions = ({
     isRetry?: boolean;
 }) => {
     const { isSignedIn } = useUser();
-    const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
     const isChatPage = usePathname().startsWith('/chat');
     const { push } = useRouter();
     return (
@@ -314,7 +313,7 @@ export const ChatModeOptions = ({
                             <div className="flex-1" />
                             {ChatModeConfig[option.value]?.isNew && <NewIcon />}
 
-                            {hasApiKeyForChatMode(option.value) && <BYOKIcon />}
+
                         </div>
                     </DropdownMenuItem>
                 ))}
