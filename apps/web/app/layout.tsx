@@ -14,6 +14,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 import './globals.css';
+import { ThemeProvider } from 'next-themes';
 
 export const metadata: Metadata = {
     title: 'hyper-fix.vercel.app - Go Deeper with AI-Powered Research & Agentic Workflows',
@@ -111,11 +112,13 @@ export default function ParentLayout({
             enableSystem
             disableTransitionOnChange
           > */}
-                        <TooltipProvider>
-                            <ReactQueryProvider>
-                                <RootLayout>{children}</RootLayout>
-                            </ReactQueryProvider>
-                        </TooltipProvider>
+                        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
+                            <TooltipProvider>
+                                <ReactQueryProvider>
+                                    <RootLayout>{children}</RootLayout>
+                                </ReactQueryProvider>
+                            </TooltipProvider>
+                        </ThemeProvider>
                         {/* </ThemeProvider> */}
                     </RootProvider>
                 </ClerkProvider>

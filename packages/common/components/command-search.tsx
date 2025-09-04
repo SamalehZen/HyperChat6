@@ -17,11 +17,15 @@ import {
     IconMessageCircleFilled,
     IconPlus,
     IconTrash,
+    IconMoon,
+    IconSun,
+    IconAdjustments,
 } from '@tabler/icons-react';
 import moment from 'moment';
 import { useTheme } from 'next-themes';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export const CommandSearch = () => {
     const { threadId: currentThreadId } = useParams();
@@ -132,7 +136,16 @@ export const CommandSearch = () => {
 
     return (
         <CommandDialog open={isCommandSearchOpen} onOpenChange={setIsCommandSearchOpen}>
-            <div className="flex w-full flex-row items-center gap-2 p-0.5">
+            <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                    key={theme}
+                    initial={{ opacity: 0.85, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0.9, scale: 0.99 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="transition-colors duration-300"
+                >
+                    <div className="flex w-full flex-row items-center gap-2 p-0.5">
                 <CommandInput placeholder="Search..." className="w-full" />
                 <div className="flex shrink-0 items-center gap-1 px-2">
                     <Kbd className="h-5 w-5">
@@ -162,6 +175,20 @@ export const CommandSearch = () => {
                             {action.name}
                         </CommandItem>
                     ))}
+                </CommandGroup>
+                <CommandGroup heading="Thème">
+                    <CommandItem onSelect={() => { setTheme('dark'); onClose(); }}>
+                        <IconMoon size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
+                        Activer le mode sombre
+                    </CommandItem>
+                    <CommandItem onSelect={() => { setTheme('light'); onClose(); }}>
+                        <IconSun size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
+                        Revenir au mode clair
+                    </CommandItem>
+                    <CommandItem onSelect={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); onClose(); }}>
+                        <IconAdjustments size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
+                        Basculer le thème
+                    </CommandItem>
                 </CommandGroup>
                 {Object.entries(groupedThreads).map(
                     ([key, threads]) =>
@@ -198,6 +225,8 @@ export const CommandSearch = () => {
                         )
                 )}
             </CommandList>
+            </motion.div>
+        </AnimatePresence>
         </CommandDialog>
     );
 };

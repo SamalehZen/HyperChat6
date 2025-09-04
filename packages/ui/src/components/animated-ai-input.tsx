@@ -264,7 +264,7 @@ export function AI_Prompt({
                 borderRadius={16}
                 borderWidth={2}
                 duration={10}
-                color={["#3B82F6", "#8B5CF6", "#EC4899"]}
+                color={["#9CA3AF", "#6B7280", "#4B5563"]}
             >
                 <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-gray-200 dark:border-gray-800">
                     <div className="relative">
@@ -282,7 +282,7 @@ export function AI_Prompt({
                                     "text-gray-900 dark:text-white",
                                     "placeholder:text-gray-500 dark:placeholder:text-gray-400",
                                     "border border-gray-200 dark:border-gray-700",
-                                    "resize-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0",
+                                    "resize-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-0",
                                     "min-h-[72px]"
                                 )}
                                 ref={textareaRef}
@@ -304,7 +304,7 @@ export function AI_Prompt({
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="ghost"
-                                                        className="flex items-center gap-1 h-8 pl-1 pr-2 text-xs rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-blue-500"
+                                                        className="flex items-center gap-1 h-8 pl-1 pr-2 text-xs rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-gray-600"
                                                         disabled={disabled}
                                                     >
                                                         <AnimatePresence mode="wait">
@@ -353,7 +353,7 @@ export function AI_Prompt({
                                                                 {model.name}
                                                             </div>
                                                             {selectedModel === model.id && (
-                                                                <Check className="w-4 h-4 text-blue-500" />
+                                                                <Check className="w-4 h-4 text-gray-400" />
                                                             )}
                                                         </DropdownMenuItem>
                                                     ))}
@@ -368,7 +368,7 @@ export function AI_Prompt({
                                                 "rounded-lg p-2",
                                                 "bg-gray-100 dark:bg-gray-700",
                                                 "hover:bg-gray-200 dark:hover:bg-gray-600",
-                                                "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
+                                                "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-gray-600",
                                                 "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                                                 "transition-colors cursor-pointer",
                                                 disabled && "opacity-50 cursor-not-allowed"
@@ -392,7 +392,7 @@ export function AI_Prompt({
                                         "rounded-lg p-2",
                                         "bg-gray-100 dark:bg-gray-700",
                                         "hover:bg-gray-200 dark:hover:bg-gray-600",
-                                        "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
+                                        "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-gray-600",
                                         "transition-colors",
                                         disabled && "opacity-50 cursor-not-allowed"
                                     )}

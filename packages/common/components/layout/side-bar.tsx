@@ -109,7 +109,7 @@ export const Sidebar = () => {
                         rounded="full"
                         tooltip={isSidebarOpen ? undefined : 'Search'}
                         tooltipSide="right"
-                        className={cn('relative w-full', 'justify-center')}
+                        className={cn('relative w-full transition-colors duration-300', 'justify-center')}
                         onClick={() => setIsCommandSearchOpen(true)}
                     >
                         <IconSearch

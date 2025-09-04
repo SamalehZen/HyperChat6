@@ -42,7 +42,7 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
             )}
             <div
                 className={cn(
-                    'text-foreground bg-tertiary group relative max-w-[80%] overflow-hidden rounded-lg',
+                    'text-foreground bg-tertiary dark:bg-muted group relative max-w-[80%] overflow-hidden rounded-lg',
                     isEditing && 'border-hard'
                 )}
             >
@@ -67,7 +67,7 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
                                 showExpandButton && 'flex'
                             )}
                         >
-                            <div className="via-tertiary/85 to-tertiary flex w-full items-center justify-end gap-1 bg-gradient-to-b from-transparent p-1.5">
+                            <div className="via-tertiary/85 to-tertiary dark:via-muted/85 dark:to-muted flex w-full items-center justify-end gap-1 bg-gradient-to-b from-transparent p-1.5">
                                 {showExpandButton && (
                                     <Button
                                         variant="secondary"
