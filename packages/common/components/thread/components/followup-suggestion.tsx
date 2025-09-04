@@ -1,12 +1,10 @@
 import { useChatStore } from '@repo/common/store';
 import { Button } from '@repo/ui';
 import { IconHelpHexagon } from '@tabler/icons-react';
-import { Editor } from '@tiptap/react';
 import { motion } from 'framer-motion';
-import { useShallow } from 'zustand/react/shallow';
 
 export const FollowupSuggestions = ({ suggestions }: { suggestions: string[] }) => {
-    const editor: Editor | undefined = useChatStore(useShallow(state => state.editor));
+    const setInputValue = useChatStore(state => state.setInputValue);
 
     if (!suggestions || suggestions?.length === 0) {
         return null;
@@ -50,8 +48,7 @@ export const FollowupSuggestions = ({ suggestions }: { suggestions: string[] }) 
                             rounded="lg"
                             className=" hover:text-brand group h-auto min-h-7 max-w-full cursor-pointer justify-start overflow-hidden whitespace-normal py-1.5 text-left"
                             onClick={() => {
-                                editor?.commands.clearContent();
-                                editor?.commands.insertContent(suggestion);
+                                setInputValue(suggestion);
                             }}
                         >
                             {suggestion}

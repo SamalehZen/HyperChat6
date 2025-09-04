@@ -27,8 +27,8 @@ export const MessageActions = forwardRef<HTMLDivElement, MessageActionsProps>(
                         variant="ghost-bordered"
                         size="icon-sm"
                         onClick={() => {
-                            if (ref && 'current' in ref && ref.current) {
-                                copyToClipboard(ref.current || '');
+                            if (ref && 'current' in ref && ref.current && typeof ref.current !== 'string') {
+                                copyToClipboard(ref.current);
                             }
                         }}
                         tooltip="Copy"

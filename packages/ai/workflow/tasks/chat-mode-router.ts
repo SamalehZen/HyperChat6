@@ -27,6 +27,8 @@ export const modeRoutingTask = createTask<WorkflowEventSchema, WorkflowContextSc
             redirectTo('correction');
         } else if (mode === ChatMode.CLASSIFICATION) {
             redirectTo('classification');
+        } else if (mode === ChatMode.REVISION_DE_PRIX) {
+            redirectTo('revision-de-prix');
         } else if (mode === ChatMode.NOMENCLATURE_DOUANIERE) {
             redirectTo('nomenclature-douaniere');
         } else if (mode === ChatMode.SMART_PDF_TO_EXCEL) {

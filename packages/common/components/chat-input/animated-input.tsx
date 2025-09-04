@@ -11,7 +11,7 @@ import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } fro
 import { cn, Flex, AI_Prompt, ModelIcons } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -23,6 +23,7 @@ import {
     IconNorthStar,
     IconCheck,
     IconTable,
+    IconCurrencyEuro,
 } from '@tabler/icons-react';
 import { NomenclatureDouaniereIcon } from '../icons';
 
@@ -54,8 +55,8 @@ export const AnimatedChatInput = ({
     const chatMode = useChatStore(state => state.chatMode);
     const setChatMode = useChatStore(state => state.setChatMode);
     const creditLimit = useChatStore(state => state.creditLimit);
-
-    const [inputValue, setInputValue] = useState('');
+    const inputValue = useChatStore(state => state.inputValue);
+    const setInputValue = useChatStore(state => state.setInputValue);
 
     // Load draft message from localStorage
     useEffect(() => {
@@ -107,6 +108,15 @@ export const AnimatedChatInput = ({
             icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
             creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.CLASSIFICATION],
             isAuthRequired: ChatModeConfig[ChatMode.CLASSIFICATION].isAuthRequired,
+            category: 'advanced',
+        },
+        {
+            id: ChatMode.REVISION_DE_PRIX,
+            name: 'Révision de Prix',
+            icon: <IconCurrencyEuro size={16} className="text-muted-foreground" strokeWidth={2} />,
+            creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.REVISION_DE_PRIX],
+            isAuthRequired: ChatModeConfig[ChatMode.REVISION_DE_PRIX].isAuthRequired,
+            isNew: ChatModeConfig[ChatMode.REVISION_DE_PRIX].isNew,
             category: 'advanced',
         },
         {
