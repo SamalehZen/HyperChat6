@@ -140,7 +140,7 @@ export const AnimatedChatInput = ({
         // Active model
         {
             id: ChatMode.GEMINI_2_5_FLASH,
-            name: 'Flash 2.5',
+            name: 'Flashe 2.5',
             icon: ModelIcons.GEMINI,
             creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GEMINI_2_5_FLASH],
             isAuthRequired: ChatModeConfig[ChatMode.GEMINI_2_5_FLASH].isAuthRequired,
