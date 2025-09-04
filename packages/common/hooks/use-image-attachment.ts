@@ -83,6 +83,9 @@ export const useImageAttachment = () => {
 
     // Ajouter plusieurs fichiers (nouveau système)
     const addMultipleFiles = useCallback(async (files: File[]) => {
+        console.log('📤 addMultipleFiles appelé avec', files.length, 'fichiers');
+        console.log('📊 Current imageAttachments count:', imageAttachments.length);
+        
         const MAX_FILES = 10;
         const totalFiles = imageAttachments.length + files.length;
         
@@ -99,7 +102,11 @@ export const useImageAttachment = () => {
         const processedFiles: ImageAttachmentData[] = [];
         
         for (const file of files) {
-            if (!validateFile(file)) continue;
+            console.log('🔍 Traitement du fichier:', file.name, file.type, file.size);
+            if (!validateFile(file)) {
+                console.log('❌ Fichier invalide:', file.name);
+                continue;
+            }
             
             try {
                 const base64 = await processFile(file);
@@ -111,8 +118,9 @@ export const useImageAttachment = () => {
                     size: file.size,
                 };
                 processedFiles.push(imageData);
+                console.log('✅ Fichier traité avec succès:', file.name, 'ID:', imageData.id);
             } catch (error) {
-                console.error('Erreur lors du traitement du fichier:', error);
+                console.error('❌ Erreur lors du traitement du fichier:', error);
                 toast({
                     title: 'Erreur de traitement',
                     description: `Impossible de traiter le fichier ${file.name}`,
@@ -121,12 +129,16 @@ export const useImageAttachment = () => {
             }
         }
 
+        console.log('💾 Ajout de', processedFiles.length, 'images au store...');
+        
         // Ajouter toutes les images traitées
-        processedFiles.forEach(imageData => {
+        processedFiles.forEach((imageData, index) => {
+            console.log(`📝 Ajout image ${index + 1}:`, imageData.name);
             addImageAttachment(imageData);
         });
 
         if (processedFiles.length > 0) {
+            console.log('🎉 Succès! Images ajoutées:', processedFiles.length);
             toast({
                 title: 'Images ajoutées',
                 description: `${processedFiles.length} image(s) ajoutée(s) avec succès.`,
@@ -136,6 +148,7 @@ export const useImageAttachment = () => {
 
     // Dropzone pour multiple fichiers
     const onDrop = useCallback((acceptedFiles: File[]) => {
+        console.log('🎯 onDrop appelé avec', acceptedFiles.length, 'fichiers:', acceptedFiles.map(f => f.name));
         addMultipleFiles(acceptedFiles);
     }, [addMultipleFiles]);
 
@@ -199,18 +212,18 @@ export const useImageAttachment = () => {
     };
 
     return {
-        // Ancien système (rétrocompatibilité)
-        dropzonProps,
-        handleImageUpload,
-        readImageFile,
-        clearAttachment,
-        imageAttachment,
-        
-        // Nouveau système multi-images
+        // Nouveau système multi-images (priorité)
         imageAttachments,
         handleMultipleImageUpload,
         addMultipleFiles,
         removeAttachment,
         clearAllAttachments,
+        dropzoneProps, // Dropzone configurée pour multiple
+        
+        // Ancien système (rétrocompatibilité)
+        handleImageUpload,
+        readImageFile,
+        clearAttachment,
+        imageAttachment,
     };
 };

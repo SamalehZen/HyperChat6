@@ -65,7 +65,10 @@ ImageAttachmentItem.displayName = 'ImageAttachmentItem';
 export const ImageAttachments = memo(() => {
     const { imageAttachments, removeAttachment, clearAllAttachments } = useImageAttachment();
 
+    console.log('🎨 ImageAttachments rendu avec', imageAttachments.length, 'images');
+
     if (imageAttachments.length === 0) {
+        console.log('🎨 ImageAttachments: Aucune image, pas d\'affichage');
         return null;
     }
 
