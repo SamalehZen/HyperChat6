@@ -2,7 +2,7 @@
 
 import { Model, models } from '@repo/ai/models';
 import { ChatMode } from '@repo/shared/config';
-import { MessageGroup, Thread, ThreadItem, ImageAttachmentData } from '@repo/shared/types';
+import { MessageGroup, Thread, ThreadItem, ImageAttachmentData, FileAttachmentData } from '@repo/shared/types';
 import Dexie, { Table } from 'dexie';
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
@@ -70,6 +70,7 @@ type State = {
     inputValue: string;
     imageAttachment: { base64?: string; file?: File };
     imageAttachments: Array<ImageAttachmentData>;
+    fileAttachments: Array<FileAttachmentData>;
     abortController: AbortController | null;
     threads: Thread[];
     threadItems: ThreadItem[];
@@ -101,6 +102,9 @@ type Actions = {
     addImageAttachment: (imageAttachment: ImageAttachmentData) => void;
     removeImageAttachment: (id: string) => void;
     clearAllImageAttachments: () => void;
+    addFileAttachment: (fileAttachment: FileAttachmentData) => void;
+    removeFileAttachment: (id: string) => void;
+    clearFileAttachments: () => void;
     setIsGenerating: (isGenerating: boolean) => void;
     stopGeneration: () => void;
     setAbortController: (abortController: AbortController) => void;
@@ -458,6 +462,7 @@ export const useChatStore = create(
         currentThreadItem: null,
         imageAttachment: { base64: undefined, file: undefined },
         imageAttachments: [],
+        fileAttachments: [],
         messageGroups: [],
         abortController: null,
         isLoadingThreads: false,
@@ -510,6 +515,24 @@ export const useChatStore = create(
         clearAllImageAttachments: () => {
             set(state => {
                 state.imageAttachments = [];
+            });
+        },
+
+        addFileAttachment: (fileAttachment: FileAttachmentData) => {
+            set(state => {
+                state.fileAttachments.push(fileAttachment);
+            });
+        },
+
+        removeFileAttachment: (id: string) => {
+            set(state => {
+                state.fileAttachments = state.fileAttachments.filter(file => file.id !== id);
+            });
+        },
+
+        clearFileAttachments: () => {
+            set(state => {
+                state.fileAttachments = [];
             });
         },
 

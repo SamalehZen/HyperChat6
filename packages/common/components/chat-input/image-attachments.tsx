@@ -1,9 +1,9 @@
 'use client';
 
 import { useImageAttachment } from '@repo/common/hooks';
-import { ImageAttachmentData } from '@repo/shared/types';
+import { FileAttachmentData } from '@repo/shared/types';
 import { Button } from '@repo/ui';
-import { X, FileImage } from 'lucide-react';
+import { X, FileImage, FileText } from 'lucide-react';
 import { memo } from 'react';
 
 const formatFileSize = (bytes: number): string => {
@@ -14,17 +14,20 @@ const formatFileSize = (bytes: number): string => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-interface ImageAttachmentItemProps {
-    attachment: ImageAttachmentData;
+interface FileAttachmentItemProps {
+    attachment: FileAttachmentData;
     onRemove: (id: string) => void;
 }
 
-const ImageAttachmentItem = memo(({ attachment, onRemove }: ImageAttachmentItemProps) => {
+const FileAttachmentItem = memo(({ attachment, onRemove }: FileAttachmentItemProps) => {
+    const isImage = attachment.type.startsWith('image/');
+    const isPdf = attachment.type === 'application/pdf';
+
     return (
         <div className="relative group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            {/* Image Preview */}
+            {/* File Preview */}
             <div className="aspect-square w-20 h-20 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                {attachment.base64 ? (
+                {isImage && attachment.base64 ? (
                     <img
                         src={attachment.base64}
                         alt={attachment.name}
@@ -32,7 +35,11 @@ const ImageAttachmentItem = memo(({ attachment, onRemove }: ImageAttachmentItemP
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <FileImage className="w-8 h-8 text-gray-400" />
+                        {isPdf ? (
+                            <FileText className="w-8 h-8 text-red-500" />
+                        ) : (
+                            <FileImage className="w-8 h-8 text-gray-400" />
+                        )}
                     </div>
                 )}
             </div>
@@ -44,6 +51,9 @@ const ImageAttachmentItem = memo(({ attachment, onRemove }: ImageAttachmentItemP
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                     {formatFileSize(attachment.size)}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                    {isPdf ? 'PDF' : isImage ? 'IMG' : attachment.type.split('/')[1]}
                 </div>
             </div>
             
@@ -60,18 +70,12 @@ const ImageAttachmentItem = memo(({ attachment, onRemove }: ImageAttachmentItemP
     );
 });
 
-ImageAttachmentItem.displayName = 'ImageAttachmentItem';
+FileAttachmentItem.displayName = 'FileAttachmentItem';
 
 export const ImageAttachments = memo(() => {
-    const { imageAttachments, removeAttachment, clearAllAttachments } = useImageAttachment();
+    const { imageAttachments: fileAttachments, removeAttachment, clearAllAttachments } = useImageAttachment();
 
-    // DEBUG: Log pour vérifier si les images arrivent
-    console.log('🎨 ImageAttachments: Nombre d\'images reçues:', imageAttachments.length);
-    if (imageAttachments.length > 0) {
-        console.log('🎨 Images:', imageAttachments.map(img => `${img.name} (${img.id})`));
-    }
-
-    if (imageAttachments.length === 0) {
+    if (fileAttachments.length === 0) {
         return null;
     }
 
@@ -80,9 +84,9 @@ export const ImageAttachments = memo(() => {
             {/* Header avec compteur et bouton clear */}
             <div className="flex items-center justify-between">
                 <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Images attachées ({imageAttachments.length})
+                    Fichiers attachés ({fileAttachments.length})
                 </div>
-                {imageAttachments.length > 1 && (
+                {fileAttachments.length > 1 && (
                     <Button
                         size="sm"
                         variant="ghost"
@@ -94,21 +98,21 @@ export const ImageAttachments = memo(() => {
                 )}
             </div>
             
-            {/* Grille d'images */}
+            {/* Grille de fichiers */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {imageAttachments.map((attachment) => (
-                    <ImageAttachmentItem
+                {fileAttachments.map((attachment) => (
+                    <FileAttachmentItem
                         key={attachment.id}
-                        attachment={attachment}
+                        attachment={attachment as FileAttachmentData}
                         onRemove={removeAttachment}
                     />
                 ))}
             </div>
             
             {/* Info supplémentaire */}
-            {imageAttachments.length >= 8 && (
+            {fileAttachments.length >= 8 && (
                 <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-2 rounded">
-                    ⚠️ Limite de 10 images. Encore {10 - imageAttachments.length} image(s) possible(s).
+                    ⚠️ Vous pouvez attacher autant de fichiers que nécessaire (Images + PDF).
                 </div>
             )}
         </div>

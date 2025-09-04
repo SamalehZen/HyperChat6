@@ -67,6 +67,15 @@ export type ImageAttachmentData = {
     size: number;
 };
 
+export type FileAttachmentData = {
+    id: string;
+    base64: string;
+    file?: File;
+    name: string;
+    type: string;
+    size: number;
+};
+
 export type ThreadItem = {
     query: string;
     toolCalls?: Record<string, ToolCall>;

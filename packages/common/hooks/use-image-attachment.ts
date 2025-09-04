@@ -3,235 +3,135 @@ import { useToast } from '@repo/ui';
 import { ChangeEvent, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { nanoid } from 'nanoid';
-import { ImageAttachmentData } from '@repo/shared/types';
+import { FileAttachmentData } from '@repo/shared/types';
 
-// Type pour le retour du hook
-interface UseImageAttachmentReturn {
-    // Nouveau système multi-images
-    imageAttachments: ImageAttachmentData[];
-    handleMultipleImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-    addMultipleFiles: (files: File[]) => Promise<void>;
-    removeAttachment: (id: string) => void;
-    clearAllAttachments: () => void;
-    dropzonProps: any; // Simplified type to avoid issues
-    
-    // Ancien système (rétrocompatibilité)
-    handleImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-    readImageFile: (file?: File) => Promise<void>;
-    clearAttachment: () => void;
-    imageAttachment: { base64?: string; file?: File };
-}
-// const resizeFile = (file: File) =>
-//   new Promise((resolve) => {
-//     Resizer.imageFileResizer(
-//       file,
-//       1000,
-//       1000,
-//       "JPEG",
-//       100,
-//       0,
-//       (uri) => {
-//         resolve(uri);
-//       },
-//       "file",
-//     );
-//   });
-
-export type TRenderImageUpload = {
+export type TRenderFileUpload = {
     showIcon?: boolean;
     label?: string;
     tooltip?: string;
 };
 
-export const useImageAttachment = () => {
-    // Ancien système (rétrocompatibilité)
-    const imageAttachment = useChatStore(state => state.imageAttachment);
-    const setImageAttachment = useChatStore(state => state.setImageAttachment);
-    const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
-    
-    // Nouveau système multi-images
-    const imageAttachments = useChatStore(state => state.imageAttachments);
-    const addImageAttachment = useChatStore(state => state.addImageAttachment);
-    const removeImageAttachment = useChatStore(state => state.removeImageAttachment);
-    const clearAllImageAttachments = useChatStore(state => state.clearAllImageAttachments);
+// Backward compatibility
+export type TRenderImageUpload = TRenderFileUpload;
 
+export const useFileAttachment = () => {
+    const fileAttachments = useChatStore(state => state.fileAttachments);
+    const addFileAttachment = useChatStore(state => state.addFileAttachment);
+    const removeFileAttachment = useChatStore(state => state.removeFileAttachment);
+    const clearFileAttachments = useChatStore(state => state.clearFileAttachments);
+
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        acceptedFiles.forEach(file => readFileAttachment(file));
+    }, []);
+    
+    const dropzonProps = useDropzone({ 
+        onDrop, 
+        multiple: true, 
+        noClick: true,
+        accept: {
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/png': ['.png'],
+            'image/gif': ['.gif'],
+            'application/pdf': ['.pdf']
+        }
+    });
+    
     const { toast } = useToast();
 
-    // Validation des fichiers
-    const validateFile = (file: File): boolean => {
-        const fileTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const clearAttachments = () => {
+        clearFileAttachments();
+    };
+
+    const removeAttachment = (id: string) => {
+        removeFileAttachment(id);
+    };
+
+    const readFileAttachment = async (file?: File) => {
+        if (!file) return;
+
+        const fileTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
         if (!fileTypes.includes(file.type)) {
             toast({
-                title: 'Format invalide',
-                description: 'Veuillez sélectionner une image valide (JPEG, PNG, GIF).',
-                variant: 'destructive',
-            });
-            return false;
-        }
-
-        const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
-        if (file.size > MAX_FILE_SIZE) {
-            toast({
-                title: 'Fichier trop volumineux',
-                description: 'La taille de l\'image doit être inférieure à 3MB.',
-                variant: 'destructive',
-            });
-            return false;
-        }
-
-        return true;
-    };
-
-    // Traitement d'un fichier en base64
-    const processFile = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                if (typeof reader.result === 'string') {
-                    resolve(reader.result);
-                } else {
-                    reject(new Error('Erreur de lecture du fichier'));
-                }
-            };
-            reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
-            reader.readAsDataURL(file);
-        });
-    };
-
-    // Ajouter plusieurs fichiers (nouveau système)
-    const addMultipleFiles = useCallback(async (files: File[]) => {
-        const MAX_FILES = 10;
-        const totalFiles = imageAttachments.length + files.length;
-        
-        if (totalFiles > MAX_FILES) {
-            toast({
-                title: 'Limite dépassée',
-                description: `Maximum ${MAX_FILES} images autorisées. Vous avez ${imageAttachments.length} images et essayez d'en ajouter ${files.length}.`,
+                title: 'Invalid format',
+                description: 'Please select a valid file (JPEG, PNG, GIF, PDF).',
                 variant: 'destructive',
             });
             return;
         }
 
-        // Traiter tous les fichiers en parallèle
-        const processedFiles: ImageAttachmentData[] = [];
-        
-        for (const file of files) {
-            if (!validateFile(file)) continue;
-            
-            try {
-                const base64 = await processFile(file);
-                const imageData: ImageAttachmentData = {
-                    id: nanoid(),
-                    base64,
-                    file,
-                    name: file.name,
-                    size: file.size,
-                };
-                processedFiles.push(imageData);
-            } catch (error) {
-                console.error('Erreur lors du traitement du fichier:', error);
-                toast({
-                    title: 'Erreur de traitement',
-                    description: `Impossible de traiter le fichier ${file.name}`,
-                    variant: 'destructive',
-                });
-            }
-        }
-
-        // Ajouter toutes les images traitées
-        processedFiles.forEach(imageData => {
-            console.log('💾 Ajout image au store:', imageData.name, imageData.id);
-            addImageAttachment(imageData);
-        });
-
-        if (processedFiles.length > 0) {
-            console.log('✅ Total images dans le store après ajout:', imageAttachments.length + processedFiles.length);
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes (increased for PDF support)
+        if (file.size > MAX_FILE_SIZE) {
             toast({
-                title: 'Images ajoutées',
-                description: `${processedFiles.length} image(s) ajoutée(s) avec succès.`,
-            });
-        }
-    }, [imageAttachments.length, addImageAttachment, toast]);
-
-    // Dropzone pour multiple fichiers
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        addMultipleFiles(acceptedFiles);
-    }, [addMultipleFiles]);
-
-    const dropzonProps = useDropzone({ 
-        onDrop, 
-        multiple: true, 
-        maxFiles: 10,
-        accept: {
-            'image/jpeg': ['.jpg', '.jpeg'],
-            'image/png': ['.png'],
-            'image/gif': ['.gif']
-        },
-        noClick: true 
-    });
-
-    // Input file multiple
-    const handleMultipleImageUpload = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            await addMultipleFiles(files);
-            // Réinitialiser l'input pour permettre la re-sélection
-            e.target.value = '';
-        }
-    }, [addMultipleFiles]);
-
-    // Rétrocompatibilité - traitement d'un seul fichier
-    const readImageFile = async (file?: File) => {
-        if (!file || !validateFile(file)) return;
-
-        try {
-            const base64 = await processFile(file);
-            const base64String = base64.split(',')[1];
-            
-            setImageAttachment({
-                base64: `data:${file.type};base64,${base64String}`,
-                file,
-            });
-        } catch (error) {
-            console.error('Erreur lors de la lecture du fichier:', error);
-            toast({
-                title: 'Erreur',
-                description: 'Impossible de lire le fichier image.',
+                title: 'File too large',
+                description: 'File size should be less than 10MB.',
                 variant: 'destructive',
             });
+            return;
         }
+
+        // Check if file already exists
+        const existingFile = fileAttachments.find(f => f.name === file.name && f.size === file.size);
+        if (existingFile) {
+            toast({
+                title: 'File already attached',
+                description: `${file.name} is already in your attachments.`,
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        const reader = new FileReader();
+        const fileId = nanoid();
+
+        reader.onload = () => {
+            if (typeof reader.result !== 'string') return;
+            const base64String = reader.result;
+            
+            addFileAttachment({
+                id: fileId,
+                base64: base64String,
+                file,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+            });
+        };
+
+        reader.readAsDataURL(file);
     };
 
-    const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        await readImageFile(file);
-    };
-
-    const clearAttachment = () => {
-        clearImageAttachment();
-    };
-
-    const clearAllAttachments = () => {
-        clearAllImageAttachments();
-    };
-
-    const removeAttachment = (id: string) => {
-        removeImageAttachment(id);
+    const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        files.forEach(file => readFileAttachment(file));
+        // Reset the input so the same file can be selected again
+        e.target.value = '';
     };
 
     return {
-        // Nouveau système multi-images (priorité)
-        imageAttachments,
-        handleMultipleImageUpload,
-        addMultipleFiles,
+        dropzonProps,
+        handleFileUpload,
+        clearAttachments,
         removeAttachment,
-        clearAllAttachments,
-        dropzonProps, // Dropzone configurée pour multiple
-        
-        // Ancien système (rétrocompatibilité)
-        handleImageUpload,
-        readImageFile,
-        clearAttachment,
-        imageAttachment,
+        fileAttachments,
+        readFileAttachment, // Export this for the wrapper
+    };
+};
+
+// Backward compatibility wrapper
+export const useImageAttachment = () => {
+    const result = useFileAttachment();
+    return {
+        dropzonProps: result.dropzonProps,
+        handleImageUpload: result.handleFileUpload,
+        handleMultipleImageUpload: result.handleFileUpload, // Same handler for multiple files
+        clearAttachment: result.clearAttachments,
+        clearAllAttachments: result.clearAttachments,
+        imageAttachments: result.fileAttachments, // Map fileAttachments to imageAttachments
+        removeAttachment: result.removeAttachment,
+        addMultipleFiles: async (files: File[]) => {
+            files.forEach(file => result.readFileAttachment(file));
+        },
+        readImageFile: result.readFileAttachment, // Export for animated-input.tsx compatibility
+        imageAttachment: { base64: undefined, file: undefined }, // Legacy single attachment
     };
 };
