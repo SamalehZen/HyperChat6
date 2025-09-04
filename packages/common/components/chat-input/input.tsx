@@ -59,12 +59,16 @@ export const ChatInput = ({
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
     const imageAttachment = useChatStore(state => state.imageAttachment);
-    const imageAttachments = useChatStore(state => state.imageAttachments);
     const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
-    const clearAllImageAttachments = useChatStore(state => state.clearAllImageAttachments);
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const hasTextInput = !!editor?.getText();
-    const { dropzonProps, handleImageUpload, handleMultipleImageUpload } = useImageAttachment();
+    const { 
+        dropzonProps, 
+        handleImageUpload, 
+        handleMultipleImageUpload, 
+        imageAttachments,
+        clearAllAttachments
+    } = useImageAttachment();
     const { push } = useRouter();
     const chatMode = useChatStore(state => state.chatMode);
     const sendMessage = async () => {
@@ -122,7 +126,7 @@ export const ChatInput = ({
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
         clearImageAttachment();
-        clearAllImageAttachments();
+        clearAllAttachments();
     };
 
     const renderChatInput = () => (

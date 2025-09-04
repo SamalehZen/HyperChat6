@@ -65,6 +65,12 @@ ImageAttachmentItem.displayName = 'ImageAttachmentItem';
 export const ImageAttachments = memo(() => {
     const { imageAttachments, removeAttachment, clearAllAttachments } = useImageAttachment();
 
+    // DEBUG: Log pour vérifier si les images arrivent
+    console.log('🎨 ImageAttachments: Nombre d\'images reçues:', imageAttachments.length);
+    if (imageAttachments.length > 0) {
+        console.log('🎨 Images:', imageAttachments.map(img => `${img.name} (${img.id})`));
+    }
+
     if (imageAttachments.length === 0) {
         return null;
     }

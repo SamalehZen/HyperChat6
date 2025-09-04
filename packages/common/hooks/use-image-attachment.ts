@@ -140,10 +140,12 @@ export const useImageAttachment = () => {
 
         // Ajouter toutes les images traitées
         processedFiles.forEach(imageData => {
+            console.log('💾 Ajout image au store:', imageData.name, imageData.id);
             addImageAttachment(imageData);
         });
 
         if (processedFiles.length > 0) {
+            console.log('✅ Total images dans le store après ajout:', imageAttachments.length + processedFiles.length);
             toast({
                 title: 'Images ajoutées',
                 description: `${processedFiles.length} image(s) ajoutée(s) avec succès.`,
@@ -173,6 +175,8 @@ export const useImageAttachment = () => {
         const files = Array.from(e.target.files || []);
         if (files.length > 0) {
             await addMultipleFiles(files);
+            // Réinitialiser l'input pour permettre la re-sélection
+            e.target.value = '';
         }
     }, [addMultipleFiles]);
 
