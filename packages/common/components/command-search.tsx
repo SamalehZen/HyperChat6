@@ -135,7 +135,7 @@ export const CommandSearch = () => {
     ];
 
     return (
-        <CommandDialog open={isCommandSearchOpen} onOpenChange={setIsCommandSearchOpen} className="transition-colors duration-300">
+        <CommandDialog open={isCommandSearchOpen} onOpenChange={setIsCommandSearchOpen}>
             <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                     key={theme}
