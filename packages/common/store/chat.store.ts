@@ -68,7 +68,7 @@ type State = {
     chatMode: ChatMode;
     context: string;
     inputValue: string;
-    imageAttachment: { base64?: string; file?: File };
+    imageAttachments: { base64?: string; file?: File }[];
     abortController: AbortController | null;
     threads: Thread[];
     threadItems: ThreadItem[];
@@ -95,8 +95,9 @@ type Actions = {
     setContext: (context: string) => void;
     setInputValue: (inputValue: string) => void;
     fetchRemainingCredits: () => Promise<void>;
-    setImageAttachment: (imageAttachment: { base64?: string; file?: File }) => void;
-    clearImageAttachment: () => void;
+    setImageAttachments: (imageAttachments: { base64?: string; file?: File }[]) => void;
+    clearImageAttachments: () => void;
+    removeImageAttachment: (index: number) => void;
     setIsGenerating: (isGenerating: boolean) => void;
     stopGeneration: () => void;
     setAbortController: (abortController: AbortController) => void;
@@ -452,7 +453,7 @@ export const useChatStore = create(
         activeThreadItemView: null,
         currentThread: null,
         currentThreadItem: null,
-        imageAttachment: { base64: undefined, file: undefined },
+        imageAttachments: [],
         messageGroups: [],
         abortController: null,
         isLoadingThreads: false,
@@ -478,15 +479,21 @@ export const useChatStore = create(
             });
         },
 
-        setImageAttachment: (imageAttachment: { base64?: string; file?: File }) => {
+        setImageAttachments: (imageAttachments: { base64?: string; file?: File }[]) => {
             set(state => {
-                state.imageAttachment = imageAttachment;
+                state.imageAttachments = imageAttachments;
             });
         },
 
-        clearImageAttachment: () => {
+        clearImageAttachments: () => {
             set(state => {
-                state.imageAttachment = { base64: undefined, file: undefined };
+                state.imageAttachments = [];
+            });
+        },
+
+        removeImageAttachment: (index: number) => {
+            set(state => {
+                state.imageAttachments = state.imageAttachments.filter((_, i) => i !== index);
             });
         },
 

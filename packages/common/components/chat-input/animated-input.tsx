@@ -46,9 +46,9 @@ export const AnimatedChatInput = ({
     const useWebSearch = useChatStore(state => state.useWebSearch);
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
-    const imageAttachment = useChatStore(state => state.imageAttachment);
-    const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
-    const setImageAttachment = useChatStore(state => state.setImageAttachment);
+    const imageAttachments = useChatStore(state => state.imageAttachments);
+    const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
+
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const { dropzonProps, readImageFile } = useImageAttachment();
     const { push } = useRouter();
@@ -273,7 +273,16 @@ export const AnimatedChatInput = ({
         // Submit the message
         const formData = new FormData();
         formData.append('query', value);
-        imageAttachment?.base64 && formData.append('imageAttachment', imageAttachment?.base64);
+        if (imageAttachments && imageAttachments.length > 0) {
+            imageAttachments.forEach((img, index) => {
+                if (img.base64) {
+                    formData.append(`imageAttachment_${index}`, img.base64);
+                }
+            });
+            formData.append('imageAttachmentCount', imageAttachments.length.toString());
+        } else {
+            formData.append('imageAttachmentCount', '0');
+        }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
 
         handleSubmit({
@@ -287,7 +296,7 @@ export const AnimatedChatInput = ({
         
         window.localStorage.removeItem('draft-message');
         setInputValue('');
-        clearImageAttachment();
+        clearImageAttachments();
     };
 
     const handleFileAttachment = (file: File) => {
@@ -310,7 +319,7 @@ export const AnimatedChatInput = ({
             >
                 <Flex direction="col" className="w-full">
                     <ImageDropzoneRoot dropzoneProps={dropzonProps}>
-                        {imageAttachment?.base64 && (
+                        {(imageAttachments?.length || 0) > 0 && (
                             <div className="mb-2">
                                 <ImageAttachment />
                             </div>

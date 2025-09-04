@@ -30,7 +30,7 @@ export const ImageUpload: FC<TImageUpload> = ({
 
     return (
         <>
-            <input type="file" id={id} className="hidden" onChange={handleImageUpload} />
+            <input type="file" id={id} className="hidden" onChange={handleImageUpload} multiple accept="image/jpeg,image/png,image/gif" />
             <Tooltip content={tooltip}>
                 {showIcon ? (
                     <Button variant="ghost" size="icon-sm" onClick={handleFileSelect}>

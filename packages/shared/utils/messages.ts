@@ -3,37 +3,52 @@ import { ThreadItem } from '@repo/shared/types';
 export const buildCoreMessagesFromThreadItems = ({
     messages,
     query,
-    imageAttachment,
+    imageAttachments,
 }: {
     messages: ThreadItem[];
     query: string;
-    imageAttachment?: string;
+    imageAttachments?: string[];
 }) => {
     const coreMessages = [
-        ...(messages || []).flatMap(item => [
-            {
+        ...(messages || []).flatMap(item => {
+            const imgs = Array.isArray(item.imageAttachment)
+                ? item.imageAttachment
+                : item.imageAttachment
+                ? [item.imageAttachment as unknown as string]
+                : [];
+
+            const userContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
+                imgs.length > 0
+                    ? ([
+                          { type: 'text', text: item.query || '' },
+                          ...imgs.map(img => ({ type: 'image', image: img })),
+                      ] as Array<{ type: 'text'; text: string } | { type: 'image'; image: string }>)
+                    : item.query || '';
+
+            return [
+                {
+                    role: 'user' as const,
+                    content: userContent,
+                },
+                {
+                    role: 'assistant' as const,
+                    content: item.answer?.text || '',
+                },
+            ];
+        }),
+        (() => {
+            const finalContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
+                imageAttachments && imageAttachments.length > 0
+                    ? ([
+                          { type: 'text', text: query || '' },
+                          ...imageAttachments.map(img => ({ type: 'image', image: img })),
+                      ] as Array<{ type: 'text'; text: string } | { type: 'image'; image: string }>)
+                    : query || '';
+            return {
                 role: 'user' as const,
-                content: item.imageAttachment
-                    ? [
-                          { type: 'text' as const, text: item.query || '' },
-                          { type: 'image' as const, image: item.imageAttachment },
-                      ]
-                    : item.query || '',
-            },
-            {
-                role: 'assistant' as const,
-                content: item.answer?.text || '',
-            },
-        ]),
-        {
-            role: 'user' as const,
-            content: imageAttachment
-                ? [
-                      { type: 'text' as const, text: query || '' },
-                      { type: 'image' as const, image: imageAttachment },
-                  ]
-                : query || '',
-        },
+                content: finalContent,
+            };
+        })(),
     ];
 
     return coreMessages ?? [];
