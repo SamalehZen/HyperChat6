@@ -2,7 +2,7 @@
 
 import { Model, models } from '@repo/ai/models';
 import { ChatMode } from '@repo/shared/config';
-import { MessageGroup, Thread, ThreadItem } from '@repo/shared/types';
+import { MessageGroup, Thread, ThreadItem, ImageAttachmentData } from '@repo/shared/types';
 import Dexie, { Table } from 'dexie';
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
@@ -69,6 +69,7 @@ type State = {
     context: string;
     inputValue: string;
     imageAttachment: { base64?: string; file?: File };
+    imageAttachments: Array<ImageAttachmentData>;
     abortController: AbortController | null;
     threads: Thread[];
     threadItems: ThreadItem[];
@@ -97,6 +98,9 @@ type Actions = {
     fetchRemainingCredits: () => Promise<void>;
     setImageAttachment: (imageAttachment: { base64?: string; file?: File }) => void;
     clearImageAttachment: () => void;
+    addImageAttachment: (imageAttachment: ImageAttachmentData) => void;
+    removeImageAttachment: (id: string) => void;
+    clearAllImageAttachments: () => void;
     setIsGenerating: (isGenerating: boolean) => void;
     stopGeneration: () => void;
     setAbortController: (abortController: AbortController) => void;
@@ -453,6 +457,7 @@ export const useChatStore = create(
         currentThread: null,
         currentThreadItem: null,
         imageAttachment: { base64: undefined, file: undefined },
+        imageAttachments: [],
         messageGroups: [],
         abortController: null,
         isLoadingThreads: false,
@@ -487,6 +492,24 @@ export const useChatStore = create(
         clearImageAttachment: () => {
             set(state => {
                 state.imageAttachment = { base64: undefined, file: undefined };
+            });
+        },
+
+        addImageAttachment: (imageAttachment: ImageAttachmentData) => {
+            set(state => {
+                state.imageAttachments.push(imageAttachment);
+            });
+        },
+
+        removeImageAttachment: (id: string) => {
+            set(state => {
+                state.imageAttachments = state.imageAttachments.filter(img => img.id !== id);
+            });
+        },
+
+        clearAllImageAttachments: () => {
+            set(state => {
+                state.imageAttachments = [];
             });
         },
 

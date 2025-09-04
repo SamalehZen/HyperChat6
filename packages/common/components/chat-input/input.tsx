@@ -2,6 +2,7 @@
 import { useAuth } from '@clerk/nextjs';
 import {
     ImageAttachment,
+    ImageAttachments,
     ImageDropzoneRoot,
     MessagesRemainingBadge,
 } from '@repo/common/components';
@@ -58,10 +59,12 @@ export const ChatInput = ({
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
     const imageAttachment = useChatStore(state => state.imageAttachment);
+    const imageAttachments = useChatStore(state => state.imageAttachments);
     const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
+    const clearAllImageAttachments = useChatStore(state => state.clearAllImageAttachments);
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const hasTextInput = !!editor?.getText();
-    const { dropzonProps, handleImageUpload } = useImageAttachment();
+    const { dropzonProps, handleImageUpload, handleMultipleImageUpload } = useImageAttachment();
     const { push } = useRouter();
     const chatMode = useChatStore(state => state.chatMode);
     const sendMessage = async () => {
@@ -91,7 +94,19 @@ export const ChatInput = ({
         // First submit the message
         const formData = new FormData();
         formData.append('query', editor.getText());
-        imageAttachment?.base64 && formData.append('imageAttachment', imageAttachment?.base64);
+        
+        // Support ancien système (rétrocompatibilité)
+        if (imageAttachment?.base64) {
+            formData.append('imageAttachment', imageAttachment.base64);
+        }
+        
+        // Support nouveau système multi-images
+        if (imageAttachments.length > 0) {
+            imageAttachments.forEach((img, index) => {
+                formData.append(`imageAttachment_${index}`, img.base64);
+            });
+            formData.append('imageAttachmentsCount', imageAttachments.length.toString());
+        }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
 
         console.log('threadItems', threadItems);
@@ -107,6 +122,7 @@ export const ChatInput = ({
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
         clearImageAttachment();
+        clearAllImageAttachments();
     };
 
     const renderChatInput = () => (
@@ -139,6 +155,7 @@ export const ChatInput = ({
                                     className="w-full"
                                 >
                                     <ImageAttachment />
+                                    <ImageAttachments />
                                     <Flex className="flex w-full flex-row items-end gap-0">
                                         <ChatEditor
                                             sendMessage={sendMessage}
@@ -163,10 +180,11 @@ export const ChatInput = ({
                                                 {/* <ToolsMenu /> */}
                                                 <ImageUpload
                                                     id="image-attachment"
-                                                    label="Image"
-                                                    tooltip="Image Attachment"
+                                                    label="Images"
+                                                    tooltip="Ajouter des images (jusqu'à 10)"
                                                     showIcon={true}
-                                                    handleImageUpload={handleImageUpload}
+                                                    multiple={true}
+                                                    handleImageUpload={handleMultipleImageUpload}
                                                 />
                                             </Flex>
                                         )}

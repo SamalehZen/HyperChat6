@@ -2,6 +2,7 @@ export * from './chat-actions';
 export * from './chat-editor';
 export * from './chat-footer';
 export * from './image-attachment';
+export * from './image-attachments';
 export * from './image-dropzone';
 export * from './image-dropzone-root';
 export * from './image-upload';

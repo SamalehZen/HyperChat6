@@ -59,6 +59,14 @@ export type ToolResult = {
     result: any;
 };
 
+export type ImageAttachmentData = {
+    id: string;
+    base64: string;
+    file?: File;
+    name: string;
+    size: number;
+};
+
 export type ThreadItem = {
     query: string;
     toolCalls?: Record<string, ToolCall>;
@@ -78,7 +86,8 @@ export type ThreadItem = {
     persistToDB?: boolean;
     sources?: Source[];
     object?: Record<string, any>;
-    imageAttachment?: string;
+    imageAttachment?: string; // Rétrocompatibilité
+    imageAttachments?: string[]; // Nouveau : support images multiples
 };
 
 export type MessageGroup = {

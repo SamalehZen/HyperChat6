@@ -372,6 +372,16 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             const optimisticAiThreadItemId = existingThreadItemId || nanoid();
             const query = formData.get('query') as string;
             const imageAttachment = formData.get('imageAttachment') as string;
+            
+            // Extraction des images multiples
+            const imageAttachmentsCount = parseInt(formData.get('imageAttachmentsCount') as string || '0');
+            const imageAttachments: string[] = [];
+            for (let i = 0; i < imageAttachmentsCount; i++) {
+                const img = formData.get(`imageAttachment_${i}`) as string;
+                if (img) {
+                    imageAttachments.push(img);
+                }
+            }
 
             const aiThreadItem: ThreadItem = {
                 id: optimisticAiThreadItemId,
@@ -381,6 +391,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 threadId,
                 query,
                 imageAttachment,
+                imageAttachments: imageAttachments.length > 0 ? imageAttachments : undefined,
                 mode,
             };
 
@@ -400,6 +411,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 messages: messages || [],
                 query,
                 imageAttachment,
+                imageAttachments,
             });
 
             if (hasApiKeyForChatMode(mode)) {
