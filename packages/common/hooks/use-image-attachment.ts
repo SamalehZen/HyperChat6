@@ -4,6 +4,23 @@ import { ChangeEvent, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { nanoid } from 'nanoid';
 import { ImageAttachmentData } from '@repo/shared/types';
+
+// Type pour le retour du hook
+interface UseImageAttachmentReturn {
+    // Nouveau système multi-images
+    imageAttachments: ImageAttachmentData[];
+    handleMultipleImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
+    addMultipleFiles: (files: File[]) => Promise<void>;
+    removeAttachment: (id: string) => void;
+    clearAllAttachments: () => void;
+    dropzonProps: any; // Simplified type to avoid issues
+    
+    // Ancien système (rétrocompatibilité)
+    handleImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
+    readImageFile: (file?: File) => Promise<void>;
+    clearAttachment: () => void;
+    imageAttachment: { base64?: string; file?: File };
+}
 // const resizeFile = (file: File) =>
 //   new Promise((resolve) => {
 //     Resizer.imageFileResizer(
@@ -218,7 +235,7 @@ export const useImageAttachment = () => {
         addMultipleFiles,
         removeAttachment,
         clearAllAttachments,
-        dropzoneProps, // Dropzone configurée pour multiple
+        dropzonProps, // Dropzone configurée pour multiple
         
         // Ancien système (rétrocompatibilité)
         handleImageUpload,
