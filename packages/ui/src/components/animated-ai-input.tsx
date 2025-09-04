@@ -273,7 +273,7 @@ export function AI_Prompt({
                             className="overflow-y-auto"
                             style={{ maxHeight: "400px" }}
                         >
-                            <Textarea style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))' }}
+                            <Textarea style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))', boxShadow: 'var(--chat-input-surface-shadow)' }}
                                 value={value}
                                 placeholder={placeholder}
                                 className={cn(
@@ -295,7 +295,7 @@ export function AI_Prompt({
                             />
                         </div>
 
-                        <div className="h-14 bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-[#e5e7eb] dark:border-gray-700 flex items-center" style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
+                        <div className="h-14 bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-[#e5e7eb] dark:border-gray-700 flex items-center" style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))', boxShadow: 'var(--chat-input-surface-shadow)' }}>
                             <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between w-[calc(100%-24px)]">
                                 <div className="flex items-center gap-2">
                                     {models.length > 0 && (
