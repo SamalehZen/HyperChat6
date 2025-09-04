@@ -130,6 +130,14 @@
 }
 
 @layer base {
+    .chat-theme {
+        --chat-input-container-bg: 210 20% 98%;
+        --chat-input-surface-bg: 0 0% 100%;
+        --chat-input-border: 220 13% 91%;
+    }
+}
+
+@layer base {
     * {
         @apply border-border;
     }
