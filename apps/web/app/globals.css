@@ -117,6 +117,15 @@
 }
 
 @layer base {
+    .dark .chat-theme {
+        --secondary: 0 0% 2%;
+        --background: 0 0% 8%;
+        --border: 0 0% 12%;
+        --hard: 0 0% 18%;
+    }
+}
+
+@layer base {
     * {
         @apply border-border;
     }
