@@ -130,7 +130,7 @@ export const AnimatedChatInput = ({
         },
         {
             id: ChatMode.SMART_PDF_TO_EXCEL,
-            name: 'Smart Image to Excel',
+            name: 'Smart Facture to Excel',
             icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
             creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.SMART_PDF_TO_EXCEL],
             isAuthRequired: ChatModeConfig[ChatMode.SMART_PDF_TO_EXCEL].isAuthRequired,
