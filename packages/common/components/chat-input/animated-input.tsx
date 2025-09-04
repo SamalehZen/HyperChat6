@@ -305,7 +305,7 @@ export const AnimatedChatInput = ({
     const renderChatInput = () => (
         <AnimatePresence>
             <motion.div
-                className="w-full px-3"
+                className="w-full px-3 chat-theme"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={`chat-input`}

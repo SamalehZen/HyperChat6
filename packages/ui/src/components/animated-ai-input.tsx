@@ -266,14 +266,14 @@ export function AI_Prompt({
                 duration={10}
                 color={["#3B82F6", "#8B5CF6", "#EC4899"]}
             >
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-gray-200 dark:border-gray-800">
+                <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-[#e5e7eb] dark:border-gray-800" style={{ backgroundColor: 'hsl(var(--chat-input-container-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
                     <div className="relative">
                         <div className="relative flex flex-col">
                         <div
                             className="overflow-y-auto"
                             style={{ maxHeight: "400px" }}
                         >
-                            <Textarea
+                            <Textarea style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))', boxShadow: 'var(--chat-input-surface-shadow)' }}
                                 value={value}
                                 placeholder={placeholder}
                                 className={cn(
@@ -281,7 +281,7 @@ export function AI_Prompt({
                                     "bg-white dark:bg-gray-800",
                                     "text-gray-900 dark:text-white",
                                     "placeholder:text-gray-500 dark:placeholder:text-gray-400",
-                                    "border border-gray-200 dark:border-gray-700",
+                                    "border border-[#e5e7eb] dark:border-gray-700",
                                     "resize-none focus-visible:ring-2 focus-visible:ring-gray-600 focus-visible:ring-offset-0",
                                     "min-h-[72px]"
                                 )}
@@ -295,7 +295,7 @@ export function AI_Prompt({
                             />
                         </div>
 
-                        <div className="h-14 bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-gray-200 dark:border-gray-700 flex items-center">
+                        <div className="h-14 bg-white dark:bg-gray-800 rounded-b-xl border border-t-0 border-[#e5e7eb] dark:border-gray-700 flex items-center" style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))', boxShadow: 'var(--chat-input-surface-shadow)' }}>
                             <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between w-[calc(100%-24px)]">
                                 <div className="flex items-center gap-2">
                                     {models.length > 0 && (
@@ -337,7 +337,7 @@ export function AI_Prompt({
                                                 <DropdownMenuContent
                                                     className={cn(
                                                         "min-w-[10rem]",
-                                                        "border-gray-200 dark:border-gray-700",
+                                                        "border-[#e5e7eb] dark:border-gray-700",
                                                         "bg-white dark:bg-gray-800",
                                                         "shadow-lg"
                                                     )}
