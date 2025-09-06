@@ -127,8 +127,8 @@
         --chat-input-bg: 0 0% 8%;
         --chat-input-border: 0 0% 12%;
         --chat-input-surface-shadow: none;
-        --chat-input-control-bg: 217 19% 27%;
-        --chat-input-control-hover-bg: 217 14% 37%;
+        --chat-input-control-bg: var(--chat-input-container-bg);
+        --chat-input-control-hover-bg: var(--chat-input-container-bg);
     }
 }
 
@@ -138,7 +138,7 @@
         --chat-input-surface-bg: 0 0% 100%;
         --chat-input-border: 220 13% 91%;
         --chat-input-surface-shadow: 0 1px 2px 0 rgba(0,0,0,0.06), 0 1.5px 3px 0 rgba(0,0,0,0.08);
-        --chat-input-control-bg: var(--chat-input-surface-bg);
+        --chat-input-control-bg: var(--chat-input-container-bg);
         --chat-input-control-hover-bg: var(--chat-input-container-bg);
     }
 }
