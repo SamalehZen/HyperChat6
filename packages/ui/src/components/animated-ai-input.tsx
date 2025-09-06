@@ -257,8 +257,10 @@ export function AI_Prompt({
 
     const selectedModelData = models.find(m => m.id === selectedModel);
 
+    const portalRef = useRef<HTMLDivElement>(null);
+
     return (
-        <div className="w-full">
+        <div className="w-full" ref={portalRef}>
             <ShineBorder
                 className="w-full p-0"
                 borderRadius={16}
@@ -337,10 +339,14 @@ export function AI_Prompt({
                                                 <DropdownMenuContent
                                                     className={cn(
                                                         "min-w-[10rem]",
-                                                        "border-[#e5e7eb] dark:border-gray-700",
-                                                        "bg-white dark:bg-gray-800",
                                                         "shadow-lg"
                                                     )}
+                                                    container={portalRef.current ?? undefined}
+                                                    style={{
+                                                        backgroundColor: 'hsl(var(--chat-input-surface-bg))',
+                                                        borderColor: 'hsl(var(--chat-input-border))',
+                                                        boxShadow: 'var(--chat-input-surface-shadow)'
+                                                    }}
                                                 >
                                                     {models.map((model) => (
                                                         <DropdownMenuItem
