@@ -404,11 +404,11 @@ const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
             const hour = new Date().getHours();
 
             if (hour >= 5 && hour < 12) {
-                return 'Bonjour hyper';
+                return 'Bonjour Hyper';
             } else if (hour >= 12 && hour < 18) {
-                return 'Bon après-midi hyper';
+                return 'Bon après-midi Hyper';
             } else {
-                return 'Bonsoir hyper';
+                return 'Bonsoir Hyper';
             }
         };
 
@@ -440,7 +440,7 @@ const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
                         duration: 0.8,
                         ease: 'easeInOut',
                     }}
-                    className="from-muted-foreground/50 via-muted-foreground/40 to-muted-foreground/20 bg-gradient-to-r bg-clip-text text-center text-[32px] font-semibold tracking-tight text-transparent"
+                    className="from-muted-foreground/50 via-muted-foreground/40 to-muted-foreground/20 bg-gradient-to-r bg-clip-text text-center text-[36px] font-semibold tracking-tight text-transparent"
                 >
                     {greeting}
                 </motion.h1>
