@@ -17,6 +17,7 @@ import {
 } from "./dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShineBorder } from "./shine-border";
+import { SpotlightContainer } from "./spotlight-container";
 
 interface UseAutoResizeTextareaProps {
     minHeight: number;
@@ -268,7 +269,7 @@ export function AI_Prompt({
                 duration={10}
                 color={["#3B82F6", "#8B5CF6", "#EC4899"]}
             >
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-[#e5e7eb] dark:border-gray-800" style={{ backgroundColor: 'hsl(var(--chat-input-container-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
+                <SpotlightContainer className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-[#e5e7eb] dark:border-gray-800" style={{ backgroundColor: 'hsl(var(--chat-input-container-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
                     <div className="relative">
                         <div className="relative flex flex-col">
                         <div
@@ -416,7 +417,7 @@ export function AI_Prompt({
                             </div>
                         </div>
                     </div>
-                </div>
+                </SpotlightContainer>
             </div>
             </ShineBorder>
         </div>
