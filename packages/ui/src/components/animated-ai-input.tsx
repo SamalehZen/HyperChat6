@@ -274,7 +274,7 @@ export function AI_Prompt({
                         style={{ backgroundColor: 'hsl(var(--chat-input-container-bg))', borderColor: 'hsl(var(--chat-input-border))' }}
                         colors={["#3B82F6", "#8B5CF6", "#EC4899"]}
                         radius={320}
-                        blurPx={0}
+                        blurPx={8}
                     >
                     <div className="relative">
                         <div className="relative flex flex-col">
