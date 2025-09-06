@@ -372,7 +372,7 @@ export function AI_Prompt({
                                         <label
                                             className={cn(
                                                 "rounded-lg p-2",
-                                                "bg-[hsl(var(--chat-input-surface-bg))] hover:bg-[hsl(var(--chat-input-container-bg))]",
+                                                "bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))]",
                                                 "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[hsl(var(--chat-input-border))]",
                                                 "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                                                 "transition-colors cursor-pointer",
@@ -395,7 +395,7 @@ export function AI_Prompt({
                                     type="button"
                                     className={cn(
                                         "rounded-lg p-2",
-                                        "bg-[hsl(var(--chat-input-surface-bg))] hover:bg-[hsl(var(--chat-input-container-bg))]",
+                                        "bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))]",
                                         "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[hsl(var(--chat-input-border))]",
                                         "transition-colors",
                                         disabled && "opacity-50 cursor-not-allowed"
