@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 type SpotlightContainerProps = React.HTMLAttributes<HTMLDivElement> & {
   radius?: number;
   color?: string;
+  blurPx?: number;
 };
 
 export function SpotlightContainer({
@@ -13,7 +14,8 @@ export function SpotlightContainer({
   style,
   children,
   radius = 260,
-  color = "hsl(var(--brand) / 0.12)",
+  color = "hsl(var(--brand) / 0.8)",
+  blurPx = 18,
   ...rest
 }: SpotlightContainerProps) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -32,9 +34,12 @@ export function SpotlightContainer({
 
   const overlayStyle: React.CSSProperties = pos
     ? {
-        background: `radial-gradient(${radius}px circle at ${pos.x}px ${pos.y}px, ${color}, transparent 45%)`,
+        background: `radial-gradient(${radius}px circle at ${pos.x}px ${pos.y}px, hsl(var(--brand) / 0.8) 0%, hsl(var(--brand) / 0.25) 40%, transparent 75%)`,
+        filter: `blur(${blurPx}px)`,
+        transition: "background-position .05s linear, opacity .2s ease-out",
+        willChange: "background",
       }
-    : { opacity: 0 };
+    : { opacity: 0, transition: "opacity .2s ease-out" };
 
   return (
     <div
