@@ -417,8 +417,8 @@ export function AI_Prompt({
                             </div>
                         </div>
                     </div>
+                </div>
                 </SpotlightContainer>
-            </div>
             </ShineBorder>
         </div>
     );
