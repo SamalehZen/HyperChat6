@@ -17,38 +17,38 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 
 export const metadata: Metadata = {
-    title: 'hyper-fix.vercel.app - Go Deeper with AI-Powered Research & Agentic Workflows',
+    title: 'HyperFix - développé pour L'Hyper',
     description:
-        'Experience deep, AI-powered research with agentic workflows and a wide variety of models for advanced productivity.',
-    keywords: 'AI chat, LLM, language models, privacy, minimal UI, ollama, chatgpt',
-    authors: [{ name: 'Trendy design', url: 'https://trendy.design' }],
-    creator: 'Trendy design',
-    publisher: 'Trendy design',
+        'HyperFix, développé pour Hyper, est une intelligence artificielle polyvalente. Elle corrige les libellés, classe et structure les données, révise les prix et apprend en continu pour toujours mieux vous aider — et bien plus encore.',
+    keywords: 'AI chat, hyper, hyperfix, LLM, language models, privacy, minimal UI, ollama, chatgpt',
+    authors: [{ name: 'Trendy design', url: 'https://samaleh.com' }],
+    creator: 'Arka design',
+    publisher: 'Arka design',
     openGraph: {
-        title: 'hyper-fix.vercel.app - Go Deeper with AI-Powered Research & Agentic Workflows',
+        title: 'HyperFix - développé pour L'Hyper',
         siteName: 'hyper-fix.vercel.app',
         description:
-            'Experience deep, AI-powered research with agentic workflows and a wide variety of models for advanced productivity.',
-        url: 'https://hyper-fix.vercel.app',
+            'HyperFix, développé pour Hyper, est une intelligence artificielle polyvalente. Elle corrige les libellés, classe et structure les données, révise les prix et apprend en continu pour toujours mieux vous aider — et bien plus encore.',
+        url: 'https://hyperfix.vercel.app',
         type: 'website',
-        locale: 'en_US',
+        locale: 'fr_FR',
         images: [
             {
                 url: 'https://hyper-fix.vercel.app/og-image.jpg',
                 width: 1200,
                 height: 630,
-                alt: 'hyper-fix Preview',
+                alt: 'hyperfix Preview',
             },
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'hyper-fix.vercel.app - Go Deeper with AI-Powered Research & Agentic Workflows',
-        site: 'hyper-fix.vercel.app',
+        title: 'HyperFix - développé pour L'Hyper',
+        site: 'hyperfix.vercel.app',
         creator: '@hyperfix_app',
         description:
-            'Experience deep, AI-powered research with agentic workflows and a wide variety of models for advanced productivity.',
-        images: ['https://hyper-fix.vercel.app/twitter-image.jpg'],
+            'HyperFix, développé pour Hyper, est une intelligence artificielle polyvalente. Elle corrige les libellés, classe et structure les données, révise les prix et apprend en continu pour toujours mieux vous aider — et bien plus encore.',
+        images: ['https://hyperfix.vercel.app/twitter-image.jpg'],
     },
     robots: {
         index: true,
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
         },
     },
     alternates: {
-        canonical: 'https://hyper-fix.vercel.app',
+        canonical: 'https://hyperfix.vercel.app',
     },
 };
 
