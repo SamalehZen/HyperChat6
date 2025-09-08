@@ -17,7 +17,7 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 
 export const metadata: Metadata = {
-    title: 'HyperFix - développé pour L'Hyper',
+    title: 'HyperFix - développé pour L\'Hyper',
     description:
         'HyperFix, développé pour Hyper, est une intelligence artificielle polyvalente. Elle corrige les libellés, classe et structure les données, révise les prix et apprend en continu pour toujours mieux vous aider — et bien plus encore.',
     keywords: 'AI chat, hyper, hyperfix, LLM, language models, privacy, minimal UI, ollama, chatgpt',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     creator: 'Arka design',
     publisher: 'Arka design',
     openGraph: {
-        title: 'HyperFix - développé pour L'Hyper',
+        title:'HyperFix - développé pour L\'Hyper',
         siteName: 'hyper-fix.vercel.app',
         description:
             'HyperFix, développé pour Hyper, est une intelligence artificielle polyvalente. Elle corrige les libellés, classe et structure les données, révise les prix et apprend en continu pour toujours mieux vous aider — et bien plus encore.',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'HyperFix - développé pour L'Hyper',
+        title: 'HyperFix - développé pour L\'Hyper',
         site: 'hyperfix.vercel.app',
         creator: '@hyperfix_app',
         description:
