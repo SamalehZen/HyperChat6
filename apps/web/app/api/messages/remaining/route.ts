@@ -6,7 +6,7 @@ import {
     getRemainingCredits,
 } from '../../completion/credit-service';
 import { getIp } from '../../completion/utils';
-import { checkUserAccess, recordUserActivity } from '../../../lib/user-status';
+import { checkUserAccess, recordUserActivity } from '../../../../lib/user-status';
 
 export const runtime = 'nodejs';
 
