@@ -26,7 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const clerkUserId = params.id;
   let clerkResult: any = null;
   try {
-    clerkResult = await clerkClient.users.deleteUser(clerkUserId);
+    const clerk = await clerkClient();
+    clerkResult = await clerk.users.deleteUser(clerkUserId);
   } catch (e: any) {
     clerkResult = { error: String(e?.message || e) };
   }

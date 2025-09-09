@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
   let offset = 0;
   let total = 0;
 
+  const clerk = await clerkClient();
   while (true) {
-    const page = await clerkClient.users.getUserList({ limit, offset });
+    const page = await clerk.users.getUserList({ limit, offset });
     const users = (page as any)?.data ?? (Array.isArray(page) ? page : []);
     if (!users.length) break;
 

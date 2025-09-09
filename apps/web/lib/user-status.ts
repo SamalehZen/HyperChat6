@@ -9,7 +9,8 @@ export async function getOrSyncLocalUser(clerkUserId: string) {
   let user = await prisma.user.findUnique({ where: { clerkUserId } });
   if (user) return user;
 
-  const clerkUser = await clerkClient.users.getUser(clerkUserId);
+  const clerk = await clerkClient();
+  const clerkUser = await clerk.users.getUser(clerkUserId);
   const username = deriveUsername(clerkUser);
 
   user = await prisma.user.upsert({
