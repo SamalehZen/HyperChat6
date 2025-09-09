@@ -17,4 +17,67 @@ model Feedback {
   feedback String
   metadata Json?
   createdAt DateTime @default(now())
-} 
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  PAUSED
+  DELETED
+}
+
+enum AuditActor {
+  ADMIN
+  SYSTEM
+}
+
+enum AuditAction {
+  ADD_POINTS
+  BLOCK
+  PAUSE
+  DELETE
+  RESET_PASSWORD
+  UNBLOCK
+  UPDATE_STATUS
+  SYNC_USER
+}
+
+model User {
+  id               String      @id @default(uuid())
+  clerkUserId      String      @unique
+  username         String
+  status           UserStatus  @default(ACTIVE)
+  localPasswordHash String?
+  lastSeen         DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  deletedAt        DateTime?
+
+  ipLogs           IpLog[]
+  auditLogs        AuditLog[]  @relation("TargetUserAuditLogs")
+}
+
+model IpLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  ip         String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id            String       @id @default(uuid())
+  actor         AuditActor
+  action        AuditAction
+  targetUserId  String?
+  targetUser    User?        @relation("TargetUserAuditLogs", fields: [targetUserId], references: [id])
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+
+  @@index([createdAt])
+  @@index([targetUserId])
+}
+

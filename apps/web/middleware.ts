@@ -1,10 +1,12 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 
-export const runtime = "nodejs"; // 🚀 important pour éviter Edge
+export const runtime = "nodejs";
 
-export default clerkMiddleware((auth, req) => {
-  return NextResponse.next();
+export default clerkMiddleware({
+  publicRoutes: [
+    "/admin(.*)",
+    "/api/admin(.*)",
+  ],
 });
 
 export const config = {

@@ -11,6 +11,9 @@ import {
 import { executeStream, sendMessage } from './stream-handlers';
 import { completionRequestSchema, SSE_HEADERS } from './types';
 import { getIp } from './utils';
+import { checkUserAccess, recordUserActivity } from '../../../lib/user-status';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
@@ -47,19 +50,30 @@ export async function POST(request: NextRequest) {
 
         console.log('ip', ip);
 
-        const remainingCredits = await getRemainingCredits({
-            userId: userId ?? undefined,
-            ip,
-        });
-
-        console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
-
         if (!!ChatModeConfig[data.mode]?.isAuthRequired && !userId) {
             return new Response(JSON.stringify({ error: 'Authentication required' }), {
                 status: 401,
                 headers: { 'Content-Type': 'application/json' },
             });
         }
+
+        if (userId) {
+            const access = await checkUserAccess(userId);
+            if (!access.ok) {
+                return new Response(
+                    JSON.stringify({ error: access.message, status: access.status }),
+                    { status: 403, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
+            await recordUserActivity(userId, request);
+        }
+
+        const remainingCredits = await getRemainingCredits({
+            userId: userId ?? undefined,
+            ip,
+        });
+
+        console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
 
         if (remainingCredits < creditCost && process.env.NODE_ENV !== 'development') {
             return new Response(

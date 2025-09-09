@@ -137,4 +137,16 @@ async function deductCreditsFromIp(ip: string, cost: number): Promise<boolean> {
     }
 }
 
+export async function grantDailyCredits(userId: string, amount: number): Promise<{ previous: number; next: number }> {
+    if (!userId || amount === 0) {
+        return { previous: 0, next: 0 };
+    }
+    const key = `credits:user:${userId}`;
+
+    const previous = await getRemainingCreditsForUser(userId);
+    const next = previous + amount;
+    await kv.set(key, next);
+    return { previous, next };
+}
+
 export { DAILY_CREDITS_AUTH, DAILY_CREDITS_IP };

@@ -6,6 +6,9 @@ import {
     getRemainingCredits,
 } from '../../completion/credit-service';
 import { getIp } from '../../completion/utils';
+import { checkUserAccess, recordUserActivity } from '../../../lib/user-status';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
     const session = await auth();
@@ -14,6 +17,14 @@ export async function GET(request: NextRequest) {
 
     if (!ip) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (userId) {
+        const access = await checkUserAccess(userId);
+        if (!access.ok) {
+            return NextResponse.json({ error: access.message, status: access.status }, { status: 403 });
+        }
+        await recordUserActivity(userId, request);
     }
 
     try {
