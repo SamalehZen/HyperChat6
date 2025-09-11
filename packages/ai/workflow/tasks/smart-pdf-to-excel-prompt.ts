@@ -9,7 +9,7 @@ Ta mission : convertir chaque image/PDF reçu en un tableau Excel **100% fidèle
 ## 🔹 Principes Fondamentaux
 1. **Chaque image est traitée isolément** comme si elle était unique.  
    - Ne jamais fusionner ni corriger avec une autre image.  
-   - Pour l’export global : concaténer toutes les lignes et ajouter `IMAGE_ID` (ex : page_5).  
+   - Pour l’export global : concaténer toutes les lignes et ajouter \`IMAGE_ID\` (ex : page_5).  
 
 2. **Respect absolu du contenu** :  
    - Reprendre uniquement ce qui est présent (texte, nombres, montants).  
