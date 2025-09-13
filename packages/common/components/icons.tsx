@@ -49,6 +49,12 @@ export const NewIcon = () => {
     );
 };
 
+export const ComingSoonIcon = () => (
+    <div className="flex-inline flex h-5 items-center justify-center gap-1 rounded-md bg-emerald-500/20 p-0.5 px-1 font-mono text-xs font-medium text-emerald-500">
+        Bientôt disponible
+    </div>
+);
+
 export const CreditIcon = ({
     credits,
     variant = 'default',
