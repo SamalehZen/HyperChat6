@@ -4,7 +4,7 @@
 
 "use client";
 
-import { ArrowRight, Bot, Check, ChevronDown, Paperclip } from "lucide-react";
+import { ArrowRight, Bot, Check, ChevronDown, Paperclip, Globe } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Textarea } from "./textarea";
 import { cn } from "../lib/utils";
@@ -194,6 +194,9 @@ interface AI_PromptProps {
     onModelChange?: (model: string) => void;
     onAttachFile?: (file: File) => void;
     disabled?: boolean;
+    showWebToggle?: boolean;
+    webSearchEnabled?: boolean;
+    onToggleWebSearch?: () => void;
 }
 
 export function AI_Prompt({
@@ -206,6 +209,9 @@ export function AI_Prompt({
     onModelChange,
     onAttachFile,
     disabled = false,
+    showWebToggle = false,
+    webSearchEnabled = false,
+    onToggleWebSearch,
 }: AI_PromptProps) {
     const [internalValue, setInternalValue] = useState("");
     const [internalSelectedModel, setInternalSelectedModel] = useState(models[0]?.id || "");
@@ -367,6 +373,26 @@ export function AI_Prompt({
                                             </DropdownMenu>
                                             <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 mx-0.5" />
                                         </>
+                                    )}
+                                    {showWebToggle && (
+                                        <button
+                                            type="button"
+                                            className={cn(
+                                                "rounded-lg p-2",
+                                                "bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))]",
+                                                "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[hsl(var(--chat-input-border))]",
+                                                "transition-colors",
+                                                webSearchEnabled
+                                                    ? "text-blue-600 dark:text-blue-400"
+                                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
+                                                disabled && "opacity-50 cursor-not-allowed"
+                                            )}
+                                            aria-label="Web search"
+                                            onClick={() => !disabled && onToggleWebSearch?.()}
+                                            disabled={disabled}
+                                        >
+                                            <Globe className="w-4 h-4" />
+                                        </button>
                                     )}
                                     {onAttachFile && (
                                         <label

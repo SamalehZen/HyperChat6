@@ -15,7 +15,7 @@ import React, { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
-import { useChatStore } from '../../store';
+import { useApiKeysStore, useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
@@ -44,6 +44,7 @@ export const AnimatedChatInput = ({
     const { handleSubmit } = useAgentStream();
     const createThread = useChatStore(state => state.createThread);
     const useWebSearch = useChatStore(state => state.useWebSearch);
+    const setUseWebSearch = useChatStore(state => state.setUseWebSearch);
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
     const imageAttachments = useChatStore(state => state.imageAttachments);
@@ -59,6 +60,7 @@ export const AnimatedChatInput = ({
     const creditLimit = useChatStore(state => state.creditLimit);
     const inputValue = useChatStore(state => state.inputValue);
     const setInputValue = useChatStore(state => state.setInputValue);
+    const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
 
     // Load draft message from localStorage
     useEffect(() => {
@@ -337,6 +339,9 @@ export const AnimatedChatInput = ({
                             onModelChange={handleModelChange}
                             onAttachFile={ChatModeConfig[chatMode]?.imageUpload ? handleFileAttachment : undefined}
                             disabled={isGenerating}
+                            showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
+                            webSearchEnabled={useWebSearch}
+                            onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
                         />
                     </ImageDropzoneRoot>
                 </Flex>
