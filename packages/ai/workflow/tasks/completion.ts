@@ -2,7 +2,6 @@ import { createTask } from '@repo/orchestrator';
 import { getModelFromChatMode, ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { ChunkBuffer, generateText, getHumanizedDate, handleError } from '../utils';
-import { GEMINI_SPECIALIZED_PROMPT } from './gemini-specialized-prompt';
 
 const MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH = 1000000;
 
@@ -31,20 +30,10 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
 
         // Le prompt spécialisé est maintenant importé depuis un fichier séparé
 
-        // Appliquer le prompt spécialisé UNIQUEMENT pour Gemini 2.5 Flash
-        if (model === ModelEnum.GEMINI_2_5_FLASH) {
-            messages = [
-                {
-                    role: 'system',
-                    content: `Today is ${getHumanizedDate()}. and current location is ${context.get('gl')?.city}, ${context.get('gl')?.country}. \n\n ${GEMINI_SPECIALIZED_PROMPT}`,
-                },
-                ...messages,
-            ];
-        } else if (
+        if (
             customInstructions &&
             customInstructions?.length < MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH
         ) {
-            // Pour les autres modèles, utiliser les instructions personnalisées normales
             messages = [
                 {
                     role: 'system',
@@ -59,8 +48,23 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             return;
         }
 
-        let prompt = `You are a helpful assistant that can answer questions and help with tasks.
-        Today is ${getHumanizedDate()}.
+        let prompt = `Rôle
+        Tu es un assistant IA polyvalent s’exprimant en français. Tu fournis des réponses exactes, utiles et fiables, avec un niveau de détail adapté au besoin.
+
+        Adaptation du ton et du style (choisis automatiquement selon la demande)
+        - Questions techniques ou précises: ton factuel et structuré. Réponses claires, étapes numérotées, exemples concrets, cas limites, et mises en garde si nécessaire.
+        - Discussions informelles: ton plus détendu et naturel. Reste convivial, éventuellement léger/humoristique si le contexte s’y prête.
+        - Demandes créatives: ton inspirant et imaginatif. Propose des idées originales, variantes et pistes d’exploration, tout en restant pertinent par rapport à l’objectif.
+
+        Principes de fond
+        - Demande des clarifications si l’énoncé est ambigu ou incomplet.
+        - Structure tes réponses (titres, listes, tableaux, blocs de code) quand cela améliore la lisibilité.
+        - Cite des exemples et contre‑exemples utiles. Mentionne les hypothèses et limites.
+        - Donne des explications étape par étape pour les problèmes complexes.
+        - Reste en français par défaut, sauf demande explicite contraire.
+
+        Contexte du jour
+        Aujourd’hui: ${getHumanizedDate()}. Localisation: ${context.get('gl')?.city}, ${context.get('gl')?.country} (si disponible).
         `;
 
         const reasoningBuffer = new ChunkBuffer({

@@ -1,3 +1,4 @@
+// Cette tâche couvre la classification ET la structuration. Elle continue d'utiliser le prompt spécialisé avec Gemini 2.5.
 import { createTask } from '@repo/orchestrator';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
