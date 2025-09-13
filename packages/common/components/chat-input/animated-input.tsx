@@ -8,7 +8,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -17,7 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
-import { NewIcon } from '../icons';
+import { NewIcon, ComingSoonIcon } from '../icons';
 import {
     IconAtom,
     IconNorthStar,
@@ -48,6 +48,8 @@ export const AnimatedChatInput = ({
     const isChatPage = usePathname().startsWith('/chat');
     const imageAttachments = useChatStore(state => state.imageAttachments);
     const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
+
+    const { toast } = useToast();
 
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const { dropzonProps, readImageFile } = useImageAttachment();
@@ -230,15 +232,19 @@ export const AnimatedChatInput = ({
     const activeModels = AI_MODELS.filter(model => !model.id.includes('//'));
 
     // Add credit cost and auth badge to model names
-    const modelsWithBadges = activeModels.map(model => ({
-        ...model,
-        name: (
-            <div className="flex items-center gap-2">
-                <span>{model.name}</span>
-                {ChatModeConfig[model.id]?.isNew && <NewIcon />}
-            </div>
-        ),
-    }));
+    const modelsWithBadges = activeModels.map(model => {
+        const isRevision = model.id === ChatMode.REVISION_DE_PRIX;
+        return {
+            ...model,
+            icon: isRevision ? <div className="opacity-50 cursor-not-allowed">{model.icon}</div> : model.icon,
+            name: (
+                <div className={cn("flex items-center gap-2", isRevision && "opacity-50 cursor-not-allowed")}> 
+                    <span>{model.name}</span>
+                    {isRevision ? <ComingSoonIcon /> : ChatModeConfig[model.id]?.isNew && <NewIcon />}
+                </div>
+            ),
+        };
+    });
 
     const sendMessage = async (value: string, modelId: string) => {
         if (!value.trim()) return;
@@ -298,7 +304,10 @@ export const AnimatedChatInput = ({
     };
 
     const handleModelChange = (modelId: string) => {
-        // Convert string to ChatMode enum
+        if (modelId === ChatMode.REVISION_DE_PRIX) {
+            toast({ title: 'Bientôt disponible' });
+            return;
+        }
         setChatMode(modelId as ChatMode);
     };
 
