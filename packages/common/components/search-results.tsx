@@ -11,56 +11,71 @@ export type SearchResultsType = {
 
 const ogCache = new Map<string, string | null>();
 
-export const SearchResultCard = memo(({ source }: { source: Source }) => {
-    const [imgUrl, setImgUrl] = useState<string | null>(source.image ?? null);
-    const [showImage, setShowImage] = useState<boolean>(!!source.image);
+export const SearchResultCard = memo(
+    ({ source, forceHideImage, forcedImageUrl }: { source: Source; forceHideImage?: boolean; forcedImageUrl?: string | null }) => {
+        const [imgUrl, setImgUrl] = useState<string | null>(forcedImageUrl ?? source.image ?? null);
+        const [showImage, setShowImage] = useState<boolean>(!forceHideImage && !!(forcedImageUrl ?? source.image));
 
-    const host = useMemo(() => getHost(source.link) || source.link, [source.link]);
+        const host = useMemo(() => getHost(source.link) || source.link, [source.link]);
 
-    useEffect(() => {
-        let cancelled = false;
-        const fetchOg = async () => {
-            if (source.image) return; // already provided
-            const key = source.link;
-            if (ogCache.has(key)) {
-                if (!cancelled) {
-                    const cached = ogCache.get(key) ?? null;
-                    setImgUrl(cached);
-                    setShowImage(!!cached);
-                }
-                return;
+        useEffect(() => {
+            if (forceHideImage) {
+                setShowImage(false);
             }
-            try {
-                const res = await fetch(`/api/og?url=${encodeURIComponent(source.link)}`);
-                if (!res.ok) {
-                    ogCache.set(key, null);
+        }, [forceHideImage]);
+
+        useEffect(() => {
+            setImgUrl(forcedImageUrl ?? source.image ?? null);
+            setShowImage(!forceHideImage && !!(forcedImageUrl ?? source.image));
+        }, [forcedImageUrl, source.image, forceHideImage]);
+
+        useEffect(() => {
+            if (forceHideImage) return;
+            if (forcedImageUrl) return;
+
+            let cancelled = false;
+            const fetchOg = async () => {
+                if (source.image) return; // already provided
+                const key = source.link;
+                if (ogCache.has(key)) {
+                    if (!cancelled) {
+                        const cached = ogCache.get(key) ?? null;
+                        setImgUrl(cached);
+                        setShowImage(!!cached);
+                    }
+                    return;
+                }
+                try {
+                    const res = await fetch(`/api/og?url=${encodeURIComponent(source.link)}`);
+                    if (!res.ok) {
+                        ogCache.set(key, null);
+                        if (!cancelled) {
+                            setImgUrl(null);
+                            setShowImage(false);
+                        }
+                        return;
+                    }
+                    const data = (await res.json()) as { image: string | null };
+                    const image = data?.image || null;
+                    ogCache.set(key, image);
+                    if (!cancelled) {
+                        setImgUrl(image);
+                        setShowImage(!!image);
+                    }
+                } catch (e) {
+                    ogCache.set(source.link, null);
                     if (!cancelled) {
                         setImgUrl(null);
                         setShowImage(false);
                     }
-                    return;
                 }
-                const data = (await res.json()) as { image: string | null };
-                const image = data?.image || null;
-                ogCache.set(key, image);
-                if (!cancelled) {
-                    setImgUrl(image);
-                    setShowImage(!!image);
-                }
-            } catch (e) {
-                ogCache.set(source.link, null);
-                if (!cancelled) {
-                    setImgUrl(null);
-                    setShowImage(false);
-                }
-            }
-        };
-        fetchOg();
-        return () => {
-            cancelled = true;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [source.link]);
+            };
+            fetchOg();
+            return () => {
+                cancelled = true;
+            };
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [source.link, forceHideImage, forcedImageUrl]);
 
     const onOpen = () => {
         window?.open(source.link, '_blank', 'noopener,noreferrer');

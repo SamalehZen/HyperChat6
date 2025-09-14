@@ -2,6 +2,8 @@
 import { LinkFavicon, SearchResultCard } from '@repo/common/components';
 import { useAppStore } from '@repo/common/store';
 import { Source } from '@repo/shared/types';
+import { IconList } from '@tabler/icons-react';
+import { useEffect, useMemo, useState } from 'react';
 import { SourceList } from './source-list';
 
 type SourceGridProps = {
@@ -15,16 +17,88 @@ export const SourceGrid = ({ sources }: SourceGridProps) => {
         return null;
     }
 
-    const sortedSources = [...sources].sort((a, b) => (a?.index || 0) - (b?.index || 0));
-    const firstFive = sortedSources.slice(0, 5);
-    const remaining = sortedSources.length - firstFive.length;
+    const sortedSources = useMemo(
+        () => [...sources].sort((a, b) => (a?.index || 0) - (b?.index || 0)),
+        [sources]
+    );
+
+    const [imageMap, setImageMap] = useState<Record<string, string | null>>({});
+
+    useEffect(() => {
+        let cancelled = false;
+        const prefetch = async () => {
+            const slice = sortedSources.slice(0, 12);
+            await Promise.all(
+                slice.map(async s => {
+                    if (s.image !== undefined || imageMap[s.link] !== undefined) return;
+                    try {
+                        const res = await fetch(`/api/og?url=${encodeURIComponent(s.link)}`);
+                        const data = (await res.json()) as { image: string | null };
+                        if (!cancelled) {
+                            setImageMap(prev => ({ ...prev, [s.link]: data?.image || null }));
+                        }
+                    } catch {
+                        if (!cancelled) {
+                            setImageMap(prev => ({ ...prev, [s.link]: null }));
+                        }
+                    }
+                })
+            );
+        };
+        prefetch();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedSources.map(s => s.link).join('|')]);
+
+    const selection = useMemo(() => {
+        const chosen: Array<{ source: Source; forcedImageUrl?: string | null; forceHideImage?: boolean }>[] = [[], []];
+        const withImage: Array<{ source: Source; img: string | null }> = [];
+        const withoutImage: Source[] = [];
+
+        for (const s of sortedSources) {
+            const img = s.image ?? imageMap[s.link] ?? null;
+            if (img) withImage.push({ source: s, img });
+            else withoutImage.push(s);
+        }
+
+        const firstThree = withImage.slice(0, 3).map(({ source, img }) => ({ source, forcedImageUrl: img }));
+
+        const remainingSourcesSet = new Set(sortedSources.map(s => s.link));
+        firstThree.forEach(({ source }) => remainingSourcesSet.delete(source.link));
+
+        const remainingOrdered = sortedSources.filter(s => remainingSourcesSet.has(s.link));
+        const noImageOrdered = remainingOrdered.filter(s => !(s.image ?? imageMap[s.link]));
+
+        const nextTwoText = noImageOrdered.slice(0, 2).map(source => ({ source, forceHideImage: true }));
+
+        // if not enough text-only, fill with any remaining but force hide
+        if (nextTwoText.length < 2) {
+            const deficit = 2 - nextTwoText.length;
+            const fillers = remainingOrdered
+                .filter(s => !nextTwoText.some(x => x.source.link === s.link))
+                .slice(0, deficit)
+                .map(source => ({ source, forceHideImage: true }));
+            nextTwoText.push(...fillers);
+        }
+
+        const cards = [...firstThree, ...nextTwoText].slice(0, 5);
+        const extrasCount = Math.max(sortedSources.length - cards.length, 0);
+        return { cards, extrasCount };
+    }, [sortedSources, imageMap]);
 
     return (
         <div className="grid grid-cols-1 gap-4 pb-8 pt-2 md:grid-cols-2 lg:grid-cols-3">
-            {firstFive.map((source, idx) => (
-                <SearchResultCard key={`conv-source-${source.link}-${idx}`} source={source} />
+            {selection.cards.map(({ source, forcedImageUrl, forceHideImage }, idx) => (
+                <SearchResultCard
+                    key={`conv-source-${source.link}-${idx}`}
+                    source={source}
+                    forcedImageUrl={forcedImageUrl}
+                    forceHideImage={forceHideImage}
+                />
             ))}
-            {remaining > 0 && (
+            {selection.extrasCount > 0 && (
                 <div
                     className="group hover:border-brand/30 hover:shadow-brand/10 flex cursor-pointer flex-col rounded-xl border bg-background p-3 shadow-sm transition-all hover:shadow-md"
                     onClick={() =>
@@ -57,13 +131,16 @@ export const SourceGrid = ({ sources }: SourceGridProps) => {
                                     </div>
                                 ))}
                         </div>
-                        <span className="text-muted-foreground text-xs">+{remaining} Sources</span>
+                        <span className="text-muted-foreground text-xs">+{selection.extrasCount} sources</span>
                     </div>
-                    <p className="text-foreground line-clamp-2 text-sm font-medium leading-snug">
-                        Voir toutes les sources
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <IconList size={16} className="text-muted-foreground" />
+                        <p className="text-foreground line-clamp-2 text-sm font-medium leading-snug">
+                            Voir toutes les sources
+                        </p>
+                    </div>
                     <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
-                        Ouvrir la liste complète dans le panneau latéral
+                        Ouvrir la liste complète dans le panneau latéral gauche
                     </p>
                 </div>
             )}
