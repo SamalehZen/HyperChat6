@@ -83,9 +83,10 @@ export const SearchResultCard = memo(
 
     const CardInner = (
         <div
-            className="group hover:border-brand/30 hover:shadow-brand/10 rounded-xl border bg-background shadow-sm transition-all hover:shadow-md"
+            className="group hover:border-brand/30 hover:shadow-brand/10 rounded-xl border bg-background shadow-sm transition-all hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             onClick={onOpen}
             role="button"
+            aria-label={`Ouvrir ${getHostname(source.link) || host} — ${source.title || ''}`}
             tabIndex={0}
             onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') onOpen();
@@ -95,11 +96,14 @@ export const SearchResultCard = memo(
                 <div className="relative w-full overflow-hidden rounded-t-xl pb-[56.25%]">
                     <img
                         loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
                         src={imgUrl}
                         alt={source.title || host || 'preview'}
-                        className="absolute inset-0 h-full w-full object-cover transition-opacity group-hover:opacity-95"
+                        className="absolute inset-0 h-full w-full origin-center transform object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         onError={() => setShowImage(false)}
                     />
+                    <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-black/10 opacity-90" />
                 </div>
             ) : null}
 
@@ -108,7 +112,7 @@ export const SearchResultCard = memo(
                     <LinkFavicon link={host} />
                     <span className="text-muted-foreground line-clamp-1 text-xs">{getHostname(source.link)}</span>
                 </div>
-                <h3 className="line-clamp-2 text-sm font-medium leading-snug">
+                <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
                     {source.title || host}
                 </h3>
                 {source.snippet ? (
