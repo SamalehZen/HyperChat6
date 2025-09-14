@@ -11,7 +11,7 @@ export type SearchResultsType = {
 
 const ogCache = new Map<string, string | null>();
 
-const SearchResultCard = memo(({ source }: { source: Source }) => {
+export const SearchResultCard = memo(({ source }: { source: Source }) => {
     const [imgUrl, setImgUrl] = useState<string | null>(source.image ?? null);
     const [showImage, setShowImage] = useState<boolean>(!!source.image);
 
