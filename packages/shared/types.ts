@@ -36,6 +36,7 @@ export type Source = {
     link: string;
     index: number;
     snippet?: string;
+    image?: string;
 };
 
 export type Answer = {

@@ -1,38 +1,125 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import { LinkFavicon, LinkPreviewPopover } from '@repo/common/components';
 import { Source } from '@repo/shared/types';
 import { getHost, getHostname } from '@repo/shared/utils';
-import { Badge, Flex } from '@repo/ui';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 
 export type SearchResultsType = {
     sources: Source[];
 };
 
+const ogCache = new Map<string, string | null>();
+
+const SearchResultCard = memo(({ source }: { source: Source }) => {
+    const [imgUrl, setImgUrl] = useState<string | null>(source.image ?? null);
+    const [showImage, setShowImage] = useState<boolean>(!!source.image);
+
+    const host = useMemo(() => getHost(source.link) || source.link, [source.link]);
+
+    useEffect(() => {
+        let cancelled = false;
+        const fetchOg = async () => {
+            if (source.image) return; // already provided
+            const key = source.link;
+            if (ogCache.has(key)) {
+                if (!cancelled) {
+                    const cached = ogCache.get(key) ?? null;
+                    setImgUrl(cached);
+                    setShowImage(!!cached);
+                }
+                return;
+            }
+            try {
+                const res = await fetch(`/api/og?url=${encodeURIComponent(source.link)}`);
+                if (!res.ok) {
+                    ogCache.set(key, null);
+                    if (!cancelled) {
+                        setImgUrl(null);
+                        setShowImage(false);
+                    }
+                    return;
+                }
+                const data = (await res.json()) as { image: string | null };
+                const image = data?.image || null;
+                ogCache.set(key, image);
+                if (!cancelled) {
+                    setImgUrl(image);
+                    setShowImage(!!image);
+                }
+            } catch (e) {
+                ogCache.set(source.link, null);
+                if (!cancelled) {
+                    setImgUrl(null);
+                    setShowImage(false);
+                }
+            }
+        };
+        fetchOg();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [source.link]);
+
+    const onOpen = () => {
+        window?.open(source.link, '_blank', 'noopener,noreferrer');
+    };
+
+    const CardInner = (
+        <div
+            className="group hover:border-brand/30 hover:shadow-brand/10 rounded-xl border bg-background shadow-sm transition-all hover:shadow-md"
+            onClick={onOpen}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') onOpen();
+            }}
+        >
+            {showImage && imgUrl ? (
+                <div className="relative w-full overflow-hidden rounded-t-xl pb-[56.25%]">
+                    <img
+                        loading="lazy"
+                        src={imgUrl}
+                        alt={source.title || host || 'preview'}
+                        className="absolute inset-0 h-full w-full object-cover transition-opacity group-hover:opacity-95"
+                        onError={() => setShowImage(false)}
+                    />
+                </div>
+            ) : null}
+
+            <div className="p-3">
+                <div className="mb-2 flex items-center gap-2">
+                    <LinkFavicon link={host} />
+                    <span className="text-muted-foreground line-clamp-1 text-xs">{getHostname(source.link)}</span>
+                </div>
+                <h3 className="line-clamp-2 text-sm font-medium leading-snug">
+                    {source.title || host}
+                </h3>
+                {source.snippet ? (
+                    <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{source.snippet}</p>
+                ) : null}
+            </div>
+        </div>
+    );
+
+    return (
+        <LinkPreviewPopover source={source}>
+            {CardInner}
+        </LinkPreviewPopover>
+    );
+});
+
 export const SearchResultsList = ({ sources }: SearchResultsType) => {
-    if (!Array.isArray(sources)) {
+    if (!Array.isArray(sources) || sources.length === 0) {
         return null;
     }
 
     return (
-        <Flex direction="col" gap="md" className="w-full">
-            {Array.isArray(sources) && (
-                <Flex gap="xs" className="mb-4 w-full flex-wrap overflow-x-hidden" items="stretch">
-                    {sources.map((source, index) => (
-                        <LinkPreviewPopover source={source} key={`source-${source.link}-${index}`}>
-                            <Badge
-                                size="md"
-                                variant="default"
-                                onClick={() => {
-                                    window?.open(source?.link, '_blank');
-                                }}
-                            >
-                                <LinkFavicon link={getHost(source.link)} />
-                                {getHostname(source.link)}
-                            </Badge>
-                        </LinkPreviewPopover>
-                    ))}
-                </Flex>
-            )}
-        </Flex>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {sources.map((source, index) => (
+                <SearchResultCard source={source} key={`source-${source.link}-${index}`} />
+            ))}
+        </div>
     );
 };
