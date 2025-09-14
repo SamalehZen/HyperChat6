@@ -53,7 +53,6 @@ export const SourceGrid = ({ sources }: SourceGridProps) => {
     }, [sortedSources.map(s => s.link).join('|')]);
 
     const selection = useMemo(() => {
-        const chosen: Array<{ source: Source; forcedImageUrl?: string | null; forceHideImage?: boolean }>[] = [[], []];
         const withImage: Array<{ source: Source; img: string | null }> = [];
         const withoutImage: Source[] = [];
 
@@ -63,7 +62,7 @@ export const SourceGrid = ({ sources }: SourceGridProps) => {
             else withoutImage.push(s);
         }
 
-        const firstThree = withImage.slice(0, 3).map(({ source, img }) => ({ source, forcedImageUrl: img }));
+        const firstThree = withImage.slice(0, 3).map(({ source, img }) => ({ source, img }));
 
         const remainingSourcesSet = new Set(sortedSources.map(s => s.link));
         firstThree.forEach(({ source }) => remainingSourcesSet.delete(source.link));
@@ -71,19 +70,25 @@ export const SourceGrid = ({ sources }: SourceGridProps) => {
         const remainingOrdered = sortedSources.filter(s => remainingSourcesSet.has(s.link));
         const noImageOrdered = remainingOrdered.filter(s => !(s.image ?? imageMap[s.link]));
 
-        const nextTwoText = noImageOrdered.slice(0, 2).map(source => ({ source, forceHideImage: true }));
+        const nextTwoText = noImageOrdered.slice(0, 2);
 
-        // if not enough text-only, fill with any remaining but force hide
         if (nextTwoText.length < 2) {
             const deficit = 2 - nextTwoText.length;
             const fillers = remainingOrdered
-                .filter(s => !nextTwoText.some(x => x.source.link === s.link))
-                .slice(0, deficit)
-                .map(source => ({ source, forceHideImage: true }));
+                .filter(s => !nextTwoText.some(x => x.link === s.link))
+                .slice(0, deficit);
             nextTwoText.push(...fillers);
         }
 
-        const cards = [...firstThree, ...nextTwoText].slice(0, 5);
+        const normalizedCards: Array<{ source: Source; forcedImageUrl: string | null; forceHideImage: boolean }> = [];
+        normalizedCards.push(
+            ...firstThree.map(({ source, img }) => ({ source, forcedImageUrl: img, forceHideImage: false }))
+        );
+        normalizedCards.push(
+            ...nextTwoText.map(source => ({ source, forcedImageUrl: null, forceHideImage: true }))
+        );
+
+        const cards = normalizedCards.slice(0, 5);
         const extrasCount = Math.max(sortedSources.length - cards.length, 0);
         return { cards, extrasCount };
     }, [sortedSources, imageMap]);
