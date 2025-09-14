@@ -134,10 +134,56 @@ export const SearchResultsList = ({ sources }: SearchResultsType) => {
         return null;
     }
 
+    const [imageMap, setImageMap] = useState<Record<string, string | null>>({});
+
+    useEffect(() => {
+        let cancelled = false;
+        const run = async () => {
+            await Promise.all(
+                sources.map(async s => {
+                    if (s.image !== undefined || imageMap[s.link] !== undefined) return;
+                    try {
+                        const res = await fetch(`/api/og?url=${encodeURIComponent(s.link)}`);
+                        const data = (await res.json()) as { image: string | null };
+                        if (!cancelled) setImageMap(prev => ({ ...prev, [s.link]: data?.image || null }));
+                    } catch {
+                        if (!cancelled) setImageMap(prev => ({ ...prev, [s.link]: null }));
+                    }
+                })
+            );
+        };
+        run();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sources.map(s => s.link).join('|')]);
+
+    const ordered = useMemo(() => {
+        const withImage: Array<{ source: Source; img: string | null }> = [];
+        const withoutImage: Source[] = [];
+        for (const s of sources) {
+            const img = s.image ?? imageMap[s.link] ?? null;
+            if (img) withImage.push({ source: s, img });
+            else withoutImage.push(s);
+        }
+        return { withImage, withoutImage };
+    }, [sources, imageMap]);
+
+    const cards: Array<{ source: Source; forcedImageUrl: string | null; forceHideImage: boolean }> = [
+        ...ordered.withImage.map(({ source, img }) => ({ source, forcedImageUrl: img, forceHideImage: false })),
+        ...ordered.withoutImage.map(source => ({ source, forcedImageUrl: null, forceHideImage: true })),
+    ];
+
     return (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {sources.map((source, index) => (
-                <SearchResultCard source={source} key={`source-${source.link}-${index}`} />
+            {cards.map(({ source, forcedImageUrl, forceHideImage }, index) => (
+                <SearchResultCard
+                    source={source}
+                    forcedImageUrl={forcedImageUrl}
+                    forceHideImage={forceHideImage}
+                    key={`source-${source.link}-${index}`}
+                />
             ))}
         </div>
     );
