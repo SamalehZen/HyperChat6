@@ -108,13 +108,13 @@ export async function GET(req: NextRequest) {
 
             if (!res.ok) {
                 clearTimeout(timeout);
-                return NextResponse.json({ image: null }, { status: 204 });
+                return NextResponse.json({ image: null }, { status: 200 });
             }
 
             html = await res.text();
         } catch (e) {
             clearTimeout(timeout);
-            return NextResponse.json({ image: null }, { status: 204 });
+            return NextResponse.json({ image: null }, { status: 200 });
         } finally {
             clearTimeout(timeout);
         }
@@ -136,6 +136,6 @@ export async function GET(req: NextRequest) {
         res.headers.set('Cache-Control', 's-maxage=86400, stale-while-revalidate=86400');
         return res;
     } catch (e) {
-        return NextResponse.json({ image: null }, { status: 204 });
+        return NextResponse.json({ image: null }, { status: 200 });
     }
 }
