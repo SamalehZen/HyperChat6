@@ -112,14 +112,25 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             let eventPayloadForType: any = eventData[eventType];
 
             if (eventType === 'steps' && eventData?.steps) {
-                const steps = { ...(eventData.steps || {}) };
-                if (steps?.reasoning && typeof steps?.reasoning?.data === 'string') {
-                    // Store reasoning only in volatile memory, do not persist
-                    useChatStore.getState().setRuntimeReasoning(threadItemId, steps.reasoning.data);
-                    // Remove reasoning from persisted steps
-                    delete steps.reasoning;
+                const stepsMap: Record<string, any> = { ...(eventData.steps || {}) };
+                let collected = '';
+                for (const k of Object.keys(stepsMap)) {
+                    const se = stepsMap[k];
+                    const subSteps = se?.steps;
+                    if (subSteps && subSteps.reasoning) {
+                        const reason = subSteps.reasoning?.data;
+                        if (typeof reason === 'string') {
+                            collected += reason;
+                        }
+                        // Remove reasoning from persisted payload
+                        delete subSteps.reasoning;
+                    }
                 }
-                eventPayloadForType = steps;
+                if (collected) {
+                    // Store in volatile runtime state only
+                    useChatStore.getState().appendRuntimeReasoning(threadItemId, collected);
+                }
+                eventPayloadForType = stepsMap;
             }
 
             const updatedItem: ThreadItem = {
