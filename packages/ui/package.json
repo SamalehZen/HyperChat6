@@ -34,5 +34,6 @@
     },
     "peerDependencies": {
         "react": "^18.2.0"
+        "@tabler/icons-react": "^3.0.0"
     }
 }
