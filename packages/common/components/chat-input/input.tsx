@@ -273,6 +273,7 @@ type AnimatedTitlesProps = {
 };
 
 const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
+    const { t } = useI18n();
     const [greeting, setGreeting] = React.useState<string>('');
 
     React.useEffect(() => {
