@@ -1,6 +1,7 @@
 import { createTask } from '@repo/orchestrator';
 import { getModelFromChatMode, ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
+import { ChatMode } from '@repo/shared/config';
 import { ChunkBuffer, generateText, getHumanizedDate, handleError } from '../utils';
 
 const MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH = 1000000;
@@ -67,6 +68,10 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         Aujourd’hui: ${getHumanizedDate()}. Localisation: ${context.get('gl')?.city}, ${context.get('gl')?.country} (si disponible).
         `;
 
+        if (mode === ChatMode.GEMINI_2_5_PRO) {
+            prompt = 'Réponds de façon experte et concise.';
+        }
+
         const reasoningBuffer = new ChunkBuffer({
             threshold: 200,
             breakOn: ['\n\n'],
@@ -108,6 +113,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             signal,
             toolChoice: 'auto',
             maxSteps: 2,
+            ...(mode === ChatMode.GEMINI_2_5_PRO ? { temperature: 0.1, topP: 0.1 } : {}),
             onReasoning: (chunk, fullText) => {
                 reasoningBuffer.add(chunk);
             },

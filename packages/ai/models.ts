@@ -13,6 +13,7 @@ export enum ModelEnum {
     Claude_3_5_Sonnet = 'claude-3-5-sonnet-20240620',
     O4_Mini = 'o4-mini',
     GEMINI_2_5_FLASH = 'gemini-2.5-flash',
+    GEMINI_2_5_PRO = 'gemini-2.5-pro',
     GEMINI_2_FLASH = 'gemini-flash-2.0',
     QWQ_32B = 'accounts/fireworks/models/qwq-32b',
     Deepseek_R1 = 'accounts/fireworks/models/deepseek-r1',
@@ -113,6 +114,13 @@ export const models: Model[] = [
         contextWindow: 200000,
     },
     {
+        id: ModelEnum.GEMINI_2_5_PRO,
+        name: 'Gemini 2.5 Pro',
+        provider: 'google',
+        maxTokens: 200000,
+        contextWindow: 200000,
+    },
+    {
         id: ModelEnum.QWQ_32B,
         name: 'QWQ 32B',
         provider: 'fireworks',
@@ -132,6 +140,8 @@ export const getModelFromChatMode = (mode?: string): ModelEnum => {
     switch (mode) {
         case ChatMode.GEMINI_2_5_FLASH:
             return ModelEnum.GEMINI_2_5_FLASH;
+        case ChatMode.GEMINI_2_5_PRO:
+            return ModelEnum.GEMINI_2_5_PRO;
         case ChatMode.DEEPSEEK_R1:
             return ModelEnum.Deepseek_R1;
         case ChatMode.CLAUDE_3_5_SONNET:
@@ -157,6 +167,8 @@ export const getModelFromChatMode = (mode?: string): ModelEnum => {
 export const getChatModeMaxTokens = (mode: ChatMode) => {
     switch (mode) {
         case ChatMode.GEMINI_2_5_FLASH:
+            return 500000;
+        case ChatMode.GEMINI_2_5_PRO:
             return 500000;
         case ChatMode.DEEPSEEK_R1:
             return 100000;

@@ -71,6 +71,9 @@ export const generateText = async ({
     signal,
     toolChoice = 'auto',
     maxSteps = 2,
+    temperature,
+    topP,
+    maxOutputTokens,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -83,6 +86,9 @@ export const generateText = async ({
     signal?: AbortSignal;
     toolChoice?: 'auto' | 'none' | 'required';
     maxSteps?: number;
+    temperature?: number;
+    topP?: number;
+    maxOutputTokens?: number;
 }) => {
     try {
         if (signal?.aborted) {
@@ -104,6 +110,9 @@ export const generateText = async ({
                   maxSteps,
                   toolChoice: toolChoice as any,
                   abortSignal: signal,
+                  temperature,
+                  topP,
+
               })
             : streamText({
                   prompt,
@@ -112,6 +121,9 @@ export const generateText = async ({
                   maxSteps,
                   toolChoice: toolChoice as any,
                   abortSignal: signal,
+                  temperature,
+                  topP,
+
               });
         let fullText = '';
         let reasoning = '';
@@ -154,12 +166,16 @@ export const generateObject = async ({
     schema,
     messages,
     signal,
+    temperature,
+    topP,
 }: {
     prompt: string;
     model: ModelEnum;
     schema: ZodSchema;
     messages?: CoreMessage[];
     signal?: AbortSignal;
+    temperature?: number;
+    topP?: number;
 }) => {
     try {
         if (signal?.aborted) {
@@ -174,12 +190,18 @@ export const generateObject = async ({
                   schema,
                   messages,
                   abortSignal: signal,
+                  temperature,
+                  topP,
+
               })
             : await generateObjectAi({
                   prompt,
                   model: selectedModel,
                   schema,
                   abortSignal: signal,
+                  temperature,
+                  topP,
+
               });
 
         return JSON.parse(JSON.stringify(object));
