@@ -16,6 +16,7 @@ import { useChatStore } from '../store/chat.store';
 import { ChatEditor } from './chat-input';
 import { BYOKIcon, ToolIcon } from './icons';
 import { AiSettings } from './settings/ai-settings';
+import { IconAtom } from '@tabler/icons-react';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
