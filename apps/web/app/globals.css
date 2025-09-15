@@ -25,10 +25,10 @@
         --secondary-foreground: 180 0% 4%;
 
         --tertiary: 180 0% 94%;
-        --tertiary-foreground: 180 0% 6%;
+        --tertiary-foreground: 180 0% 8%;
 
         --quaternary: 180 0% 90%;
-        --quaternary-foreground: 180 0% 10%;
+        --quaternary-foreground: 180 0% 12%;
 
         --card: 40 30% 98%;
         --card-foreground: 20 15% 10%;
@@ -43,15 +43,15 @@
         --accent-foreground: 164 70% 96%;
 
         --muted: 180 0% 90%;
-        --muted-foreground: 180 0% 10%;
+        --muted-foreground: 180 0% 14%;
 
         --destructive: 0 84% 60%;
         --destructive-foreground: 40 30% 98%;
 
-        --border: 180 0% 84%;
+        --border: 180 0% 80%;
         --soft: 180 0% 92%;
-        --hard: 180 0% 78%;
-        --input: 180 0% 85%;
+        --hard: 180 0% 74%;
+        --input: 180 0% 82%;
         --ring: 20 15% 10%;
 
         --radius: 0.5rem;
@@ -94,16 +94,16 @@
         --accent-foreground: 164 70% 96%;
 
         --muted: 180 0% 20%;
-        --muted-foreground: 180 0% 70%;
+        --muted-foreground: 180 0% 75%;
 
         --destructive: 0 84% 60%;
         --destructive-foreground: 40 30% 98%;
 
-        --border: 180 0% 16%;
+        --border: 180 0% 20%;
         --soft: 180 0% 8%;
-        --hard: 180 0% 22%;
-        --input: 180 0% 16%;
-        --ring: 20 15% 10%;
+        --hard: 180 0% 26%;
+        --input: 180 0% 20%;
+        --ring: 180 0% 96%;
 
         --radius: 0.5rem;
 
@@ -120,12 +120,12 @@
     .dark .chat-theme {
         --secondary: 0 0% 2%;
         --background: 0 0% 8%;
-        --border: 0 0% 12%;
-        --hard: 0 0% 18%;
+        --border: 0 0% 14%;
+        --hard: 0 0% 20%;
         --chat-input-container-bg: 0 0% 12%;
         --chat-input-surface-bg: 0 0% 8%;
         --chat-input-bg: 0 0% 8%;
-        --chat-input-border: 0 0% 12%;
+        --chat-input-border: 0 0% 14%;
         --chat-input-surface-shadow: none;
         --chat-input-control-bg: var(--chat-input-container-bg);
         --chat-input-control-hover-bg: var(--chat-input-container-bg);
