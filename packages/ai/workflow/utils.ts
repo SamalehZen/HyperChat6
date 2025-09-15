@@ -166,12 +166,16 @@ export const generateObject = async ({
     schema,
     messages,
     signal,
+    temperature,
+    topP,
 }: {
     prompt: string;
     model: ModelEnum;
     schema: ZodSchema;
     messages?: CoreMessage[];
     signal?: AbortSignal;
+    temperature?: number;
+    topP?: number;
 }) => {
     try {
         if (signal?.aborted) {
