@@ -73,7 +73,7 @@ export const generateText = async ({
     maxSteps = 2,
     temperature,
     topP,
-    maxOutputTokens,
+    maxTokens: maxOutputTokens,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -110,9 +110,7 @@ export const generateText = async ({
                   maxSteps,
                   toolChoice: toolChoice as any,
                   abortSignal: signal,
-                  temperature,
-                  topP,
-                  maxOutputTokens,
+
               })
             : streamText({
                   prompt,
@@ -121,9 +119,7 @@ export const generateText = async ({
                   maxSteps,
                   toolChoice: toolChoice as any,
                   abortSignal: signal,
-                  temperature,
-                  topP,
-                  maxOutputTokens,
+
               });
         let fullText = '';
         let reasoning = '';
@@ -186,18 +182,14 @@ export const generateObject = async ({
                   schema,
                   messages,
                   abortSignal: signal,
-                  temperature,
-                  topP,
-                  maxOutputTokens,
+
               })
             : await generateObjectAi({
                   prompt,
                   model: selectedModel,
                   schema,
                   abortSignal: signal,
-                  temperature,
-                  topP,
-                  maxOutputTokens,
+
               });
 
         return JSON.parse(JSON.stringify(object));
