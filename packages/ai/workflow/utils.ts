@@ -138,10 +138,16 @@ export const generateText = async ({
             if (chunk.type === 'text-delta') {
                 fullText += chunk.textDelta;
                 onChunk?.(chunk.textDelta, fullText);
+                if (typeof process !== 'undefined' && (process.env?.NEXT_PUBLIC_DEBUG_REASONING === 'true')) {
+                    console.log('[REASONING_DEBUG][text-delta]', { len: chunk.textDelta?.length || 0, totalLen: fullText.length });
+                }
             }
             if (chunk.type === 'reasoning') {
                 reasoning += chunk.textDelta;
                 onReasoning?.(chunk.textDelta, reasoning);
+                if (typeof process !== 'undefined' && (process.env?.NEXT_PUBLIC_DEBUG_REASONING === 'true')) {
+                    console.log('[REASONING_DEBUG][middleware]', { deltaLen: chunk.textDelta?.length || 0, totalLen: reasoning.length });
+                }
             }
             if (chunk.type === 'tool-call') {
                 onToolCall?.(chunk);

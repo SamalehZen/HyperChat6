@@ -127,8 +127,10 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     }
                 }
                 if (collected) {
-                    // Store in volatile runtime state only
                     useChatStore.getState().appendRuntimeReasoning(threadItemId, collected);
+                    if (process.env.NEXT_PUBLIC_DEBUG_REASONING === 'true') {
+                        console.log('[REASONING_DEBUG][ui-collector]', { appendLen: collected.length, threadItemId });
+                    }
                 }
                 eventPayloadForType = stepsMap;
             }

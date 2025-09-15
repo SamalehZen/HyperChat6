@@ -90,6 +90,25 @@ export async function executeStream({
         });
 
         workflow.onAll((event, payload) => {
+            if (process.env.NEXT_PUBLIC_DEBUG_REASONING === 'true') {
+                try {
+                    let hasReasoning = false;
+                    let totalLen = 0;
+                    const steps = (payload as any)?.steps;
+                    if (steps && typeof steps === 'object') {
+                        Object.values(steps as any).forEach((st: any) => {
+                            const sub = st?.steps;
+                            if (sub?.reasoning && typeof sub.reasoning?.data === 'string') {
+                                hasReasoning = true;
+                                totalLen += sub.reasoning.data.length;
+                            }
+                        });
+                    }
+                    if (hasReasoning) {
+                        console.log('[REASONING_DEBUG][server->sse]', { event, chunksLen: totalLen, threadItemId: data.threadItemId });
+                    }
+                } catch {}
+            }
             sendMessage(controller, encoder, {
                 type: event,
                 threadId: data.threadId,
