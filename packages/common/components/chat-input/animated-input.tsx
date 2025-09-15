@@ -150,6 +150,14 @@ export const AnimatedChatInput = ({
             isAuthRequired: ChatModeConfig[ChatMode.GEMINI_2_5_FLASH].isAuthRequired,
             category: 'standard',
         },
+        {
+            id: ChatMode.GEMINI_2_5_PRO,
+            name: 'Gemini 2.5 Pro',
+            icon: ModelIcons.GEMINI,
+            creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GEMINI_2_5_PRO],
+            isAuthRequired: ChatModeConfig[ChatMode.GEMINI_2_5_PRO].isAuthRequired,
+            category: 'standard',
+        },
         // Commented models (will be filtered out below)
         // {
         //     id: ChatMode.LLAMA_4_SCOUT,

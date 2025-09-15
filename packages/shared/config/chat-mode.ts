@@ -11,6 +11,7 @@ export enum ChatMode {
     GPT_4o_Mini = 'gpt-4o-mini',
     LLAMA_4_SCOUT = 'llama-4-scout',
     GEMINI_2_5_FLASH = 'gemini-2.5-flash',
+    GEMINI_2_5_PRO = 'gemini-2.5-pro',
     DEEPSEEK_R1 = 'deepseek-r1',
     CLAUDE_3_5_SONNET = 'claude-3-5-sonnet',
     CLAUDE_3_7_SONNET = 'claude-3-7-sonnet',
@@ -126,6 +127,13 @@ export const ChatModeConfig: Record<
         isNew: true,
         isAuthRequired: false,
     },
+    [ChatMode.GEMINI_2_5_PRO]: {
+        webSearch: true,
+        imageUpload: true,
+        retry: true,
+        isNew: true,
+        isAuthRequired: false,
+    },
     [ChatMode.DEEPSEEK_R1]: {
         webSearch: true,
         imageUpload: false,
@@ -164,6 +172,7 @@ export const CHAT_MODE_CREDIT_COSTS = {
     [ChatMode.CLAUDE_3_5_SONNET]: 5,
     [ChatMode.CLAUDE_3_7_SONNET]: 5,
     [ChatMode.GEMINI_2_5_FLASH]: 1,
+    [ChatMode.GEMINI_2_5_PRO]: 2,
     [ChatMode.DEEPSEEK_R1]: 5,
     [ChatMode.NOMENCLATURE_DOUANIERE]: 1,
     [ChatMode.SMART_PDF_TO_EXCEL]: 1,
@@ -201,6 +210,8 @@ export const getChatModeName = (mode: ChatMode) => {
             return 'DeepSeek R1';
         case ChatMode.GEMINI_2_5_FLASH:
             return 'Gemini 2.5 Flash';
+        case ChatMode.GEMINI_2_5_PRO:
+            return 'Gemini 2.5 Pro';
         case ChatMode.NOMENCLATURE_DOUANIERE:
             return 'Nomenclature Douanière';
         case ChatMode.SMART_PDF_TO_EXCEL:

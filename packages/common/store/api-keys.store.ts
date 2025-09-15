@@ -46,6 +46,7 @@ export const useApiKeysStore = create<ApiKeysState>()(
                     case ChatMode.GPT_4_1:
                         return !!apiKeys['OPENAI_API_KEY'];
                     case ChatMode.GEMINI_2_5_FLASH:
+                    case ChatMode.GEMINI_2_5_PRO:
                         return !!apiKeys['GEMINI_API_KEY'];
                     case ChatMode.CLAUDE_3_5_SONNET:
                     case ChatMode.CLAUDE_3_7_SONNET:
