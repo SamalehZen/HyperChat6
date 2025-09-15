@@ -451,7 +451,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             const overrideEnabled = reasoningEnabledOverrides?.[threadId];
             const overrideBudget = reasoningBudgetOverrides?.[threadId];
             const reasoningEnabled = (overrideEnabled !== undefined ? overrideEnabled : reasoningEnabledDefault) ?? true;
-            const reasoningBudget = Math.max(0, Math.min(10000, (overrideBudget !== undefined ? overrideBudget : reasoningBudgetDefault) ?? 0));
+            const reasoningBudgetRaw = Math.max(0, Math.min(10000, (overrideBudget !== undefined ? overrideBudget : reasoningBudgetDefault) ?? 0));
+            const reasoningBudget = reasoningEnabled ? Math.max(200, reasoningBudgetRaw) : 0;
 
             if (hasApiKeyForChatMode(mode)) {
                 const abortController = new AbortController();
