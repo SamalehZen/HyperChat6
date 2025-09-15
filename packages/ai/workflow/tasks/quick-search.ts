@@ -198,6 +198,7 @@ export const quickSearchTask = createTask<WorkflowEventSchema, WorkflowContextSc
             model,
             messages: [...messages],
             prompt,
+            runtimeOptions: context?.get('runtimeOptions'),
             onChunk: (chunk, fullText) => {
                 updateAnswer({
                     text: chunk,

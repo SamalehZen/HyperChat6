@@ -9,3 +9,4 @@ export * from './source-list';
 export * from './tool-call';
 
 export * from './tool-result';
+export * from './thought-panel';

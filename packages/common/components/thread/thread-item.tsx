@@ -8,6 +8,7 @@ import {
     QuestionPrompt,
     SourceGrid,
     Steps,
+    ThoughtPanel,
 } from '@repo/common/components';
 import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
@@ -107,6 +108,8 @@ export const ThreadItem = memo(
                             {hasAnswer && threadItem.answer?.text && (
                                 <div className="flex flex-col">
                                     <SourceGrid sources={threadItem.sources || []} />
+
+                                    <ThoughtPanel threadItemId={threadItem.id} />
 
                                     <MarkdownContent
                                         content={animatedText || ''}

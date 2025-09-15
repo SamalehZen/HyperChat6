@@ -231,6 +231,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
                     prompt: getAnalysisPrompt(question, webPageContent),
                     model: ModelEnum.GEMINI_2_5_FLASH,
                     messages,
+                    runtimeOptions: context?.get('runtimeOptions'),
                     onReasoning: chunk => {
                         reasoningBuffer.add(chunk);
                     },

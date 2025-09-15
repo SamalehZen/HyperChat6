@@ -87,6 +87,9 @@ type State = {
         isAuthenticated: boolean;
         isFetched: boolean;
     };
+    reasoningEnabledOverrides: Record<string, boolean | undefined>;
+    reasoningBudgetOverrides: Record<string, number | undefined>;
+    runtimeReasoning: Record<string, string>;
 };
 
 type Actions = {
@@ -127,6 +130,13 @@ type Actions = {
     setShowSuggestions: (showSuggestions: boolean) => void;
     listThreads: (params: { offset: number; limit: number; sort?: 'createdAt' }) => Promise<Thread[]>;
     countThreads: (onlyUnpinned?: boolean) => Promise<number>;
+    setReasoningEnabledOverride: (threadId: string, enabled?: boolean) => void;
+    setReasoningBudgetOverride: (threadId: string, budget?: number) => void;
+    clearReasoningOverrides: (threadId: string) => void;
+    appendRuntimeReasoning: (threadItemId: string, delta: string) => void;
+    setRuntimeReasoning: (threadItemId: string, text: string) => void;
+    clearRuntimeReasoning: (threadItemId: string) => void;
+    getRuntimeReasoning: (threadItemId: string) => string;
 };
 
 // Add these utility functions at the top level
@@ -469,6 +479,9 @@ export const useChatStore = create(
             isFetched: false,
         },
         showSuggestions: true,
+        reasoningEnabledOverrides: {},
+        reasoningBudgetOverrides: {},
+        runtimeReasoning: {},
 
         setCustomInstructions: (customInstructions: string) => {
             const existingConfig = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
@@ -525,6 +538,51 @@ export const useChatStore = create(
             set(state => {
                 state.chatMode = chatMode;
             });
+        },
+
+        setReasoningEnabledOverride: (threadId: string, enabled?: boolean) => {
+            set(state => {
+                if (enabled === undefined) {
+                    delete state.reasoningEnabledOverrides[threadId];
+                } else {
+                    state.reasoningEnabledOverrides[threadId] = enabled;
+                }
+            });
+        },
+        setReasoningBudgetOverride: (threadId: string, budget?: number) => {
+            set(state => {
+                const value = budget === undefined ? undefined : Math.max(0, Math.min(10000, Math.floor(budget)));
+                if (value === undefined) {
+                    delete state.reasoningBudgetOverrides[threadId];
+                } else {
+                    state.reasoningBudgetOverrides[threadId] = value;
+                }
+            });
+        },
+        clearReasoningOverrides: (threadId: string) => {
+            set(state => {
+                delete state.reasoningEnabledOverrides[threadId];
+                delete state.reasoningBudgetOverrides[threadId];
+            });
+        },
+        appendRuntimeReasoning: (threadItemId: string, delta: string) => {
+            set(state => {
+                const prev = state.runtimeReasoning[threadItemId] || '';
+                state.runtimeReasoning[threadItemId] = prev + delta;
+            });
+        },
+        clearRuntimeReasoning: (threadItemId: string) => {
+            set(state => {
+                delete state.runtimeReasoning[threadItemId];
+            });
+        },
+        setRuntimeReasoning: (threadItemId: string, text: string) => {
+            set(state => {
+                state.runtimeReasoning[threadItemId] = text;
+            });
+        },
+        getRuntimeReasoning: (threadItemId: string) => {
+            return get().runtimeReasoning[threadItemId] || '';
         },
 
         pinThread: async (threadId: string) => {

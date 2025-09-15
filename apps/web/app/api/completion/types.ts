@@ -13,6 +13,8 @@ export const completionRequestSchema = z.object({
     webSearch: z.boolean().optional(),
     showSuggestions: z.boolean().optional(),
     customInstructions: z.string().optional(),
+    reasoningEnabled: z.boolean().optional(),
+    reasoningBudget: z.number().optional(),
 });
 
 export type CompletionRequestType = z.infer<typeof completionRequestSchema>;

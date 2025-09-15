@@ -5,7 +5,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { LanguageModelV1 } from '@ai-sdk/provider';
 import { createTogetherAI } from '@ai-sdk/togetherai';
 import { LanguageModelV1Middleware, wrapLanguageModel } from 'ai';
-import { ModelEnum, models } from './models';
+import { ModelEnum, ModelRuntimeOptions, models } from './models';
 
 export const Providers = {
     OPENAI: 'openai',
@@ -100,10 +100,33 @@ export const getProviderInstance = (provider: ProviderEnumType) => {
     }
 };
 
-export const getLanguageModel = (m: ModelEnum, middleware?: LanguageModelV1Middleware) => {
+export const getLanguageModel = (
+    m: ModelEnum,
+    middleware?: LanguageModelV1Middleware,
+    runtimeOptions?: ModelRuntimeOptions
+) => {
     const model = models.find(model => model.id === m);
-    const instance = getProviderInstance(model?.provider as ProviderEnumType);
-    const selectedModel = instance(model?.id || 'gpt-4o-mini');
+    const provider = model?.provider as ProviderEnumType;
+    const instance = getProviderInstance(provider);
+
+    const isGemini25 = m === ModelEnum.GEMINI_2_5_FLASH || m === ModelEnum.GEMINI_2_5_PRO;
+
+    let selectedModel: any;
+
+    if (provider === Providers.GOOGLE && isGemini25 && runtimeOptions?.reasoningEnabled) {
+        const budget = Math.max(0, Math.min(10000, Math.floor(runtimeOptions.reasoningBudget || 0)));
+        const opts: any = {};
+        (opts as any).reasoning = { budgetTokens: budget };
+        (opts as any).thinking = { budgetTokens: budget };
+        try {
+            selectedModel = (instance as any)(model?.id || 'gemini-2.5-flash', opts);
+        } catch (e) {
+            selectedModel = (instance as any)(model?.id || 'gemini-2.5-flash');
+        }
+    } else {
+        selectedModel = (instance as any)(model?.id || 'gpt-4o-mini');
+    }
+
     if (middleware) {
         return wrapLanguageModel({ model: selectedModel, middleware }) as LanguageModelV1;
     }

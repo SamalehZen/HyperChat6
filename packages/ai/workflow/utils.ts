@@ -9,7 +9,7 @@ import {
 } from 'ai';
 import { format } from 'date-fns';
 import { ZodSchema } from 'zod';
-import { ModelEnum } from '../models';
+import { ModelEnum, ModelRuntimeOptions } from '../models';
 import { getLanguageModel } from '../providers';
 import { WorkflowEventSchema } from './flow';
 import { generateErrorMessage } from './tasks/utils';
@@ -74,6 +74,7 @@ export const generateText = async ({
     temperature,
     topP,
     maxOutputTokens,
+    runtimeOptions,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -89,6 +90,7 @@ export const generateText = async ({
     temperature?: number;
     topP?: number;
     maxOutputTokens?: number;
+    runtimeOptions?: ModelRuntimeOptions;
 }) => {
     try {
         if (signal?.aborted) {
@@ -100,7 +102,7 @@ export const generateText = async ({
             separator: '\n',
         });
 
-        const selectedModel = getLanguageModel(model, middleware);
+        const selectedModel = getLanguageModel(model, middleware, runtimeOptions);
         const { fullStream } = !!messages?.length
             ? streamText({
                   system: prompt,

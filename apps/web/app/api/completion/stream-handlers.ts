@@ -83,6 +83,10 @@ export async function executeStream({
             mcpConfig: data.mcpConfig || {},
             showSuggestions: data.showSuggestions || false,
             onFinish: onFinish,
+            runtimeOptions: {
+                reasoningEnabled: data.reasoningEnabled ?? true,
+                reasoningBudget: Math.max(0, Math.min(10000, data.reasoningBudget ?? 0)),
+            },
         });
 
         workflow.onAll((event, payload) => {

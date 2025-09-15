@@ -114,6 +114,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             toolChoice: 'auto',
             maxSteps: 2,
             ...(mode === ChatMode.GEMINI_2_5_PRO ? { temperature: 0.1, topP: 0.1 } : {}),
+            runtimeOptions: context?.get('runtimeOptions'),
             onReasoning: (chunk, fullText) => {
                 reasoningBuffer.add(chunk);
             },

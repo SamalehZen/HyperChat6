@@ -2,6 +2,11 @@ import { ChatMode } from '@repo/shared/config';
 import { CoreMessage } from 'ai';
 import { ProviderEnumType } from './providers';
 
+export type ModelRuntimeOptions = {
+    reasoningEnabled: boolean;
+    reasoningBudget: number;
+};
+
 export enum ModelEnum {
     GPT_4o_Mini = 'gpt-4o-mini',
     GPT_4o = 'gpt-4o',

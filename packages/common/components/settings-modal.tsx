@@ -15,6 +15,7 @@ import { SETTING_TABS, useAppStore } from '../store/app.store';
 import { useChatStore } from '../store/chat.store';
 import { ChatEditor } from './chat-input';
 import { BYOKIcon, ToolIcon } from './icons';
+import { AiSettings } from './settings/ai-settings';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
@@ -29,6 +30,12 @@ export const SettingsModal = () => {
             title: t('settings.menu.personalization'),
             key: SETTING_TABS.PERSONALIZATION,
             component: <PersonalizationSettings />,
+        },
+        {
+            icon: <IconAtom size={16} strokeWidth={2} className="text-muted-foreground" />,
+            title: 'IA',
+            key: SETTING_TABS.AI,
+            component: <AiSettings />,
         },
         {
             icon: <IconBolt size={16} strokeWidth={2} className="text-muted-foreground" />,

@@ -112,6 +112,7 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
         config,
         apiKeys,
         mcpConfig,
+        runtimeOptions,
     }: {
         mode: ChatMode;
         question: string;
@@ -123,6 +124,7 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
         config?: WorkflowConfig;
         apiKeys?: Record<string, string>;
         mcpConfig?: Record<string, string>;
+        runtimeOptions?: { reasoningEnabled: boolean; reasoningBudget: number };
     }) => {
         // Reset state
         setError(null);
@@ -164,6 +166,7 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
                     config,
                     apiKeys: apiKeys || {},
                     mcpConfig,
+                    runtimeOptions,
                 },
             });
 

@@ -1,7 +1,7 @@
 'use client';
 import { useUser } from '@clerk/nextjs';
 import { DotSpinner } from '@repo/common/components';
-import { useApiKeysStore, useChatStore } from '@repo/common/store';
+import { useApiKeysStore, useChatStore, useAiSettingsStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
 import {
     Button,
@@ -14,6 +14,7 @@ import {
     DropdownMenuTrigger,
     Kbd,
 } from '@repo/ui';
+import { Slider, Switch } from '@repo/ui';
 import {
     IconArrowUp,
     IconAtom,
@@ -105,11 +106,16 @@ export const modelOptions = [
     //     creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GPT_4_1_Nano],
     // },
     {
-        label: 'Gemini Flash 2.0',
+        label: 'Gemini 2.5 Flash',
         value: ChatMode.GEMINI_2_5_FLASH,
-        // webSearch: true,
         icon: undefined,
         creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GEMINI_2_5_FLASH],
+    },
+    {
+        label: 'Gemini 2.5 Pro',
+        value: ChatMode.GEMINI_2_5_PRO,
+        icon: undefined,
+        creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GEMINI_2_5_PRO],
     },
 
     // {
@@ -253,11 +259,27 @@ export const ChatModeOptions = ({
     const { isSignedIn } = useUser();
     const isChatPage = usePathname().startsWith('/chat');
     const { push } = useRouter();
+
+    const threadId = useChatStore(s => s.currentThreadId);
+    const setReasoningEnabledOverride = useChatStore(s => s.setReasoningEnabledOverride);
+    const setReasoningBudgetOverride = useChatStore(s => s.setReasoningBudgetOverride);
+    const clearReasoningOverrides = useChatStore(s => s.clearReasoningOverrides);
+    const enabledOverrides = useChatStore(s => s.reasoningEnabledOverrides);
+    const budgetOverrides = useChatStore(s => s.reasoningBudgetOverrides);
+
+    const enabledDefault = useAiSettingsStore(s => s.reasoningEnabledDefault);
+    const budgetDefault = useAiSettingsStore(s => s.reasoningBudgetDefault);
+
+    const effectiveEnabled =
+        (threadId ? enabledOverrides?.[threadId] : undefined) ?? enabledDefault ?? true;
+    const effectiveBudget =
+        (threadId ? budgetOverrides?.[threadId] : undefined) ?? budgetDefault ?? 8500;
+
     return (
         <DropdownMenuContent
             align="start"
             side="bottom"
-            className="no-scrollbar max-h-[300px] w-[300px] overflow-y-auto"
+            className="no-scrollbar max-h-[380px] w-[360px] overflow-y-auto"
         >
             {isChatPage && (
                 <DropdownMenuGroup>
@@ -312,11 +334,52 @@ export const ChatModeOptions = ({
                             </div>
                             <div className="flex-1" />
                             {ChatModeConfig[option.value]?.isNew && <NewIcon />}
-
-
                         </div>
                     </DropdownMenuItem>
                 ))}
+            </DropdownMenuGroup>
+
+            <DropdownMenuGroup>
+                <DropdownMenuLabel>Reasoning</DropdownMenuLabel>
+                <div className="flex w-full flex-col gap-2 px-2 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs">Activer le raisonnement</p>
+                        <Switch
+                            checked={!!effectiveEnabled}
+                            onCheckedChange={(checked: boolean) => {
+                                if (!threadId) return;
+                                setReasoningEnabledOverride(threadId, checked);
+                            }}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex flex-col">
+                            <p className="text-xs">Budget de pensée</p>
+                            <p className="text-muted-foreground text-[10px]">{effectiveBudget} tokens</p>
+                        </div>
+                    </div>
+                    <div className="px-1 py-1">
+                        <Slider
+                            min={0}
+                            max={10000}
+                            step={100}
+                            value={[effectiveBudget]}
+                            onValueChange={(val: number[]) => {
+                                if (!threadId) return;
+                                setReasoningBudgetOverride(threadId, Math.max(0, Math.min(10000, val?.[0] || 0)));
+                            }}
+                        />
+                    </div>
+                    <div className="flex items-center justify-end">
+                        <Button
+                            size="xs"
+                            variant="ghost"
+                            onClick={() => threadId && clearReasoningOverrides(threadId)}
+                        >
+                            Réinitialiser l'override
+                        </Button>
+                    </div>
+                </div>
             </DropdownMenuGroup>
         </DropdownMenuContent>
     );

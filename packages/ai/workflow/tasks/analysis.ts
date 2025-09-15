@@ -68,6 +68,7 @@ ${s}
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages: messages as any,
             signal,
+            runtimeOptions: context?.get('runtimeOptions'),
             onReasoning: reasoning => {
                 chunkBuffer.add(reasoning);
             },

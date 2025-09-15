@@ -7,6 +7,7 @@ import {
 import { ChatMode } from '@repo/shared/config';
 import { Geo } from '@vercel/functions';
 import { CoreMessage } from 'ai';
+import { ModelRuntimeOptions } from '../models';
 import { Langfuse } from 'langfuse';
 import {
     analysisTask,
@@ -78,6 +79,7 @@ export type WorkflowContextSchema = {
     search_queries: string[];
     messages: CoreMessage[];
     mode: ChatMode;
+    runtimeOptions?: ModelRuntimeOptions;
     goals: {
         id: number;
         text: string;
@@ -125,6 +127,7 @@ export const runWorkflow = ({
     onFinish,
     customInstructions,
     gl,
+    runtimeOptions,
 }: {
     mcpConfig: Record<string, string>;
     mode: ChatMode;
@@ -139,6 +142,7 @@ export const runWorkflow = ({
     onFinish?: (data: any) => void;
     gl?: Geo;
     customInstructions?: string;
+    runtimeOptions?: ModelRuntimeOptions;
 }) => {
     const langfuse = new Langfuse();
     const trace = langfuse.trace({
@@ -184,6 +188,7 @@ export const runWorkflow = ({
         steps: [],
         gl,
         customInstructions,
+        runtimeOptions,
         sources: [],
         summaries: [],
         answer: undefined,

@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid';
 import { useParams, useRouter } from 'next/navigation';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
 import { useApiKeysStore, useAppStore, useChatStore, useMcpToolsStore } from '../store';
+import { useAiSettingsStore } from '../store/settings.store';
 
 export type AgentContextType = {
     runAgent: (body: any) => Promise<void>;
@@ -40,6 +41,9 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
         chatMode,
         fetchRemainingCredits,
         customInstructions,
+        currentThreadId: storeCurrentThreadId,
+        reasoningEnabledOverrides,
+        reasoningBudgetOverrides,
     } = useChatStore(state => ({
         updateThreadItem: state.updateThreadItem,
         setIsGenerating: state.setIsGenerating,
@@ -51,8 +55,14 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
         chatMode: state.chatMode,
         fetchRemainingCredits: state.fetchRemainingCredits,
         customInstructions: state.customInstructions,
+        currentThreadId: state.currentThreadId,
+        reasoningEnabledOverrides: state.reasoningEnabledOverrides,
+        reasoningBudgetOverrides: state.reasoningBudgetOverrides,
     }));
     const { push } = useRouter();
+
+    const reasoningEnabledDefault = useAiSettingsStore(s => s.reasoningEnabledDefault);
+    const reasoningBudgetDefault = useAiSettingsStore(s => s.reasoningBudgetDefault);
 
     const getSelectedMCP = useMcpToolsStore(state => state.getSelectedMCP);
     const apiKeys = useApiKeysStore(state => state.getAllKeys);
@@ -98,6 +108,20 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 shouldPersistToDB
             );
             const prevItem = threadItemMap.get(threadItemId) || ({} as ThreadItem);
+
+            let eventPayloadForType: any = eventData[eventType];
+
+            if (eventType === 'steps' && eventData?.steps) {
+                const steps = { ...(eventData.steps || {}) };
+                if (steps?.reasoning && typeof steps?.reasoning?.data === 'string') {
+                    // Store reasoning only in volatile memory, do not persist
+                    useChatStore.getState().setRuntimeReasoning(threadItemId, steps.reasoning.data);
+                    // Remove reasoning from persisted steps
+                    delete steps.reasoning;
+                }
+                eventPayloadForType = steps;
+            }
+
             const updatedItem: ThreadItem = {
                 ...prevItem,
                 query: eventData?.query || prevItem.query || '',
@@ -117,7 +141,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                       }
                 : eventType === 'error'
                   ? { error: eventData.error.error }
-                  : { [eventType]: eventData[eventType] }),
+                  : { [eventType]: eventPayloadForType }),
             };
 
             threadItemMap.set(threadItemId, updatedItem);
@@ -413,6 +437,11 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 imageAttachments,
             });
 
+            const overrideEnabled = reasoningEnabledOverrides?.[threadId];
+            const overrideBudget = reasoningBudgetOverrides?.[threadId];
+            const reasoningEnabled = (overrideEnabled !== undefined ? overrideEnabled : reasoningEnabledDefault) ?? true;
+            const reasoningBudget = Math.max(0, Math.min(10000, (overrideBudget !== undefined ? overrideBudget : reasoningBudgetDefault) ?? 0));
+
             if (hasApiKeyForChatMode(mode)) {
                 const abortController = new AbortController();
                 setAbortController(abortController);
@@ -435,6 +464,10 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     parentThreadItemId: '',
                     customInstructions,
                     apiKeys: apiKeys(),
+                    runtimeOptions: {
+                        reasoningEnabled,
+                        reasoningBudget: reasoningEnabled ? reasoningBudget : 0,
+                    },
                 });
             } else {
                 runAgent({
@@ -448,6 +481,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     parentThreadItemId: '',
                     webSearch: useWebSearch,
                     showSuggestions: showSuggestions ?? true,
+                    reasoningEnabled,
+                    reasoningBudget: reasoningEnabled ? reasoningBudget : 0,
                 });
             }
         },

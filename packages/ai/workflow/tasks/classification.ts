@@ -18,6 +18,7 @@ export const classificationTask = createTask<WorkflowEventSchema, WorkflowContex
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages,
             signal,
+            runtimeOptions: context?.get('runtimeOptions'),
             onChunk: (chunk) => {
                 updateAnswer({ text: chunk, status: 'PENDING' });
             },

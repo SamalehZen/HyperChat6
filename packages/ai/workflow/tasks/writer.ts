@@ -95,6 +95,7 @@ Your report should demonstrate subject matter expertise while remaining intellec
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages,
             signal,
+            runtimeOptions: context?.get('runtimeOptions'),
             onChunk: (chunk, fullText) => {
                 chunkBuffer.add(chunk);
             },

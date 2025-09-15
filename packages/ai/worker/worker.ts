@@ -67,6 +67,10 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
                 config,
                 mcpConfig,
                 onFinish: (data: any) => {},
+                runtimeOptions: {
+                    reasoningEnabled: payload?.runtimeOptions?.reasoningEnabled ?? true,
+                    reasoningBudget: payload?.runtimeOptions?.reasoningBudget ?? 0,
+                },
             });
 
             // Forward workflow events to the main thread

@@ -7,6 +7,7 @@ export const SETTING_TABS = {
     MCP_TOOLS: 'mcp-tools',
     CREDITS: 'credits',
     PERSONALIZATION: 'personalization',
+    AI: 'ai',
 } as const;
 
 type SideDrawerProps = {

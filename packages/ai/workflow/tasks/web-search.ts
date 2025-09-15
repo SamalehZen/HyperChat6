@@ -119,6 +119,7 @@ ${processedResults
         const summary = await generateText({
             model: ModelEnum.GEMINI_2_5_FLASH,
             prompt,
+            runtimeOptions: context?.get('runtimeOptions'),
         });
 
         updateStep({
