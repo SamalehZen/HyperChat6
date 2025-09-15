@@ -23,7 +23,7 @@
         "@langchain/openai": "^0.0.28",
         "@mdx-js/mdx": "^3.1.0",
         "@mozilla/readability": "^0.5.0",
-        "@phosphor-icons/react": "^2.1.5",
+
         "@radix-ui/react-accordion": "^1.2.0",
         "@radix-ui/react-alert-dialog": "^1.0.5",
         "@radix-ui/react-dialog": "^1.1.1",
@@ -46,7 +46,7 @@
         "@sentry/node": "^9.11.0",
         "@supabase/ssr": "^0.4.0",
         "@supabase/supabase-js": "^2.44.4",
-        "@tabler/icons-react": "^3.30.0",
+
         "@tanstack/react-query": "^5.40.0",
         "@tiptap/extension-document": "^2.5.5",
         "@tiptap/extension-hard-break": "^2.4.0",
@@ -106,7 +106,7 @@
         "react-dom": "^18",
         "react-dropzone": "^14.2.3",
         "react-github-btn": "^1.4.0",
-        "react-icons": "^5.3.0",
+
         "react-intersection-observer": "^9.13.0",
         "react-markdown": "^9.0.3",
         "recharts": "^2.12.7",

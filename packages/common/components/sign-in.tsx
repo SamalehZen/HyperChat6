@@ -1,10 +1,9 @@
 import { useSignIn, useSignUp } from '@clerk/nextjs';
 import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
 import { Button, InputOTP, InputOTPGroup, InputOTPSlot } from '@repo/ui';
-import { IconX } from '@tabler/icons-react';
+import { IconX } from './icons';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { FaGithub, FaGoogle } from 'react-icons/fa';
 type CustomSignInProps = {
     redirectUrl?: string;
     onClose?: () => void;
@@ -341,7 +340,7 @@ export const CustomSignIn = ({
                         {isLoading === 'google' ? (
                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                         ) : (
-                            <FaGoogle className=" size-3" />
+                            <span aria-hidden="true" className="mr-1 text-xs font-bold">G</span>
                         )}
                         {isLoading === 'google' ? 'Authentification...' : 'Continuer avec Google'}
                     </Button>
@@ -354,7 +353,7 @@ export const CustomSignIn = ({
                         {isLoading === 'github' ? (
                             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                         ) : (
-                            <FaGithub className=" size-3" />
+                            <span aria-hidden="true" className="mr-1 text-xs font-bold">GH</span>
                         )}
                         {isLoading === 'github' ? 'Authentification...' : 'Continuer avec GitHub'}
                     </Button>

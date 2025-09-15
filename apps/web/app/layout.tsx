@@ -15,6 +15,7 @@ const bricolage = Bricolage_Grotesque({
 
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
+import { I18nProvider } from '@repo/common/i18n';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
@@ -114,9 +115,11 @@ export default function ParentLayout({
           > */}
                         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
                             <TooltipProvider>
-                                <ReactQueryProvider>
-                                    <RootLayout>{children}</RootLayout>
-                                </ReactQueryProvider>
+                                <I18nProvider>
+                                    <ReactQueryProvider>
+                                        <RootLayout>{children}</RootLayout>
+                                    </ReactQueryProvider>
+                                </I18nProvider>
                             </TooltipProvider>
                         </ThemeProvider>
                         {/* </ThemeProvider> */}

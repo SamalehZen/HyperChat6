@@ -1,6 +1,6 @@
 import { useChatStore } from '@repo/common/store';
 import { Button } from '@repo/ui';
-import { IconHelpHexagon } from '@tabler/icons-react';
+import { IconHelpSmall } from '../../icons';
 import { motion } from 'framer-motion';
 
 export const FollowupSuggestions = ({ suggestions }: { suggestions: string[] }) => {
@@ -19,7 +19,7 @@ export const FollowupSuggestions = ({ suggestions }: { suggestions: string[] }) 
             className="border-border my-4 flex flex-col items-start gap-2 border-t border-dashed py-4"
         >
             <div className="text-muted-foreground flex flex-row items-center gap-1.5 py-2 text-xs font-medium">
-                <IconHelpHexagon size={16} strokeWidth={2} className="text-muted-foreground" /> Poser
+                <IconHelpSmall size={16} strokeWidth={2} className="text-muted-foreground" /> Poser
                 une question de suivi
             </div>
             <motion.div

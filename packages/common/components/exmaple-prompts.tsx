@@ -6,7 +6,7 @@ import {
     IconChartBar,
     IconPencil,
     IconQuestionMark,
-} from '@tabler/icons-react';
+} from './icons';
 import { Editor } from '@tiptap/react';
 
 export const examplePrompts = {

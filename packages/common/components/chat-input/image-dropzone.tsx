@@ -1,5 +1,5 @@
 import { Flex } from '@repo/ui';
-import { IconPhotoPlus } from '@tabler/icons-react';
+import { IconPhotoPlus } from '../icons';
 import { FC } from 'react';
 import { DropzoneState } from 'react-dropzone';
 import { useChatStore } from '@repo/common/store';

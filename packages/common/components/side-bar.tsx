@@ -26,62 +26,120 @@ import {
     IconSettings,
     IconSettings2,
     IconUser,
-} from '@tabler/icons-react';
+} from './icons';
 import { motion } from 'framer-motion';
 import moment from 'moment';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useI18n } from '@repo/common/i18n';
 
 export const Sidebar = () => {
     const { threadId: currentThreadId } = useParams();
     const pathname = usePathname();
     const { setIsCommandSearchOpen } = useRootContext();
     const isChatPage = pathname === '/chat';
-    const threads = useChatStore(state => state.threads);
+    const allThreads = useChatStore(state => state.threads);
+    const listThreads = useChatStore(state => state.listThreads);
+    const countThreads = useChatStore(state => state.countThreads);
     const pinThread = useChatStore(state => state.pinThread);
     const unpinThread = useChatStore(state => state.unpinThread);
-    const sortThreads = (threads: Thread[], sortBy: 'createdAt') => {
-        return [...threads].sort((a, b) => moment(b[sortBy]).diff(moment(a[sortBy])));
-    };
+    const { t } = useI18n();
 
     const { isSignedIn, user } = useUser();
-    const { openUserProfile, signOut, redirectToSignIn } = useClerk();
-    const clearAllThreads = useChatStore(state => state.clearAllThreads);
+    const { openUserProfile, signOut } = useClerk();
     const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
     const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
     const setIsSettingsOpen = useAppStore(state => state.setIsSettingsOpen);
     const { push } = useRouter();
-    const groupedThreads: Record<string, Thread[]> = {
-        today: [],
-        yesterday: [],
-        last7Days: [],
-        last30Days: [],
-        previousMonths: [],
+
+    const pageSize = 30;
+    const [offset, setOffset] = useState(0);
+    const [loadedThreads, setLoadedThreads] = useState<Thread[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        const loadInitial = async () => {
+            setIsLoading(true);
+            try {
+                const items = await listThreads({ offset: 0, limit: pageSize, sort: 'createdAt' });
+                if (!cancelled) {
+                    setLoadedThreads(items);
+                    setOffset(items.length);
+                    const total = await countThreads(true);
+                    setHasMore(items.length < total);
+                }
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        };
+        loadInitial();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const loadMore = async () => {
+        if (isLoading || !hasMore) return;
+        setIsLoading(true);
+        try {
+            const items = await listThreads({ offset, limit: pageSize, sort: 'createdAt' });
+            setLoadedThreads(prev => [...prev, ...items]);
+            setOffset(prev => prev + items.length);
+            if (items.length < pageSize) setHasMore(false);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    sortThreads(threads, 'createdAt')?.forEach(thread => {
-        const createdAt = moment(thread.createdAt);
-        const now = moment();
+    useEffect(() => {
+        if (!sentinelRef.current) return;
+        const el = sentinelRef.current;
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    loadMore();
+                }
+            });
+        }, { rootMargin: '200px' });
+        io.observe(el);
+        return () => io.disconnect();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sentinelRef.current, hasMore, isLoading]);
 
-        if (createdAt.isSame(now, 'day')) {
-            groupedThreads.today.push(thread);
-        } else if (createdAt.isSame(now.clone().subtract(1, 'day'), 'day')) {
-            groupedThreads.yesterday.push(thread);
-        } else if (createdAt.isAfter(now.clone().subtract(7, 'days'))) {
-            groupedThreads.last7Days.push(thread);
-        } else if (createdAt.isAfter(now.clone().subtract(30, 'days'))) {
-            groupedThreads.last30Days.push(thread);
-        } else {
-            groupedThreads.previousMonths.push(thread);
-        }
-
-        //TODO: Paginate these threads
-    });
+    const groupedThreads = useMemo(() => {
+        const groups: Record<string, Thread[]> = {
+            today: [],
+            yesterday: [],
+            last7Days: [],
+            last30Days: [],
+            previousMonths: [],
+        };
+        loadedThreads.forEach(thread => {
+            const createdAt = moment(thread.createdAt);
+            const now = moment();
+            if (createdAt.isSame(now, 'day')) {
+                groups.today.push(thread);
+            } else if (createdAt.isSame(now.clone().subtract(1, 'day'), 'day')) {
+                groups.yesterday.push(thread);
+            } else if (createdAt.isAfter(now.clone().subtract(7, 'days'))) {
+                groups.last7Days.push(thread);
+            } else if (createdAt.isAfter(now.clone().subtract(30, 'days'))) {
+                groups.last30Days.push(thread);
+            } else {
+                groups.previousMonths.push(thread);
+            }
+        });
+        return groups;
+    }, [loadedThreads]);
 
     const renderGroup = ({
         title,
         threads,
-
         groupIcon,
         renderEmptyState,
     }: {
@@ -150,9 +208,10 @@ export const Sidebar = () => {
                     {isSidebarOpen && (
                         <Button
                             variant="ghost"
-                            tooltip="Fermer le volet latéral"
+                            tooltip={t('actions.closeSidebar')}
                             tooltipSide="right"
                             size="icon-sm"
+                            aria-label={t('actions.closeSidebar')}
                             onClick={() => setIsSidebarOpen(prev => !prev)}
                             className={cn(!isSidebarOpen && 'mx-auto', 'mr-2')}
                         >
@@ -174,12 +233,13 @@ export const Sidebar = () => {
                                 size={isSidebarOpen ? 'sm' : 'icon-sm'}
                                 variant="bordered"
                                 rounded="lg"
-                                tooltip={isSidebarOpen ? undefined : 'Nouveau Fil'}
+                                tooltip={isSidebarOpen ? undefined : t('sidebar.tooltip.newThread')}
                                 tooltipSide="right"
+                                aria-label={isSidebarOpen ? undefined : t('sidebar.tooltip.newThread')}
                                 className={cn(isSidebarOpen && 'relative w-full', 'justify-center')}
                             >
                                 <IconPlus size={16} strokeWidth={2} className={cn(isSidebarOpen)} />
-                                {isSidebarOpen && 'Nouveau'}
+                                {isSidebarOpen && t('actions.new')}
                             </Button>
                         </Link>
                     ) : (
@@ -187,20 +247,22 @@ export const Sidebar = () => {
                             size={isSidebarOpen ? 'sm' : 'icon-sm'}
                             variant="bordered"
                             rounded="lg"
-                            tooltip={isSidebarOpen ? undefined : 'Nouveau Fil'}
+                            tooltip={isSidebarOpen ? undefined : t('sidebar.tooltip.newThread')}
                             tooltipSide="right"
+                            aria-label={isSidebarOpen ? undefined : t('sidebar.tooltip.newThread')}
                             className={cn(isSidebarOpen && 'relative w-full', 'justify-center')}
                         >
                             <IconPlus size={16} strokeWidth={2} className={cn(isSidebarOpen)} />
-                            {isSidebarOpen && 'Nouveau Fil'}
+                            {isSidebarOpen && t('actions.newThread')}
                         </Button>
                     )}
                     <Button
                         size={isSidebarOpen ? 'sm' : 'icon-sm'}
                         variant="bordered"
                         rounded="lg"
-                        tooltip={isSidebarOpen ? undefined : 'Rechercher'}
+                        tooltip={isSidebarOpen ? undefined : t('sidebar.tooltip.search')}
                         tooltipSide="right"
+                        aria-label={isSidebarOpen ? undefined : t('sidebar.tooltip.search')}
                         className={cn(
                             isSidebarOpen && 'relative w-full',
                             'text-muted-foreground justify-center px-2'
@@ -208,7 +270,7 @@ export const Sidebar = () => {
                         onClick={() => setIsCommandSearchOpen(true)}
                     >
                         <IconSearch size={14} strokeWidth={2} className={cn(isSidebarOpen)} />
-                        {isSidebarOpen && 'Rechercher'}
+                        {isSidebarOpen && t('actions.search')}
                         {isSidebarOpen && <div className="flex-1" />}
                         {isSidebarOpen && (
                             <div className="flex flex-row items-center gap-1">
@@ -228,33 +290,6 @@ export const Sidebar = () => {
                         )}
                     </Button>
                 </Flex>
-                <Flex
-                    direction="col"
-                    gap="xs"
-                    className={cn(
-                        'border-hard mt-3 w-full  justify-center border-t border-dashed px-3 py-2',
-                        !isSidebarOpen && 'items-center justify-center px-0'
-                    )}
-                >
-                    {/* <Link href="/recent" className={isSidebarOpen ? 'w-full' : ''}>
-                        <Button
-                            size={isSidebarOpen ? 'xs' : 'icon-sm'}
-                            variant="bordered"
-                            rounded="lg"
-                            tooltip={isSidebarOpen ? undefined : 'Recent'}
-                            tooltipSide="right"
-                            className={cn(
-                                'text-muted-foreground w-full justify-start',
-                                !isSidebarOpen && 'w-auto justify-center'
-                            )}
-                        >
-                            <IconHistory size={14} strokeWidth={2} />
-                            {isSidebarOpen && 'Recent'}
-                            {isSidebarOpen && <span className="inline-flex flex-1" />}
-                            {isSidebarOpen && <IconChevronRight size={14} strokeWidth={2} />}
-                        </Button>
-                    </Link> */}
-                </Flex>
 
                 {false ? (
                     <FullPageLoader />
@@ -268,27 +303,36 @@ export const Sidebar = () => {
                         )}
                     >
                         {renderGroup({
-                            title: 'Épinglé',
-                            threads: threads
+                            title: t('sidebar.pinned.title'),
+                            threads: allThreads
                                 .filter(thread => thread.pinned)
                                 .sort((a, b) => b.pinnedAt.getTime() - a.pinnedAt.getTime()),
                             groupIcon: <IconPinned size={14} strokeWidth={2} />,
                             renderEmptyState: () => (
                                 <div className="border-hard flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-2">
                                     <p className="text-muted-foreground text-xs opacity-50">
-                                        Aucun fil épinglé
+                                        {t('sidebar.pinned.empty')}
                                     </p>
                                 </div>
                             ),
                         })}
-                        {renderGroup({ title: "Aujourd'hui", threads: groupedThreads.today })}
-                        {renderGroup({ title: 'Hier', threads: groupedThreads.yesterday })}
-                        {renderGroup({ title: 'Les 7 derniers jours', threads: groupedThreads.last7Days })}
-                        {renderGroup({ title: 'Les 30 derniers jours', threads: groupedThreads.last30Days })}
+                        {renderGroup({ title: t('sidebar.groups.today'), threads: groupedThreads.today })}
+                        {renderGroup({ title: t('sidebar.groups.yesterday'), threads: groupedThreads.yesterday })}
+                        {renderGroup({ title: t('sidebar.groups.last7Days'), threads: groupedThreads.last7Days })}
+                        {renderGroup({ title: t('sidebar.groups.last30Days'), threads: groupedThreads.last30Days })}
                         {renderGroup({
-                            title: 'Mois précédents',
+                            title: t('sidebar.groups.previousMonths'),
                             threads: groupedThreads.previousMonths,
                         })}
+                        <div ref={sentinelRef} aria-hidden className="h-2" />
+                        {isLoading && (
+                            <div role="status" aria-live="polite" className="text-center py-2 text-xs text-muted-foreground">
+                                Loading...
+                            </div>
+                        )}
+                        {!hasMore && loadedThreads.length > 0 && (
+                            <div className="text-center py-2 text-xs text-muted-foreground">—</div>
+                        )}
                     </Flex>
                 )}
 
@@ -304,8 +348,9 @@ export const Sidebar = () => {
                         <Button
                             variant="ghost"
                             size="icon"
-                            tooltip="Ouvrir le volet latéral"
+                            tooltip={t('actions.openSidebar')}
                             tooltipSide="right"
+                            aria-label={t('actions.openSidebar')}
                             onClick={() => setIsSidebarOpen(prev => !prev)}
                             className={cn(!isSidebarOpen && 'mx-auto')}
                         >
@@ -356,24 +401,18 @@ export const Sidebar = () => {
                             <DropdownMenuContent>
                                 <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
                                     <IconSettings size={16} strokeWidth={2} />
-                                    Paramètres
+                                    {t('actions.settings')}
                                 </DropdownMenuItem>
-                                {/* {!isSignedIn && (
-                                <DropdownMenuItem onClick={() => push('/sign-in')}>
-                                    <IconUser size={16} strokeWidth={2} />
-                                    Log in
-                                </DropdownMenuItem>
-                            )} */}
                                 {isSignedIn && (
                                     <DropdownMenuItem onClick={() => openUserProfile()}>
                                         <IconUser size={16} strokeWidth={2} />
-                                        Profil
+                                        {t('actions.profile')}
                                     </DropdownMenuItem>
                                 )}
                                 {isSignedIn && (
                                     <DropdownMenuItem onClick={() => signOut()}>
                                         <IconLogout size={16} strokeWidth={2} />
-                                        Déconnexion
+                                        {t('actions.signOut')}
                                     </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
@@ -390,10 +429,10 @@ export const Sidebar = () => {
                                 }}
                             >
                                 <IconSettings2 size={14} strokeWidth={2} />
-                                Paramètres
+                                {t('actions.settings')}
                             </Button>
                             <Button size="sm" rounded="lg" onClick={() => push('/sign-in')}>
-                                Connexion / Inscription
+                                {t('actions.signIn')}
                             </Button>
                         </div>
                     )}

@@ -3,7 +3,7 @@
 import { Source } from '@repo/shared/types';
 import { getHost } from '@repo/shared/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@repo/ui';
-import { IconExternalLink } from '@tabler/icons-react';
+import { IconExternalLink } from './icons';
 import React, { memo, useState } from 'react';
 import { LinkFavicon } from './link-favicon';
 const ogCache = new Map<string, any>();
