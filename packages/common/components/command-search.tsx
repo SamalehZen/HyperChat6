@@ -20,8 +20,9 @@ import {
     IconMoon,
     IconSun,
     IconAdjustments,
-} from '@tabler/icons-react';
+} from './icons';
 import moment from 'moment';
+import { useI18n } from '@repo/common/i18n';
 import { useTheme } from 'next-themes';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -29,6 +30,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 export const CommandSearch = () => {
     const { threadId: currentThreadId } = useParams();
+    const { t } = useI18n();
     const { isCommandSearchOpen, setIsCommandSearchOpen } = useRootContext();
     const threads = useChatStore(state => state.threads);
     const getThread = useChatStore(state => state.getThread);
@@ -95,7 +97,7 @@ export const CommandSearch = () => {
 
     const actions = [
         {
-            name: 'New Thread',
+            name: t('commandSearch.actions.new'),
             icon: IconPlus,
             action: () => {
                 router.push('/chat');
@@ -103,7 +105,7 @@ export const CommandSearch = () => {
             },
         },
         {
-            name: 'Delete Thread',
+            name: t('commandSearch.actions.delete'),
             icon: IconTrash,
             action: async () => {
                 const thread = await getThread(currentThreadId as string);
@@ -115,7 +117,7 @@ export const CommandSearch = () => {
             },
         },
         {
-            name: 'Use your own API key',
+            name: t('commandSearch.actions.useApiKey'),
             icon: IconKey,
             action: () => {
                 setIsSettingsOpen(true);
@@ -124,7 +126,7 @@ export const CommandSearch = () => {
             },
         },
         {
-            name: 'Remove All Threads',
+            name: t('commandSearch.actions.removeAll'),
             icon: IconTrash,
             action: () => {
                 clearThreads();
@@ -146,7 +148,7 @@ export const CommandSearch = () => {
                     className="transition-colors duration-300"
                 >
                     <div className="flex w-full flex-row items-center gap-2 p-0.5">
-                <CommandInput placeholder="Search..." className="w-full" />
+                <CommandInput placeholder={t('commandSearch.placeholder')} className="w-full" />
                 <div className="flex shrink-0 items-center gap-1 px-2">
                     <Kbd className="h-5 w-5">
                         <IconCommand size={12} strokeWidth={2} className="shrink-0" />
@@ -158,7 +160,7 @@ export const CommandSearch = () => {
                 <div className="border-border h-[1px] w-full border-b" />
             </div>
             <CommandList className="max-h-[420px] overflow-y-auto p-0.5 pt-1.5">
-                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandEmpty>{t('commandSearch.noResults')}</CommandEmpty>
                 <CommandGroup>
                     {actions.map(action => (
                         <CommandItem
@@ -176,18 +178,18 @@ export const CommandSearch = () => {
                         </CommandItem>
                     ))}
                 </CommandGroup>
-                <CommandGroup heading="Thème">
+                <CommandGroup heading={t('commandSearch.groups.theme')}>
                     <CommandItem onSelect={() => { setTheme('dark'); onClose(); }}>
                         <IconMoon size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
-                        Activer le mode sombre
+                        {t('commandSearch.theme.dark')}
                     </CommandItem>
                     <CommandItem onSelect={() => { setTheme('light'); onClose(); }}>
                         <IconSun size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
-                        Revenir au mode clair
+                        {t('commandSearch.theme.light')}
                     </CommandItem>
                     <CommandItem onSelect={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); onClose(); }}>
                         <IconAdjustments size={14} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
-                        Basculer le thème
+                        {t('commandSearch.theme.toggle')}
                     </CommandItem>
                 </CommandGroup>
                 {Object.entries(groupedThreads).map(

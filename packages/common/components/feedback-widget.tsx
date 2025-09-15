@@ -1,8 +1,9 @@
 import { useAuth } from '@clerk/nextjs';
 import { Button, Textarea } from '@repo/ui';
-import { IconCircleCheckFilled, IconHelpSmall, IconX } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconHelpSmall, IconX } from './icons';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRef, useState } from 'react';
+import { useI18n } from '@repo/common/i18n';
 
 export const FeedbackWidget = () => {
     const { userId } = useAuth();
@@ -11,6 +12,7 @@ export const FeedbackWidget = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const { t } = useI18n();
 
     const handleSubmit = async () => {
         if (!feedback.trim()) return;
@@ -46,6 +48,7 @@ export const FeedbackWidget = () => {
                 {!isOpen ? (
                     <motion.button
                         className=" bg-muted-foreground/30 text-background flex h-6 w-6 items-center justify-center rounded-full shadow-2xl"
+                        aria-label={t('feedback.open')}
                         onClick={() => {
                             setIsOpen(true);
                             setTimeout(() => {
@@ -72,7 +75,7 @@ export const FeedbackWidget = () => {
                         {!isSuccess ? (
                             <>
                                 <div className="flex w-full flex-row justify-between px-4 pt-4">
-                                    <p className="text-sm font-medium">Aidez-nous à nous améliorer</p>
+                                    <p className="text-sm font-medium">{t('feedback.title')}</p>
                                     <Button
                                         variant="ghost"
                                         size="icon-xs"
@@ -83,7 +86,7 @@ export const FeedbackWidget = () => {
                                     </Button>
                                 </div>
                                 <Textarea
-                                    placeholder="Partagez vos réflexions ou suggestions pour nous aider à nous améliorer."
+                                    placeholder={t('feedback.placeholder')}
                                     value={feedback}
                                     className="placeholder:text-muted-foreground/50 border-none bg-transparent px-4 py-2"
                                     onChange={e => setFeedback(e.target.value)}
@@ -97,7 +100,7 @@ export const FeedbackWidget = () => {
                                         rounded="full"
                                         onClick={handleSubmit}
                                     >
-                                        {isSubmitting ? 'Envoi en cours...' : 'Envoyer des commentaires'}
+                                        {isSubmitting ? t('feedback.sending') : t('feedback.submit')}
                                     </Button>
                                 </div>
                             </>
@@ -111,9 +114,9 @@ export const FeedbackWidget = () => {
                                     />
                                 </div>
                                 <div className="flex flex-col gap-0">
-                                    <p className="text-sm font-medium">Merci !</p>
+                                    <p className="text-sm font-medium">{t('feedback.success.title')}</p>
                                     <p className="text-muted-foreground/50 text-sm">
-                                        Vos commentaires ont été envoyés.
+                                        {t('feedback.success.desc')}
                                     </p>
                                 </div>
                             </div>

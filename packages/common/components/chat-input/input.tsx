@@ -11,6 +11,7 @@ import { cn, Flex } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
+import { useI18n } from '@repo/common/i18n';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -31,10 +32,11 @@ export const ChatInput = ({
     isFollowUp?: boolean;
 }) => {
     const { isSignedIn } = useAuth();
+    const { t } = useI18n();
 
     const { threadId: currentThreadId } = useParams();
     const { editor } = useChatEditor({
-        placeholder: isFollowUp ? 'Demander un suivi' : 'Demandez n\'importe quoi',
+        placeholder: isFollowUp ? t('chat.input.placeholderFollowUp') : t('chat.input.placeholder'),
         onInit: ({ editor }) => {
             if (typeof window !== 'undefined' && !isFollowUp && !isSignedIn) {
                 const draftMessage = window.localStorage.getItem('draft-message');
@@ -199,7 +201,7 @@ export const ChatInput = ({
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.15 }}
                                 >
-                                    <div className="animate-pulse">Loading editor...</div>
+                                    <div className="animate-pulse" role="status" aria-live="polite">Loading editor...</div>
                                 </motion.div>
                             )}
                         </motion.div>
@@ -278,11 +280,11 @@ const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
             const hour = new Date().getHours();
 
             if (hour >= 5 && hour < 12) {
-                return 'Bonjour hyper';
+                return t('chat.greeting.morning');
             } else if (hour >= 12 && hour < 18) {
-                return 'Bon après-midi hyper';
+                return t('chat.greeting.afternoon');
             } else {
-                return 'Bonsoir hyper';
+                return t('chat.greeting.evening');
             }
         };
 

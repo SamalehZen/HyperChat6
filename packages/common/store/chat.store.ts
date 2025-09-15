@@ -125,6 +125,8 @@ type Actions = {
     setCurrentSources: (sources: string[]) => void;
     setUseWebSearch: (useWebSearch: boolean) => void;
     setShowSuggestions: (showSuggestions: boolean) => void;
+    listThreads: (params: { offset: number; limit: number; sort?: 'createdAt' }) => Promise<Thread[]>;
+    countThreads: (onlyUnpinned?: boolean) => Promise<number>;
 };
 
 // Add these utility functions at the top level
@@ -905,6 +907,34 @@ export const useChatStore = create(
 
             // Notify other tabs
             debouncedNotify('thread-delete', { threadId });
+        },
+
+        listThreads: async ({ offset, limit, sort = 'createdAt' }) => {
+            // Fetch descending by createdAt and filter out pinned, batching until we have enough
+            let results: Thread[] = [];
+            let batchOffset = offset;
+            const batchSize = Math.max(limit, 30);
+            // Use createdAt index for ordering
+            while (results.length < limit) {
+                const batch = await db.threads
+                    .orderBy('createdAt')
+                    .reverse()
+                    .offset(batchOffset)
+                    .limit(batchSize)
+                    .toArray();
+                if (batch.length === 0) break;
+                const nonPinned = batch.filter(t => !t.pinned);
+                results = results.concat(nonPinned);
+                batchOffset += batchSize;
+            }
+            return results.slice(0, limit);
+        },
+
+        countThreads: async (onlyUnpinned = true) => {
+            if (onlyUnpinned) {
+                return await db.threads.where('pinned').equals(false as any).count();
+            }
+            return await db.threads.count();
         },
 
         getPreviousThreadItems: threadId => {

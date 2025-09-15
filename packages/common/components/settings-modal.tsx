@@ -2,12 +2,13 @@
 import { useMcpToolsStore } from '@repo/common/store';
 import { Alert, AlertDescription, DialogFooter } from '@repo/ui';
 import { Button } from '@repo/ui/src/components/button';
-import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from '@tabler/icons-react';
+import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from './icons';
 
 import { Badge, Dialog, DialogContent, Input } from '@repo/ui';
 
 import { useChatEditor } from '@repo/common/hooks';
 import moment from 'moment';
+import { useI18n } from '@repo/common/i18n';
 import { useState } from 'react';
 import { ApiKeys, useApiKeysStore } from '../store/api-keys.store';
 import { SETTING_TABS, useAppStore } from '../store/app.store';
@@ -17,6 +18,7 @@ import { BYOKIcon, ToolIcon } from './icons';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
+    const { t } = useI18n();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
     const settingTab = useAppStore(state => state.settingTab);
     const setSettingTab = useAppStore(state => state.setSettingTab);
@@ -24,19 +26,19 @@ export const SettingsModal = () => {
     const settingMenu = [
         {
             icon: <IconSettings2 size={16} strokeWidth={2} className="text-muted-foreground" />,
-            title: 'Personnaliser',
+            title: t('settings.menu.personalization'),
             key: SETTING_TABS.PERSONALIZATION,
             component: <PersonalizationSettings />,
         },
         {
             icon: <IconBolt size={16} strokeWidth={2} className="text-muted-foreground" />,
-            title: 'Utilisation',
+            title: t('settings.menu.usage'),
             key: SETTING_TABS.CREDITS,
             component: <CreditsSettings />,
         },
         {
             icon: <IconKey size={16} strokeWidth={2} className="text-muted-foreground" />,
-            title: 'Clés API',
+            title: t('settings.menu.apiKeys'),
             key: SETTING_TABS.API_KEYS,
             component: <ApiKeySettings />,
         },
@@ -54,7 +56,7 @@ export const SettingsModal = () => {
                 className="h-full max-h-[600px] !max-w-[760px] overflow-x-hidden rounded-xl p-0"
             >
                 <div className="no-scrollbar relative max-w-full overflow-y-auto overflow-x-hidden">
-                    <h3 className="border-border mx-5 border-b py-4 text-lg font-bold">Paramètres</h3>
+                    <h3 className="border-border mx-5 border-b py-4 text-lg font-bold">{t('settings.title')}</h3>
                     <div className="flex flex-row gap-6 p-4">
                         <div className="flex w-[160px] shrink-0 flex-col gap-1">
                             {settingMenu.map(setting => (
@@ -461,10 +463,11 @@ const MAX_CHAR_LIMIT = 1000000;
 export const PersonalizationSettings = () => {
     const customInstructions = useChatStore(state => state.customInstructions);
     const setCustomInstructions = useChatStore(state => state.setCustomInstructions);
+    const { t, locale, setLocale } = useI18n();
     const { editor } = useChatEditor({
         charLimit: MAX_CHAR_LIMIT,
         defaultContent: customInstructions,
-        placeholder: 'Entrez votre instruction personnalisée',
+        placeholder: t('settings.personalization.placeholder'),
         enableEnter: true,
         onUpdate(props) {
             setCustomInstructions(props.editor.getText());
@@ -472,11 +475,21 @@ export const PersonalizationSettings = () => {
     });
     return (
         <div className="flex flex-col gap-1 pb-3">
-            <h3 className="text-base font-semibold">Personnalisez votre réponse d'IA</h3>
-            <p className="text-muted-foreground text-sm">
-                Ces instructions seront ajoutées au début de chaque message.
-            </p>
-            <div className=" shadow-subtle-sm border-border mt-2 rounded-lg border p-3">
+            <h3 className="text-base font-semibold">{t('settings.personalization.title')}</h3>
+            <div className="mt-2 flex flex-col gap-2">
+                <label className="text-sm font-medium" htmlFor="locale-select">{t('settings.language.label')}</label>
+                <select
+                    id="locale-select"
+                    className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
+                    value={locale}
+                    onChange={(e) => setLocale(e.target.value as any)}
+                    aria-label={t('settings.language.label')}
+                >
+                    <option value="fr">{t('settings.language.fr')}</option>
+                    <option value="en">{t('settings.language.en')}</option>
+                </select>
+            </div>
+            <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">
                 <ChatEditor editor={editor} />
             </div>
         </div>

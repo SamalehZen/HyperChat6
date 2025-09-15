@@ -1,7 +1,7 @@
 import { useChatStore } from '@repo/common/store';
 import { ChatModeConfig } from '@repo/shared/config';
 import { Button, Tooltip } from '@repo/ui';
-import { IconPaperclip } from '@tabler/icons-react';
+import { IconPaperclip } from '../icons';
 import { FC } from 'react';
 
 export type TImageUpload = {

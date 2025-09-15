@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@repo/ui';
-import { IconClock, IconPlus } from '@tabler/icons-react';
+import { IconClock, IconPlus } from '@repo/common/components';
 import { CommandItem } from 'cmdk';
 import { MoreHorizontal } from 'lucide-react';
 import moment from 'moment';

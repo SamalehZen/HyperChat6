@@ -11,9 +11,10 @@ import { AgentProvider } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
 import { plausible } from '@repo/shared/utils';
 import { Badge, Button, Flex, Toaster, cn } from '@repo/ui';
-import { IconMoodSadDizzy, IconX } from '@tabler/icons-react';
+import { IconMoodSadDizzy, IconX } from '../icons';
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { useI18n } from '@repo/common/i18n';
 import { FC, useEffect } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { Drawer } from 'vaul';
@@ -24,6 +25,7 @@ export type TRootLayout = {
 
 export const RootLayout: FC<TRootLayout> = ({ children }) => {
     const { isSidebarOpen, isMobileSidebarOpen, setIsMobileSidebarOpen } = useRootContext();
+    const { t } = useI18n();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
 
     const containerClass =
@@ -38,12 +40,12 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 
     return (
         <div className="bg-tertiary flex h-[100dvh] w-full flex-row overflow-hidden">
-            <div className="bg-tertiary item-center fixed inset-0 z-[99999] flex justify-center md:hidden">
+            <a href="#main-content" className="sr-only focus:not-sr-only fixed left-2 top-2 z-[100000] rounded border bg-background px-3 py-2 text-foreground">Skip to content</a>
+            <div className="bg-tertiary item-center fixed inset-0 z-[99999] flex justify-center md:hidden" aria-hidden>
                 <div className="flex flex-col items-center justify-center gap-2">
                     <IconMoodSadDizzy size={24} strokeWidth={2} className="text-muted-foreground" />
-                    <span className="text-muted-foreground text-center text-sm">
-                        Mobile version is coming soon.
-                        <br /> Please use a desktop browser.
+                    <span className="text-muted-foreground text-center text-sm whitespace-pre-line">
+                        {t('app.overlay.mobile')}
                     </span>
                 </div>
             </div>
@@ -71,7 +73,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
             <Flex className="flex-1 overflow-hidden">
                 <motion.div className="flex w-full py-1 pr-1">
                     <AgentProvider>
-                        <div className={cn(containerClass, isChat && 'chat-theme')}>
+                        <div id="main-content" className={cn(containerClass, isChat && 'chat-theme')} role="main">
                             <div className="relative flex h-full w-0 flex-1 flex-row">
                                 <div className="flex w-full flex-col gap-2 overflow-y-auto">
                                     <div className="from-secondary to-secondary/0 via-secondary/70 absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12"></div>
@@ -136,6 +138,7 @@ export const SideDrawer = () => {
                                 size="icon-xs"
                                 onClick={() => dismissSideDrawer()}
                                 tooltip="Close"
+                                aria-label="Close"
                             >
                                 <IconX size={14} strokeWidth={2} />
                             </Button>

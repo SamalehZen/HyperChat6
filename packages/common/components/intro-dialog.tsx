@@ -1,11 +1,13 @@
 import { useUser } from '@clerk/nextjs';
 import { cn, Dialog, DialogContent } from '@repo/ui';
-import { IconCircleCheckFilled } from '@tabler/icons-react';
+import { IconCircleCheckFilled } from './icons';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Logo } from './logo';
+import { useI18n } from '@repo/common/i18n';
 export const IntroDialog = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useI18n();
     const { isSignedIn } = useUser();
 
     useEffect(() => {
@@ -59,7 +61,7 @@ export const IntroDialog = () => {
             }}
         >
             <DialogContent
-                ariaTitle="Introduction"
+                ariaTitle={t('intro.title')}
                 className="flex max-w-[420px] flex-col gap-0 overflow-hidden p-0"
             >
                 <div className="flex flex-col gap-8 p-5">

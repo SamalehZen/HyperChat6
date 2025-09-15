@@ -1,6 +1,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useApiKeysStore, useAppStore, useChatStore } from '@repo/common/store';
 import { motion } from 'framer-motion';
+import { useI18n } from '@repo/common/i18n';
 
 export function MessagesRemainingBadge() {
     const { user } = useUser();
@@ -9,6 +10,7 @@ export function MessagesRemainingBadge() {
     const creditLimit = useChatStore(state => state.creditLimit);
     const setIsSettingsOpen = useAppStore(state => state.setIsSettingsOpen);
     const setSettingTab = useAppStore(state => state.setSettingTab);
+    const { t } = useI18n();
 
     if (
         !creditLimit.isFetched ||
@@ -30,9 +32,8 @@ export function MessagesRemainingBadge() {
             >
                 <div className="text-muted-foreground/50 text-xs">
                     {creditLimit.remaining === 0
-                        ? 'You have no credits left today.'
-                        : `You have ${creditLimit.remaining} credits left today.`}{' '}
-                    For continuous use,
+                        ? t('messages.remaining.none')
+                        : t('messages.remaining.some', { count: creditLimit.remaining })}{' '}
                     <span
                         className="inline-flex shrink-0 cursor-pointer flex-row items-center gap-1 pl-1 font-medium "
                         onClick={() => {
@@ -41,7 +42,7 @@ export function MessagesRemainingBadge() {
                         }}
                     >
                         <span className="text-muted-foreground inline-flex flex-row items-center gap-1 px-1 underline underline-offset-2">
-                            Add your own API key
+                            {t('messages.remaining.addApiKey')}
                         </span>
                     </span>
                 </div>

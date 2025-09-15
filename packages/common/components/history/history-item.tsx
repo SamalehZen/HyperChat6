@@ -12,6 +12,7 @@ import {
 } from '@repo/ui';
 import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
+import { useI18n } from '@repo/common/i18n';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -31,6 +32,7 @@ export const HistoryItem = ({
     unpinThread: (threadId: string) => void;
 }) => {
     const { push } = useRouter();
+    const { t } = useI18n();
     const { threadId: currentThreadId } = useParams();
     const updateThread = useChatStore(state => state.updateThread);
     const [isEditing, setIsEditing] = useState(false);
@@ -122,6 +124,7 @@ export const HistoryItem = ({
                     <Button
                         variant="ghost"
                         size="icon-xs"
+                        aria-label="More options"
                         className="bg-quaternary invisible absolute right-1 shrink-0 group-hover:visible group-hover:w-6"
                         onClick={e => {
                             e.stopPropagation();
@@ -142,7 +145,7 @@ export const HistoryItem = ({
                             handleEditClick();
                         }}
                     >
-                        Rename
+                        {t('history.item.rename')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={e => {
@@ -150,15 +153,15 @@ export const HistoryItem = ({
                             handleDeleteConfirm();
                         }}
                     >
-                        Delete Chat
+                        {t('history.item.deleteChat')}
                     </DropdownMenuItem>
                     {isPinned ? (
                         <DropdownMenuItem onClick={() => unpinThread(thread.id)}>
-                            Unpin
+                            {t('history.item.unpin')}
                         </DropdownMenuItem>
                     ) : (
                         <DropdownMenuItem onClick={() => pinThread(thread.id)}>
-                            Pin
+                            {t('history.item.pin')}
                         </DropdownMenuItem>
                     )}
                 </DropdownMenuContent>

@@ -3,7 +3,7 @@ import { FullPageLoader, HistoryItem } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { Thread, useAppStore, useChatStore } from '@repo/common/store';
 import { Button, cn, Flex } from '@repo/ui';
-import { IconArrowBarLeft, IconArrowBarRight, IconPlus, IconSearch } from '@tabler/icons-react';
+import { IconArrowBarLeft, IconArrowBarRight, IconPlus, IconSearch } from '../icons';
 import moment from 'moment';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 

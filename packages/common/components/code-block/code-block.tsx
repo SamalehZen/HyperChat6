@@ -23,7 +23,7 @@ import {
     IconJson,
     IconMarkdown,
     IconTerminal,
-} from '@tabler/icons-react';
+} from '../icons';
 import './code-block.css';
 
 export type CodeBlockProps = {
@@ -96,6 +96,7 @@ export const CodeBlock = ({
                     <Button
                         variant="ghost"
                         size="xs"
+                        aria-label="Copy code"
                         className="gap-2"
                         onClick={() => code && copy(code)}
                     >
