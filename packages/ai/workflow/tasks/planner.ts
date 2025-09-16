@@ -15,55 +15,57 @@ export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema
         const stepId = nextStepId();
 
         const prompt = `
-                        You're a strategic research planner. Your job is to analyze research questions and develop an initial approach to find accurate information through web searches.
+                        Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
                         
-                        **Research Question**:
+                        Vous êtes un planificateur de recherche stratégique. Votre rôle est d’analyser la question de recherche et de proposer une approche initiale pour trouver des informations fiables via des recherches web.
+                        
+                        **Question de recherche**:
                         <question>
                         ${question}
                         </question>
                         
-                        **Your Task**:
-                        1. Identify the 1-2 most important initial aspects of this question to research first
-                        2. Formulate 1-2 precise search queries that will yield the most relevant initial information
-                        3. Focus on establishing a foundation of knowledge before diving into specifics
+                        **Votre tâche**:
+                        1. Identifier les 1–2 aspects initiaux les plus importants à explorer en priorité
+                        2. Formuler 1–2 requêtes de recherche précises qui fourniront les informations initiales les plus pertinentes
+                        3. Viser d’abord une base de connaissances solide avant d’entrer dans les détails
                         
-                        **Search Strategy Guidelines**:
-                        - Create targeted queries using search operators when appropriate
-                        - Prioritize broad, foundational information for initial searches
-                        - Ensure queries cover different high-priority aspects of the research question
+                        **Lignes directrices de la stratégie de recherche**:
+                        - Créer des requêtes ciblées en utilisant des opérateurs de recherche lorsque c’est pertinent
+                        - Prioriser des informations générales et fondamentales pour les premières recherches
+                        - Veiller à ce que les requêtes couvrent différents aspects prioritaires de la question
                 
-                        ## Query Generation Rules
+                        ## Règles de génération des requêtes
 
-- DO NOT broaden the scope beyond the original research question
-- DO NOT suggest queries that would likely yield redundant information
-- Each query must explore a distinct aspect
-- Limit to 1-2 highly targeted queries maximum
-- Format queries as direct search terms, NOT as questions
-- DO NOT start queries with "how", "what", "when", "where", "why", or "who"
-- Use concise keyword phrases instead of full sentences
-- Use time period in queries when needed
-- Maximum 8 words per query
-- If user question is clear and concise, you can use it as one of the queries
+- NE PAS élargir le périmètre au-delà de la question initiale
+- NE PAS proposer de requêtes susceptibles de produire des résultats redondants
+- Chaque requête doit explorer un aspect distinct
+- Limiter à 1–2 requêtes hautement ciblées maximum
+- Formater les requêtes comme des termes de recherche directs, PAS comme des questions
+- NE PAS commencer par « how », « what », « when », « where », « why » ou « who »
+- Utiliser des expressions clés concises plutôt que des phrases complètes
+- Inclure une période temporelle dans les requêtes si nécessaire
+- Maximum 8 mots par requête
+- Si la question de l’utilisateur est claire et concise, vous pouvez l’utiliser comme l’une des requêtes
 
-**Current date and time: **${getHumanizedDate()}**
+**Date et heure actuelles: **${getHumanizedDate()}**
 
-## Examples of Bad Queries:
+## Exemples de mauvaises requêtes:
 - "How long does a Tesla Model 3 battery last?"
 - "What are the economic impacts of climate change?"
 - "When should I use async await in JavaScript?"
 - "Why is remote work increasing productivity?"
 
 **Important**:
-- Use current date and time for the queries unless speciffically asked for a different time period
+- Utiliser la date et l’heure actuelles sauf demande explicite d’une autre période
                         
-                        **Output Format (JSON)**:
-                        - reasoning: A brief explanation of your first step to research the question
-                        - queries: 2 well-crafted search queries (4-8 words) that targets the most important aspects
+                        **Format de sortie (JSON)**:
+                        - reasoning: brève explication de votre premier pas pour rechercher la question
+                        - queries: 2 requêtes de recherche bien formulées (4–8 mots) ciblant les aspects les plus importants
                 `;
 
         const object = await generateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             schema: z.object({
                 reasoning: z.string(),
                 queries: z.array(z.string()),

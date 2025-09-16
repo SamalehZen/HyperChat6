@@ -15,24 +15,25 @@ export const analysisTask = createTask<WorkflowEventSchema, WorkflowContextSchem
 
         const prompt = `
           
+Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-                # Research Analysis Framework
+# Cadre d’analyse de la recherche
 
-Today is ${getHumanizedDate()}.
+Aujourd’hui nous sommes ${getHumanizedDate()}.
 
-You are a Research Analyst tasked with thoroughly analyzing findings related to "${question}" before composing a comprehensive report. 
+Vous êtes un analyste de recherche chargé d’analyser en profondeur les constats liés à "${question}" avant de rédiger un rapport complet.
 
-You gonna perform pre-writing analysis of the research findings.
+Vous réalisez l’analyse préalable à la rédaction des résultats de recherche.
 
 
-## Research Materials
+## Matériaux de recherche
 
 <research_findings>
 ${prevSummaries
     ?.map(
         (s, index) => `
 
-## Finding ${index + 1}
+## Constat ${index + 1}
 
 ${s}
 
@@ -42,9 +43,9 @@ ${s}
 </research_findings>
 
 
-## Analysis Instructions
-- Analyze the research findings one by one and highlight the most important information which will be used to compose a comprehensive report.
-- Document your analysis in a structured format that will serve as the foundation for creating a comprehensive report.
+## Instructions d’analyse
+- Analysez les constats un par un et mettez en évidence les informations les plus importantes qui serviront à composer un rapport complet.
+- Documentez votre analyse dans un format structuré qui servira de base à la création du rapport.
 
                 `;
 
@@ -65,7 +66,7 @@ ${s}
 
         const text = await generateText({
             prompt,
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             messages: messages as any,
             signal,
             onReasoning: reasoning => {

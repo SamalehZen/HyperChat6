@@ -181,9 +181,9 @@ export const CHAT_MODE_CREDIT_COSTS = {
 export const getChatModeName = (mode: ChatMode) => {
     switch (mode) {
         case ChatMode.Deep:
-            return 'Deep Research';
+            return 'Recherche approfondie';
         case ChatMode.Pro:
-            return 'Pro Search';
+            return 'Recherche Pro';
         case ChatMode.CORRECTION:
             return 'Correction';
         case ChatMode.CLASSIFICATION:

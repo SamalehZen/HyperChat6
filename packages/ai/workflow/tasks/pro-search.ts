@@ -23,65 +23,66 @@ type SearchResult = {
 
 const getAnalysisPrompt = (question: string, webPageContent: SearchResult[]): string => {
     return `
-Today is ${getHumanizedDate()}.
+Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-You are a Web Research Assistant helping users quickly understand search findings related to "${question}".
+Aujourd’hui nous sommes ${getHumanizedDate()}.
 
-## Research Materials
+Vous êtes un assistant de recherche web aidant l’utilisateur à comprendre rapidement les constats liés à "${question}".
+
+## Matériaux de recherche
 
 <research_findings>
 ${webPageContent
     ?.map(
         (s, index) => `
 
-## Finding ${index + 1}
+## Constat ${index + 1}
 
-<title>${s.title || 'No title available'}</title>
-<content>${s.content || 'No content available'}</content>
-<link>${s.link || 'No link available'}</link>
+<title>${s.title || 'Aucun titre disponible'}</title>
+<content>${s.content || 'Aucun contenu disponible'}</content>
+<link>${s.link || 'Aucun lien disponible'}</link>
 
 `
     )
     .join('\n\n\n')}
 </research_findings>
 
-## Output Requirements:
+## Exigences de sortie:
 
-1. Content Organization:
-   - Organize information in a highly scannable format with clear headings and subheadings
-   - Use bullet points for key facts and findings
-   - Bold important data points, statistics, and conclusions
-   - Group related information from different sources together
+1. Organisation du contenu:
+   - Organiser l’information dans un format très scannable avec des titres et sous-titres clairs
+   - Utiliser des puces pour les faits et constats clés
+   - Mettre en gras les données, statistiques et conclusions importantes
+   - Regrouper les informations connexes provenant de sources différentes
 
-2. Information Hierarchy:
-   - Start with the most relevant and important findings first
-   - Include specific details, numbers, and technical information when available
-   - Highlight contradictory information or different perspectives on the same topic
-   - Ensure each point adds unique value without unnecessary repetition
+2. Hiérarchie de l’information:
+   - Commencer par les constats les plus pertinents et importants
+   - Inclure des détails, chiffres et informations techniques quand disponibles
+   - Mettre en évidence les informations contradictoires ou les points de vue divergents
+   - S’assurer que chaque point apporte une valeur unique sans répétition inutile
 
-3. Context & Relevance:
-   - Maintain focus on directly answering the user's question
-   - Provide enough context for each point to be understood independently
-   - Include temporal information (dates, timelines) when relevant
-   - Summarize complex concepts in accessible language
+3. Contexte et pertinence:
+   - Rester focalisé sur la réponse directe à la question de l’utilisateur
+   - Fournir suffisamment de contexte pour que chaque point soit compréhensible indépendamment
+   - Inclure des informations temporelles (dates, chronologies) lorsque pertinent
+   - Résumer les concepts complexes avec un langage accessible
 
-
-4. Visual Structure:
-   - Use clear visual separation between different sections
-   - Keep paragraphs short (3-4 lines maximum)
-   - Include a brief "Key Takeaways" section at the beginning for ultra-quick consumption
-   - End with any important context or limitations of the findings
+4. Structure visuelle:
+   - Utiliser une séparation visuelle claire entre les différentes sections
+   - Garder les paragraphes courts (3–4 lignes maximum)
+   - Inclure une brève section « Points clés » au début pour une lecture ultra-rapide
+   - Terminer par le contexte ou les limites importantes des constats
 
 5. Citations:
-   - Based on provided references in each findings, you must cite the sources in the report.
-   - Use inline citations like [1] to reference the source
-   - For example: According to recent findings [1][3], progress in this area has accelerated
-   - When information appears in multiple findings, cite all relevant findings using multiple numbers
-   - Integrate citations naturally without disrupting reading flow
+   - En vous basant sur les références des constats, vous devez citer les sources dans le texte
+   - Utiliser des citations en ligne comme [1] pour référencer la source
+   - Exemple: Selon les constats récents [1][3], les avancées se sont accélérées
+   - Lorsque l’information apparaît dans plusieurs constats, citer tous les numéros pertinents
+   - Intégrer les citations naturellement sans perturber la lecture
 
-Note: **Reference list at the end is not required.**
+Note: **La liste des références en fin de document n’est pas requise.**
 
-Your goal is to help the user quickly understand and extract value from these search results without missing any important details.
+Votre objectif est d’aider l’utilisateur à comprendre et exploiter rapidement ces résultats de recherche sans manquer les détails importants.
 `;
 };
 
@@ -108,11 +109,13 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             let query;
             try {
                 query = await generateObject({
-                    prompt: `Today is ${getHumanizedDate()}.
-                    ${context?.get('gl')?.country ? `You are in ${context?.get('gl')?.country}\n\n` : ''}
+                    prompt: `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
                     
-                    Generate a query to search the web for information make sure query is not too broad and be specific for recent information`,
-                    model: ModelEnum.GEMINI_2_5_FLASH,
+                    Aujourd’hui nous sommes ${getHumanizedDate()}.
+                    ${context?.get('gl')?.country ? `Vous êtes en ${context?.get('gl')?.country}\n\n` : ''}
+                    
+                    Générez une requête pour rechercher des informations sur le Web. Assurez-vous que la requête n’est pas trop large et qu’elle est spécifique, en privilégiant des informations récentes.`,
+                    model: ModelEnum.GEMINI_2_5_PRO,
                     messages,
                     schema: z.object({
                         query: z.string().min(1),
@@ -229,7 +232,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             try {
                 reasoning = await generateText({
                     prompt: getAnalysisPrompt(question, webPageContent),
-                    model: ModelEnum.GEMINI_2_5_FLASH,
+                    model: ModelEnum.GEMINI_2_5_PRO,
                     messages,
                     onReasoning: chunk => {
                         reasoningBuffer.add(chunk);

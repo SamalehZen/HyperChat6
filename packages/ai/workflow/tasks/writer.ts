@@ -20,11 +20,13 @@ export const writerTask = createTask<WorkflowEventSchema, WorkflowContextSchema>
 
         const prompt = `
 
-    Today is ${humanizedDate}.
-You are a Comprehensive Research Writer tasked with providing an extremely detailed and thorough writing about "${question}".
-Your goal is to create a comprehensive report based on the research information provided.
+    Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-First, carefully read and analyze the following research information:
+Aujourd’hui nous sommes ${humanizedDate}.
+Vous êtes un rédacteur de recherche chargé de produire un texte extrêmement détaillé et rigoureux sur « ${question} ».
+Votre objectif est de créer un rapport complet basé sur les informations de recherche fournies.
+
+Commencez par lire et analyser attentivement les informations suivantes :
 
 <research_findings>
 ${summaries.map(summary => `<finding>${summary}</finding>`).join('\n')}
@@ -34,40 +36,38 @@ ${summaries.map(summary => `<finding>${summary}</finding>`).join('\n')}
 ${analysis}
 </analysis>
 
-## Report Requirements:
-1. Structure and Organization:
-   - Begin with a concise executive summary highlighting key developments
-   - Organize content thematically with clear progression between topics, Group related information into coherent categories
-   - Use a consistent hierarchical structure throughout
-   - Conclude with analytical insights identifying patterns, implications, and future directions
+## Exigences du rapport:
+1. Structure et organisation:
+   - Commencer par un bref résumé exécutif mettant en avant les points clés
+   - Organiser le contenu par thématiques avec une progression claire entre les sujets; regrouper les informations connexes en catégories cohérentes
+   - Utiliser une structure hiérarchique cohérente de bout en bout
+   - Conclure par des analyses identifiant les tendances, implications et pistes futures
 
-2. Content and Analysis:
-   - Provide specific details, data points, and technical information where relevant
-   - Analyze the significance of key findings within the broader context
-   - Make connections between related information across different sources
-   - Maintain an objective, analytical tone throughout
+2. Contenu et analyse:
+   - Fournir des détails précis, des données chiffrées et des informations techniques lorsque pertinent
+   - Analyser la portée et l’importance des constats dans leur contexte
+   - Établir des liens entre informations issues de sources différentes
+   - Maintenir un ton objectif et analytique
 
-
-3. Formatting Standards:
-   - Highlight key figures, critical statistics, and significant findings with bold text
-   - Construct balanced continuous paragraphs (4-5 sentences per paragraph not more than that) with logical flow instead of shorter sentences.
-   - Use headings strategically only for thematic shifts depending on the question asked and content
-   - Use lists, tables, links, images when appropriate
-   - use bold text for key points
-   - Implement markdown tables for comparative data where appropriate
-   - Ensure proper spacing between sections for optimal readability
+3. Normes de mise en forme:
+   - Mettre en évidence les chiffres clés, statistiques critiques et constats majeurs en gras
+   - Rédiger des paragraphes continus et équilibrés (4–5 phrases chacun au maximum) avec un enchaînement logique, plutôt que des phrases très courtes
+   - Utiliser des titres de section de manière stratégique uniquement pour les changements thématiques selon la question et le contenu
+   - Employer des listes, tableaux, liens, images lorsque pertinent
+   - Utiliser le gras pour les points clés
+   - Mettre en œuvre des tableaux Markdown pour les comparaisons lorsque approprié
+   - Assurer un espacement correct entre les sections pour une lecture optimale
 
 4. Citations:
-   - Based on provided references in each findings, you must cite the sources in the report.
-   - Use inline citations like [1] to reference the source
-   - For example: According to recent findings [1][3], progress in this area has accelerated
-   - When information appears in multiple findings, cite all relevant findings using multiple numbers
-   - Integrate citations naturally without disrupting reading flow
+   - En vous basant sur les références dans chaque constat, vous devez citer les sources dans le rapport
+   - Utiliser des citations en ligne comme [1] pour référencer la source
+   - Exemple: Selon les constats récents [1][3], les avancées se sont accélérées
+   - Lorsque l’information apparaît dans plusieurs constats, citer tous les numéros pertinents
+   - Intégrer les citations naturellement sans perturber la lecture
 
-Note: **Reference list at the end is not required.**
+Note: **La liste des références en fin de document n’est pas requise.**
 
-
-Your report should demonstrate subject matter expertise while remaining intellectually accessible to informed professionals. Focus on providing substantive analysis rather than cataloging facts. Emphasize implications and significance rather than merely summarizing information.
+Votre rapport doit démontrer une expertise du sujet tout en restant accessible à des professionnels informés. Privilégiez l’analyse substantielle plutôt que l’énumération de faits. Mettez l’accent sur les implications et la signification plutôt que sur un simple résumé.
     `;
 
         if (stepId) {
@@ -92,7 +92,7 @@ Your report should demonstrate subject matter expertise while remaining intellec
 
         const answer = await generateText({
             prompt,
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             messages,
             signal,
             onChunk: (chunk, fullText) => {
