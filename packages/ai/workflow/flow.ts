@@ -175,7 +175,7 @@ export const runWorkflow = ({
     const frenchPrefMessage: CoreMessage = {
         role: 'system',
         content:
-            "Langue: francais par defaut. Reponds en francais. Si l'utilisateur c'exprime en anglais, reponds en anglais. Formate les dates et lieux au format fr-FR.",
+            "Langue: francais par defaut. Reponds en francais. Si l'utilisateur s'exprime en anglais, reponds en anglais. Formate les dates et lieux au format fr-FR.",
     };
 
     const localizedMessages =
@@ -183,16 +183,17 @@ export const runWorkflow = ({
             ? [frenchPrefMessage, ...(messages as any)]
             : (messages as any);
 
-    const context = createContext<WorkflowContextSchema>({
+    const context = createContext<WorkflowContextSchema>({{
         mcpConfig,
-        question,J        mode,
+        question,
+        mode,
         webSearch,
         search_queries: [],
         messages: localizedMessages,
         goals: [],
         queries: [],
         steps: [],
-        gl:,
+        gl,
         customInstructions,
         sources: [],
         summaries: [],
@@ -201,7 +202,7 @@ export const runWorkflow = ({
         threadItemId,
         showSuggestions,
         onFinish: onFinish as any,
-    });
+    }});
 
     // Use the typed builder
     const builder = new WorkflowBuilder(threadId, {
