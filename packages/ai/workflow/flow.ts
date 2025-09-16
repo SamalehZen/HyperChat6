@@ -121,7 +121,7 @@ export const runWorkflow = ({
     config = {},
     signal,
     webSearch = false,
-    showSuggestions = false,
+    showSuggestions= false,
     onFinish,
     customInstructions,
     gl,
@@ -152,9 +152,8 @@ export const runWorkflow = ({
         ...config,
     };
 
-    // Create typed event emitter withe the proper type
-    const events = createTypedEventEmitter__WORKFLOWEventSc7hema>({
-        steps: {},
+    // Create typed event emitter with the proper type
+    const events = createTypedEventEmitter<WorkflowEventSchema>({Š        steps: {},
         toolCalls: [],
         toolResults: [],
         answer: {
