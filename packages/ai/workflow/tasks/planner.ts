@@ -2,7 +2,8 @@ import { createTask } from '@repo/orchestrator';
 import { z } from 'zod';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import { generateObject, getHumanizedDate, handleError, sendEvents } from '../utils';
+import { getHumanizedDate, handleError, sendEvents } from '../utils';
+import { geminiGenerateObject } from '../../gemini';
 
 export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'planner',
@@ -63,9 +64,8 @@ export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema
                         - queries: 2 requêtes de recherche bien formulées (4–8 mots) ciblant les aspects les plus importants
                 `;
 
-        const object = await generateObject({
+        const { object, fellBack, usedModel } = await geminiGenerateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
             schema: z.object({
                 reasoning: z.string(),
                 queries: z.array(z.string()),
@@ -73,6 +73,16 @@ export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema
             messages: messages as any,
             signal,
         });
+        if (fellBack) {
+            sendEvents(events).updateObject({
+                geminiFallback: {
+                    fellBack: true,
+                    usedModel,
+                    message:
+                        'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                },
+            });
+        }
 
         context?.update('queries', current => [...(current ?? []), ...(object?.queries || [])]);
         // Update flow event with initial goal

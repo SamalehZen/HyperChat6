@@ -13,8 +13,8 @@ import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem as ThreadItemType } from '@repo/shared/types';
 import { Alert, AlertDescription, cn } from '@repo/ui';
-import { IconAlertCircle, IconBook } from '@tabler/icons-react';
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { IconAlertCircle, IconBook, IconX } from '@tabler/icons-react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 export const ThreadItem = memo(
@@ -94,6 +94,11 @@ export const ThreadItem = memo(
                             />
                         )}
 
+                        {/* Gemini fallback banner */}
+                        {threadItem?.object?.geminiFallback?.fellBack && (
+                            <FallbackBanner message={threadItem?.object?.geminiFallback?.message} />
+                        )}
+
                         {!hasResponse && (
                             <div className="flex w-full flex-col items-start gap-2 opacity-10">
                                 <MotionSkeleton className="bg-muted-foreground/40 mb-2 h-4 !w-[100px] rounded-sm" />
@@ -170,3 +175,25 @@ export const ThreadItem = memo(
 );
 
 ThreadItem.displayName = 'ThreadItem';
+
+function FallbackBanner({ message }: { message?: string }) {
+    const [visible, setVisible] = useState(true);
+    if (!visible) return null;
+    return (
+        <Alert variant="info" className="flex items-start justify-between">
+            <AlertDescription className="flex-1">
+                <IconAlertCircle className="mt-0.5 size-3.5" />
+                {message ||
+                    'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.'}
+            </AlertDescription>
+            <button
+                aria-label="Dismiss"
+                onClick={() => setVisible(false)}
+                className="ml-2 rounded p-1 text-xs text-foreground/60 hover:text-foreground"
+            >
+                <IconX size={14} />
+            </button>
+        </Alert>
+    );
+}
+

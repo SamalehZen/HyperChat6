@@ -1,14 +1,8 @@
 import { createTask } from '@repo/orchestrator';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import {
-    executeWebSearch,
-    generateText,
-    getHumanizedDate,
-    handleError,
-    processWebPages,
-    sendEvents,
-} from '../utils';
+import { executeWebSearch, getHumanizedDate, handleError, processWebPages, sendEvents } from '../utils';
+import { geminiGenerateTextStreaming } from '../../gemini';
 
 export const webSearchTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'web-search',
@@ -118,10 +112,19 @@ Citations et références:
 
       `;
 
-        const summary = await generateText({
-            model: ModelEnum.GEMINI_2_5_PRO,
+        const { text: summary, fellBack, usedModel } = await geminiGenerateTextStreaming({
             prompt,
         });
+        if (fellBack) {
+            sendEvents(events).updateObject({
+                geminiFallback: {
+                    fellBack: true,
+                    usedModel,
+                    message:
+                        'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                },
+            });
+        }
 
         updateStep({
             stepId,

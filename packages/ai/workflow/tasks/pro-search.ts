@@ -2,16 +2,8 @@ import { createTask } from '@repo/orchestrator';
 import { z } from 'zod';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import {
-    ChunkBuffer,
-    generateObject,
-    generateText,
-    getHumanizedDate,
-    getSERPResults,
-    handleError,
-    processWebPages,
-    sendEvents,
-} from '../utils';
+import { ChunkBuffer, getHumanizedDate, getSERPResults, handleError, processWebPages, sendEvents } from '../utils';
+import { geminiGenerateObject, geminiGenerateTextStreaming } from '../../gemini';
 
 type SearchResult = {
     title: string;
@@ -108,19 +100,31 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             // Step 1: Generate search query
             let query;
             try {
-                query = await generateObject({
-                    prompt: `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
-                    
-                    Aujourd’hui nous sommes ${getHumanizedDate()}.
-                    ${context?.get('gl')?.country ? `Vous êtes en ${context?.get('gl')?.country}\n\n` : ''}
-                    
-                    Générez une requête pour rechercher des informations sur le Web. Assurez-vous que la requête n’est pas trop large et qu’elle est spécifique, en privilégiant des informations récentes.`,
-                    model: ModelEnum.GEMINI_2_5_PRO,
-                    messages,
-                    schema: z.object({
-                        query: z.string().min(1),
-                    }),
-                });
+                {
+                    const { object, fellBack, usedModel } = await geminiGenerateObject({
+                        prompt: `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
+                        
+                        Aujourd’hui nous sommes ${getHumanizedDate()}.
+                        ${context?.get('gl')?.country ? `Vous êtes en ${context?.get('gl')?.country}\n\n` : ''}
+                        
+                        Générez une requête pour rechercher des informations sur le Web. Assurez-vous que la requête n’est pas trop large et qu’elle est spécifique, en privilégiant des informations récentes.`,
+                        messages,
+                        schema: z.object({
+                            query: z.string().min(1),
+                        }),
+                    });
+                    query = object;
+                    if (fellBack) {
+                        sendEvents(events).updateObject({
+                            geminiFallback: {
+                                fellBack: true,
+                                usedModel,
+                                message:
+                                    'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                            },
+                        });
+                    }
+                }
             } catch (error) {
                 throw new Error(
                     `Failed to generate search query: ${error instanceof Error ? error.message : String(error)}`
@@ -230,17 +234,26 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             // Step 4: Generate analysis
             let reasoning = '';
             try {
-                reasoning = await generateText({
-                    prompt: getAnalysisPrompt(question, webPageContent),
-                    model: ModelEnum.GEMINI_2_5_PRO,
-                    messages,
-                    onReasoning: chunk => {
-                        reasoningBuffer.add(chunk);
-                    },
-                    onChunk: (chunk, fullText) => {
-                        chunkBuffer.add(chunk);
-                    },
-                });
+                {
+                    const { text, fellBack, usedModel } = await geminiGenerateTextStreaming({
+                        prompt: getAnalysisPrompt(question, webPageContent),
+                        messages,
+                        onChunk: (chunk, fullText) => {
+                            chunkBuffer.add(chunk);
+                        },
+                    });
+                    reasoning = text;
+                    if (fellBack) {
+                        sendEvents(events).updateObject({
+                            geminiFallback: {
+                                fellBack: true,
+                                usedModel,
+                                message:
+                                    'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                            },
+                        });
+                    }
+                }
 
                 if (!reasoning || reasoning.trim() === '') {
                     throw new Error('Failed to generate analysis');

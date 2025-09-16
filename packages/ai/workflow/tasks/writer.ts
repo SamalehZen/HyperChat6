@@ -2,7 +2,8 @@ import { createTask } from '@repo/orchestrator';
 import { format } from 'date-fns';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import { ChunkBuffer, generateText, handleError, sendEvents } from '../utils';
+import { ChunkBuffer, handleError, sendEvents } from '../utils';
+import { geminiGenerateTextStreaming } from '../../gemini';
 
 export const writerTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'writer',
@@ -90,15 +91,24 @@ Votre rapport doit démontrer une expertise du sujet tout en restant accessible 
             },
         });
 
-        const answer = await generateText({
+        const { text: answer, fellBack, usedModel } = await geminiGenerateTextStreaming({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
             messages,
             signal,
-            onChunk: (chunk, fullText) => {
+            onChunk: (chunk, _fullText) => {
                 chunkBuffer.add(chunk);
             },
         });
+        if (fellBack) {
+            sendEvents(events).updateObject({
+                geminiFallback: {
+                    fellBack: true,
+                    usedModel,
+                    message:
+                        'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                },
+            });
+        }
 
         // Make sure to flush any remaining content
         chunkBuffer.flush();

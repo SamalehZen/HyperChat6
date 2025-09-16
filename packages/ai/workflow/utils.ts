@@ -622,7 +622,7 @@ export const sendEvents = (events?: TypedEventEmitter<WorkflowEventSchema>) => {
     };
 
     const updateObject = (object: any) => {
-        events?.update('object', prev => object);
+        events?.update('object', prev => ({ ...(prev || {}), ...(object || {}) }));
     };
 
     return { updateStep, addSources, updateAnswer, nextStepId, updateStatus, updateObject };

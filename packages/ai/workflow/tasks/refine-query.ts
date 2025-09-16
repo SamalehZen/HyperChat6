@@ -2,7 +2,8 @@ import { createTask } from '@repo/orchestrator';
 import { z } from 'zod';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import { generateObject, getHumanizedDate, handleError, sendEvents } from '../utils';
+import { getHumanizedDate, handleError, sendEvents } from '../utils';
+import { geminiGenerateObject } from '../../gemini';
 
 const ClarificationResponseSchema = z.object({
     needsClarification: z.boolean(),
@@ -53,13 +54,22 @@ export const refineQueryTask = createTask<WorkflowEventSchema, WorkflowContextSc
             Toutes les questions et options de clarification doivent être rédigées en français par défaut (sauf si la langue de l’utilisateur est manifestement différente).
             `;
 
-        const object = await generateObject({
+        const { object, fellBack, usedModel } = await geminiGenerateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
             schema: ClarificationResponseSchema,
             messages: messages as any,
             signal,
         });
+        if (fellBack) {
+            sendEvents(events).updateObject({
+                geminiFallback: {
+                    fellBack: true,
+                    usedModel,
+                    message:
+                        'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                },
+            });
+        }
 
         if (object?.needsClarification) {
             updateAnswer({

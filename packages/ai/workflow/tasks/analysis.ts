@@ -1,7 +1,8 @@
 import { createTask } from '@repo/orchestrator';
 import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import { ChunkBuffer, generateText, getHumanizedDate, handleError, sendEvents } from '../utils';
+import { ChunkBuffer, getHumanizedDate, handleError, sendEvents } from '../utils';
+import { geminiGenerateTextStreaming } from '../../gemini';
 
 export const analysisTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'analysis',
@@ -64,15 +65,25 @@ ${s}
             },
         });
 
-        const text = await generateText({
+        const { text, fellBack, usedModel } = await geminiGenerateTextStreaming({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
             messages: messages as any,
             signal,
-            onReasoning: reasoning => {
-                chunkBuffer.add(reasoning);
+            onChunk: (chunk) => {
+                // We do not have separate reasoning stream; reuse buffer for any chunk
+                chunkBuffer.add(chunk);
             },
         });
+        if (fellBack) {
+            sendEvents(events).updateObject({
+                geminiFallback: {
+                    fellBack: true,
+                    usedModel,
+                    message:
+                        'Switched to Gemini 2.5 Flash because the daily quota for Gemini 2.5 Pro was reached.',
+                },
+            });
+        }
 
         chunkBuffer.flush();
 
