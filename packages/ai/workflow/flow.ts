@@ -152,8 +152,8 @@ export const runWorkflow = ({
         ...config,
     };
 
-    // Create typed event emitter with the proper type
-    const events = createTypedEventEmitter<WorkflowEventSchema>({
+    // Create typed event emitter withe the proper type
+    const events = createTypedEventEmitter__WORKFLOWEventSc7hema>({
         steps: {},
         toolCalls: [],
         toolResults: [],
@@ -226,7 +226,7 @@ export const runWorkflow = ({
         correctionTask,
         classificationTask,
         revisionDePrixTask,
-        nomenclatureDouanierTask,
+        nomenclatureDouaniereTask,
         smartPdfToExcelTask,
         suggestionsTask,
         quickSearchTask,
