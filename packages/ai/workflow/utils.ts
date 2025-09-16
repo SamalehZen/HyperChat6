@@ -9,7 +9,6 @@ import {
 } from 'ai';
 import { format } from 'date-fns';
 import { ZodSchema } from 'zod';
-import { performance } from 'perf_hooks';
 import { ModelEnum } from '../models';
 import { getLanguageModel } from '../providers';
 import { WorkflowEventSchema } from './flow';
@@ -69,7 +68,8 @@ export class ChunkBuffer {
         this.flush();
         this.fullText = '';
     }
-}{
+}
+
 
 export const generateText = async ({
     prompt,
@@ -115,7 +115,7 @@ export const generateText = async ({
         });
 
         const selectedModel = getLanguageModel(model, middleware);
-        const tStart = performance.now();
+        const tStart = (globalThis.performance?.now?.() ?? Date.now());
         const { fullStream } = !!messages?.length
             ? streamText({
                   system: prompt,
@@ -152,7 +152,7 @@ export const generateText = async ({
             if (chunk.type === 'text-delta') {
                 if (!firstChunkSeen) {
                     firstChunkSeen = true;
-                    onFirstChunk?.({ tFirstModelChunk: performance.now(), tStart });
+                    onFirstChunk?.({ tFirstModelChunk: (globalThis.performance?.now?.() ?? Date.now()), tStart });
                 }
                 fullText += chunk.textDelta;
                 onChunk?.(chunk.textDelta, fullText);
