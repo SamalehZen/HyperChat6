@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import { CHAT_MODE_CREDIT_COSTS, ChatModeConfig } from '@repo/shared/config';
 import { Geo, geolocation } from '@vercel/functions';
 import { NextRequest } from 'next/server';
+import { performance } from 'perf_hooks';
+import { getModelFromChatMode, models } from '@repo/ai/models';
 import {
     DAILY_CREDITS_AUTH,
     DAILY_CREDITS_IP,
@@ -17,12 +19,18 @@ export async function POST(request: NextRequest) {
         return new Response(null, { headers: SSE_HEADERS });
     }
 
+    const tRequestStart = performance.now();
+
     try {
+        const tAuthStart = performance.now();
         const session = await auth();
+        const tAuthEnd = performance.now();
         const userId = session?.userId ?? undefined;
 
+        const tBodyStart = performance.now();
         const parsed = await request.json().catch(() => ({}));
         const validatedBody = completionRequestSchema.safeParse(parsed);
+        const tBodyEnd = performance.now();
 
         if (!validatedBody.success) {
             return new Response(
@@ -45,14 +53,12 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        console.log('ip', ip);
-
+        const tKvStart = performance.now();
         const remainingCredits = await getRemainingCredits({
             userId: userId ?? undefined,
             ip,
         });
-
-        console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
+        const tKvEnd = performance.now();
 
         if (!!ChatModeConfig[data.mode]?.isAuthRequired && !userId) {
             return new Response(JSON.stringify({ error: 'Authentication required' }), {
@@ -68,6 +74,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const modelId = getModelFromChatMode(data.mode);
+        const modelMeta = models.find(m => m.id === modelId);
+        const modelProvider = modelMeta?.provider || '';
+
         const enhancedHeaders = {
             ...SSE_HEADERS,
             'X-Credits-Available': remainingCredits.toString(),
@@ -75,7 +85,12 @@ export async function POST(request: NextRequest) {
             'X-Credits-Daily-Allowance': userId
                 ? DAILY_CREDITS_AUTH.toString()
                 : DAILY_CREDITS_IP.toString(),
-        };
+            'X-Timing-Auth': (tAuthEnd - tAuthStart).toFixed(1),
+            'X-Timing-BodyParse': (tBodyEnd - tBodyStart).toFixed(1),
+            'X-Timing-KV': (tKvEnd - tKvStart).toFixed(1),
+            'X-Model-Provider': modelProvider,
+            'X-Model-Id': String(modelId),
+        } as Record<string, string>;
 
         const encoder = new TextEncoder();
         const abortController = new AbortController();
@@ -84,9 +99,9 @@ export async function POST(request: NextRequest) {
             abortController.abort();
         });
 
+        const tGeoStart = performance.now();
         const gl = geolocation(request);
-
-        console.log('gl', gl);
+        const tGeoEnd = performance.now();
 
         const stream = createCompletionStream({
             data,
@@ -94,11 +109,15 @@ export async function POST(request: NextRequest) {
             ip,
             abortController,
             gl,
+            tRequestStart,
         });
+
+        const tPreStream = performance.now() - tRequestStart;
+        enhancedHeaders['X-Timing-Geo'] = (tGeoEnd - tGeoStart).toFixed(1);
+        enhancedHeaders['X-Timing-PreStream'] = tPreStream.toFixed(1);
 
         return new Response(stream, { headers: enhancedHeaders });
     } catch (error) {
-        console.error('Error in POST handler:', error);
         return new Response(
             JSON.stringify({ error: 'Internal server error', details: String(error) }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -112,12 +131,14 @@ function createCompletionStream({
     ip,
     abortController,
     gl,
+    tRequestStart,
 }: {
     data: any;
     userId?: string;
     ip?: string;
     abortController: AbortController;
     gl: Geo;
+    tRequestStart: number;
 }) {
     const encoder = new TextEncoder();
 
@@ -130,6 +151,16 @@ function createCompletionStream({
             }, 15000);
 
             try {
+                const tFirstEvent = performance.now();
+                sendMessage(controller, encoder, {
+                    type: 'init',
+                    threadId: data.threadId,
+                    threadItemId: data.threadItemId,
+                    parentThreadItemId: data.parentThreadItemId,
+                    mode: data.mode,
+                    query: data.prompt,
+                });
+
                 await executeStream({
                     controller,
                     encoder,
@@ -137,10 +168,13 @@ function createCompletionStream({
                     abortController,
                     gl,
                     userId: userId ?? undefined,
+                    metrics: {
+                        tRequestStart,
+                        tFirstEvent,
+                        promptLength: typeof data.prompt === 'string' ? data.prompt.length : 0,
+                        messagesCount: Array.isArray(data.messages) ? data.messages.length : 0,
+                    },
                     onFinish: async () => {
-                        // if (process.env.NODE_ENV === 'development') {
-                        //     return;
-                        // }
                         const creditCost =
                             CHAT_MODE_CREDIT_COSTS[
                                 data.mode as keyof typeof CHAT_MODE_CREDIT_COSTS
@@ -156,7 +190,6 @@ function createCompletionStream({
                 });
             } catch (error) {
                 if (abortController.signal.aborted) {
-                    console.log('abortController.signal.aborted');
                     sendMessage(controller, encoder, {
                         type: 'done',
                         status: 'aborted',
@@ -165,7 +198,6 @@ function createCompletionStream({
                         parentThreadItemId: data.parentThreadItemId,
                     });
                 } else {
-                    console.log('sending error message');
                     sendMessage(controller, encoder, {
                         type: 'done',
                         status: 'error',
@@ -183,7 +215,6 @@ function createCompletionStream({
             }
         },
         cancel() {
-            console.log('cancelling stream');
             abortController.abort();
         },
     });

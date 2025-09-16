@@ -69,6 +69,7 @@ export type WorkflowEventSchema = {
     status: Status;
 
     suggestions?: string[];
+    metrics?: Record<string, any>;
 };
 
 // Define the context schema type
@@ -140,10 +141,9 @@ export const runWorkflow = ({
     gl?: Geo;
     customInstructions?: string;
 }) => {
-    const langfuse = new Langfuse();
-    const trace = langfuse.trace({
-        name: 'deep-research-workflow',
-    });
+    const shouldUseLangfuse = !!process.env.LANGFUSE_PUBLIC_KEY && !!process.env.LANGFUSE_SECRET_KEY;
+    const langfuse = shouldUseLangfuse ? new Langfuse() : undefined as any;
+    const trace = langfuse ? langfuse.trace({ name: 'deep-research-workflow' }) : undefined as any;
 
     // Set default values for config
     const workflowConfig: WorkflowConfig = {
@@ -159,7 +159,6 @@ export const runWorkflow = ({
         toolResults: [],
         answer: {
             text: '',
-
             status: 'PENDING',
         },
         sources: [],
@@ -170,6 +169,7 @@ export const runWorkflow = ({
             status: 'PENDING',
         },
         status: 'PENDING',
+        metrics: {},
     });
 
     const context = createContext<WorkflowContextSchema>({

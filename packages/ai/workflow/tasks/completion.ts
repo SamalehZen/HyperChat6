@@ -94,9 +94,15 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             },
         });
 
+        const thresholdEnv = parseInt(process.env.RESPONSE_BUFFER_THRESHOLD || '', 10);
+        const intervalEnv = parseInt(process.env.RESPONSE_BUFFER_INTERVAL_MS || '', 10);
+        const threshold = Number.isFinite(thresholdEnv) ? Math.max(thresholdEnv, 1) : 16;
+        const intervalMs = Number.isFinite(intervalEnv) ? Math.max(intervalEnv, 100) : 100;
+
         const chunkBuffer = new ChunkBuffer({
-            threshold: 200,
+            threshold,
             breakOn: ['\n'],
+            intervalMs,
             onFlush: (text: string) => {
                 events?.update('answer', current => ({
                     ...current,
@@ -119,6 +125,12 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             },
             onChunk: (chunk, fullText) => {
                 chunkBuffer.add(chunk);
+            },
+            onFirstChunk: ({ tFirstModelChunk }) => {
+                events?.update('metrics', prev => ({
+                    ...(prev as any),
+                    t_first_model_chunk: tFirstModelChunk,
+                }));
             },
         });
 

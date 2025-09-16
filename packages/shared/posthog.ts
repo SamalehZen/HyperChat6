@@ -17,13 +17,19 @@ export type PostHogEvent = {
 
 export const posthog = {
     capture: (event: PostHogEvent) => {
-        client.capture({
-            distinctId: event?.userId || uuidv4(),
-            event: event.event,
-            properties: event.properties,
-        });
+        try {
+            client.capture({
+                distinctId: event?.userId || uuidv4(),
+                event: event.event,
+                properties: event.properties,
+            });
+        } catch {}
     },
     flush: () => {
-        client.flush();
+        setTimeout(() => {
+            try {
+                client.flush();
+            } catch {}
+        }, 0);
     },
 };

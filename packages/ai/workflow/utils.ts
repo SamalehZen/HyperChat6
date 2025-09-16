@@ -9,6 +9,7 @@ import {
 } from 'ai';
 import { format } from 'date-fns';
 import { ZodSchema } from 'zod';
+import { performance } from 'perf_hooks';
 import { ModelEnum } from '../models';
 import { getLanguageModel } from '../providers';
 import { WorkflowEventSchema } from './flow';
@@ -17,6 +18,7 @@ import { generateErrorMessage } from './tasks/utils';
 export type ChunkBufferOptions = {
     threshold?: number;
     breakOn?: string[];
+    intervalMs?: number;
     onFlush: (chunk: string, fullText: string) => void;
 };
 
@@ -26,11 +28,20 @@ export class ChunkBuffer {
     private threshold?: number;
     private breakPatterns: string[];
     private onFlush: (chunk: string, fullText: string) => void;
+    private timer?: NodeJS.Timeout;
 
     constructor(options: ChunkBufferOptions) {
         this.threshold = options.threshold;
         this.breakPatterns = options.breakOn || ['\n\n', '.', '!', '?'];
         this.onFlush = options.onFlush;
+        const interval = typeof options.intervalMs === 'number' ? Math.max(options.intervalMs, 100) : undefined;
+        if (interval) {
+            this.timer = setInterval(() => {
+                if (this.buffer.length > 0) {
+                    this.flush();
+                }
+            }, interval);
+        }
     }
 
     add(chunk: string): void {
@@ -54,10 +65,11 @@ export class ChunkBuffer {
     }
 
     end(): void {
+        if (this.timer) clearInterval(this.timer);
         this.flush();
         this.fullText = '';
     }
-}
+}{
 
 export const generateText = async ({
     prompt,
@@ -74,6 +86,7 @@ export const generateText = async ({
     temperature,
     topP,
     maxOutputTokens,
+    onFirstChunk,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -89,6 +102,7 @@ export const generateText = async ({
     temperature?: number;
     topP?: number;
     maxOutputTokens?: number;
+    onFirstChunk?: (meta: { tFirstModelChunk: number; tStart: number }) => void;
 }) => {
     try {
         if (signal?.aborted) {
@@ -101,6 +115,7 @@ export const generateText = async ({
         });
 
         const selectedModel = getLanguageModel(model, middleware);
+        const tStart = performance.now();
         const { fullStream } = !!messages?.length
             ? streamText({
                   system: prompt,
@@ -127,6 +142,7 @@ export const generateText = async ({
               });
         let fullText = '';
         let reasoning = '';
+        let firstChunkSeen = false;
 
         for await (const chunk of fullStream) {
             if (signal?.aborted) {
@@ -134,6 +150,10 @@ export const generateText = async ({
             }
 
             if (chunk.type === 'text-delta') {
+                if (!firstChunkSeen) {
+                    firstChunkSeen = true;
+                    onFirstChunk?.({ tFirstModelChunk: performance.now(), tStart });
+                }
                 fullText += chunk.textDelta;
                 onChunk?.(chunk.textDelta, fullText);
             }

@@ -3,6 +3,8 @@ import { CHAT_MODE_CREDIT_COSTS } from '@repo/shared/config';
 import { logger } from '@repo/shared/logger';
 import { EVENT_TYPES, posthog } from '@repo/shared/posthog';
 import { Geo } from '@vercel/functions';
+import { performance } from 'perf_hooks';
+import { getModelFromChatMode, models } from '@repo/ai/models';
 import { CompletionRequestType, StreamController } from './types';
 import { sanitizePayloadForJSON } from './utils';
 
@@ -52,6 +54,7 @@ export async function executeStream({
     abortController,
     gl,
     userId,
+    metrics,
     onFinish,
 }: {
     controller: StreamController;
@@ -60,12 +63,30 @@ export async function executeStream({
     abortController: AbortController;
     userId?: string;
     gl?: Geo;
+    metrics?: { tRequestStart: number; tFirstEvent: number; promptLength?: number; messagesCount?: number };
     onFinish?: () => Promise<void>;
 }): Promise<{ success: boolean } | Response> {
     try {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
 
         const { signal } = abortController;
+
+        const modelId = getModelFromChatMode(data.mode as any);
+        const modelMeta = models.find(m => m.id === modelId);
+        const provider = modelMeta?.provider || '';
+
+        const metricsState: Record<string, any> = {
+            provider,
+            model: String(modelId),
+            mode: data.mode,
+            threadId: data.threadId,
+            prompt_length: metrics?.promptLength || 0,
+            messages_count: metrics?.messagesCount || 0,
+            t_request_start: metrics?.tRequestStart,
+            t_first_event: metrics?.tFirstEvent,
+        };
+
+        const { signal: _signal } = abortController;
 
         const workflow = runWorkflow({
             mode: data.mode,
@@ -85,7 +106,23 @@ export async function executeStream({
             onFinish: onFinish,
         });
 
+        let tFirstAnswerFlush: number | null = null;
+
         workflow.onAll((event, payload) => {
+            if (event === 'metrics' && payload) {
+                Object.assign(metricsState, payload);
+            }
+            if (event === 'answer' && tFirstAnswerFlush === null) {
+                tFirstAnswerFlush = performance.now();
+                metricsState.t_first_flush = tFirstAnswerFlush;
+                sendMessage(controller, encoder, {
+                    type: 'metrics',
+                    threadId: data.threadId,
+                    threadItemId: data.threadItemId,
+                    parentThreadItemId: data.parentThreadItemId,
+                    metrics: { t_first_flush: tFirstAnswerFlush },
+                });
+            }
             sendMessage(controller, encoder, {
                 type: event,
                 threadId: data.threadId,
@@ -102,6 +139,15 @@ export async function executeStream({
         if (process.env.NODE_ENV === 'development') {
             logger.debug('Starting workflow', { threadId: data.threadId });
         }
+
+        const tWorkflowStart = performance.now();
+        sendMessage(controller, encoder, {
+            type: 'metrics',
+            threadId: data.threadId,
+            threadItemId: data.threadItemId,
+            parentThreadItemId: data.parentThreadItemId,
+            metrics: { t_workflow_start: tWorkflowStart, provider: metricsState.provider, model: metricsState.model, mode: metricsState.mode, threadId: data.threadId, prompt_length: metricsState.prompt_length, messages_count: metricsState.messages_count, t_first_event: metricsState.t_first_event },
+        });
 
         await workflow.start('router', {
             question: data.prompt,
@@ -132,12 +178,18 @@ export async function executeStream({
 
         posthog.flush();
 
+        const summary = workflow.getTimingSummary();
+        const ttfb_model = metricsState.t_first_model_chunk && metricsState.t_workflow_start ? metricsState.t_first_model_chunk - metricsState.t_workflow_start : undefined;
+        const ttfb_answer = metricsState.t_first_flush && metricsState.t_request_start ? metricsState.t_first_flush - metricsState.t_request_start : undefined;
+
         sendMessage(controller, encoder, {
             type: 'done',
             status: 'complete',
             threadId: data.threadId,
             threadItemId: data.threadItemId,
             parentThreadItemId: data.parentThreadItemId,
+            summary,
+            metrics: { ...metricsState, ttfb_model, ttfb_answer },
         });
 
         return { success: true };
