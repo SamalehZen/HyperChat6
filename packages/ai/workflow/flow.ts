@@ -183,17 +183,16 @@ export const runWorkflow = ({
             ? [frenchPrefMessage, ...(messages as any)]
             : (messages as any);
 
-    const context = createContext<WorkflowContextSchema>({{
+    const context = createContext<WorkflowContextSchema>({
         mcpConfig,
-        question,
-        mode,
+        question,J        mode,
         webSearch,
         search_queries: [],
         messages: localizedMessages,
         goals: [],
         queries: [],
         steps: [],
-        gl,
+        gl:,
         customInstructions,
         sources: [],
         summaries: [],
@@ -202,7 +201,7 @@ export const runWorkflow = ({
         threadItemId,
         showSuggestions,
         onFinish: onFinish as any,
-    }});
+    });
 
     // Use the typed builder
     const builder = new WorkflowBuilder(threadId, {
@@ -220,7 +219,7 @@ export const runWorkflow = ({
         reflectorTask,
         analysisTask,
         writerTask,
-        refineQueryTask
+        refineQueryTask,
         modeRoutingTask,
         completionTask,
         correctionTask,
