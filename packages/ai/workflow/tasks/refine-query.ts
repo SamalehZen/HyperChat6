@@ -24,35 +24,38 @@ export const refineQueryTask = createTask<WorkflowEventSchema, WorkflowContextSc
         const question = context?.get('question') || '';
         const { updateStatus, updateAnswer, updateObject } = sendEvents(events);
 
-        const prompt = `You are a professional research assistant tasked with refining user queries for deep research.
+        const prompt = `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-                CURRENT DATE: ${getHumanizedDate()}
+            Assistant: Vous êtes un assistant de recherche professionnel chargé d’affiner les requêtes des utilisateurs pour une recherche approfondie.
 
-                Analyze the user's question to determine if it needs clarification before research.
+            DATE ACTUELLE : ${getHumanizedDate()}
 
-                For well-formed queries:
-                - Return needsClarification: false
-                - Provide a refinedQuery that enhances the original
+            Analysez la question de l’utilisateur pour déterminer si elle nécessite une clarification avant la recherche.
 
-                For queries needing improvement:
-                - Return needsClarification: true
-                - Provide reasoning explaining why
-                - Include clarifying questions with 2-3 options
-                - The choiceType should be single or multiple based on the question
+            Pour les requêtes bien formulées:
+            - needsClarification: false
+            - refinedQuery: une version améliorée de la requête originale
 
-                If the user has already responded to previous clarifying questions:
-                - Return needsClarification: false
-                - Provide a refinedQuery incorporating their response
-                
-                If the user has not responded to clarifying questions:
-                - Return needsClarification: false
-                - Use the original query
-                
-                `;
+            Pour les requêtes nécessitant une amélioration:
+            - needsClarification: true
+            - reasoning: expliquez pourquoi
+            - clarifyingQuestion: proposez 1 question avec 2–3 options
+            - clarifyingQuestion.choiceType: "single" ou "multiple" selon le cas
+
+            Si l’utilisateur a déjà répondu à des questions de clarification:
+            - needsClarification: false
+            - refinedQuery: intégrer sa réponse
+
+            Si l’utilisateur n’a pas répondu aux questions de clarification:
+            - needsClarification: false
+            - refinedQuery: utilisez la requête d’origine
+
+            Toutes les questions et options de clarification doivent être rédigées en français par défaut (sauf si la langue de l’utilisateur est manifestement différente).
+            `;
 
         const object = await generateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             schema: ClarificationResponseSchema,
             messages: messages as any,
             signal,

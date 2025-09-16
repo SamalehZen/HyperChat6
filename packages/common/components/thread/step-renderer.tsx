@@ -43,7 +43,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                                 spread={step.steps?.search?.status === 'COMPLETED' ? 0 : 2}
                                 className="text-xs"
                             >
-                                Searching
+                                Recherche
                             </TextShimmer>
                         </div>
 
@@ -84,7 +84,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.read?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Reading
+                            Lecture
                         </TextShimmer>
                     </div>
                     <SearchResultsList
@@ -114,7 +114,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.reasoning?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Analyzing
+                            Analyse
                         </TextShimmer>
                     </div>
                     <p className="text-muted-foreground text-sm">
@@ -147,7 +147,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.wrapup?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Wrapping up
+                            Finalisation
                         </TextShimmer>
                     </div>
                     <p>{step.steps?.wrapup?.data || ''}</p>

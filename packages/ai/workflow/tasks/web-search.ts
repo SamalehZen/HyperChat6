@@ -64,16 +64,18 @@ export const webSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
         const question = context?.get('question') || '';
 
         const prompt = `
-Role: You are a Research Information Processor. Your task is to clean and format web search results without summarizing or condensing the information.
+Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-The current date and time is: **${getHumanizedDate()}**.
-${gl?.country ? `You are in ${gl?.country}.` : ''}
+Rôle: Vous êtes un Traitant d’Informations de Recherche. Votre tâche est de nettoyer et de formater les résultats de recherche web sans les résumer ni les condenser.
+
+La date et l’heure actuelles: **${getHumanizedDate()}**.
+${gl?.country ? `Vous êtes en ${gl?.country}.` : ''}
 
 <user_question>
 ${question}
 </user_question>
 
-**Web Search Results**
+**Résultats de recherche web**
 ${processedResults
     .filter(result => !!result?.content && !!result?.link)
     .map(result => ({
@@ -82,42 +84,42 @@ ${processedResults
     }))
     .map(
         (result: any) =>
-            `<findings index="${result.index}">\n\n ## [${result.index}] ${result.link}\n\n ### Title: ${result.title}\n\n ${result.content} \n\n</findings>`
+            `<findings index="${result.index}">\n\n ## [${result.index}] ${result.link}\n\n ### Titre: ${result.title}\n\n ${result.content} \n\n</findings>`
     )
     .join('\n')}
 
-<processing_guidelines>
-- Do NOT summarize or condense the information
-- Preserve all relevant details, facts, data points, examples, and explanations from the search results
-- Remove only duplicate content, irrelevant advertisements, navigation elements, or other web artifacts
-- Maintain the original depth and breadth of information
-- Organize the information in a clean, readable format
-- Present multiple perspectives or approaches when they exist in the sources
-</processing_guidelines>
+<directives_de_traitement>
+- Ne PAS résumer ni condenser l’information
+- Préserver tous les détails pertinents, faits, données, exemples et explications issus des résultats
+- Retirer uniquement le contenu dupliqué, les publicités, éléments de navigation ou autres artefacts web non pertinents
+- Maintenir la profondeur et l’étendue originales de l’information
+- Organiser l’information de manière propre et lisible
+- Présenter les différentes perspectives lorsqu’elles existent dans les sources
+</directives_de_traitement>
 
-<output_format>
-- Present the full detailed information in a clean, readable format
-- Use headings or sections only when they help organize complex information
-- Include all source links and properly attribute information using [Source X] notation
-- Focus on preserving comprehensive information rather than summarizing
-</output_format>
+<format_de_sortie>
+- Présenter l’information détaillée dans un format propre et lisible
+- Utiliser des titres/sections uniquement lorsque cela aide à organiser une information complexe
+- Inclure tous les liens sources et attribuer correctement l’information en utilisant la notation [1], [2], etc.
+- Se concentrer sur la préservation d’informations complètes plutôt que sur le résumé
+</format_de_sortie>
 
 <citations>
- **Citations and References:**
-   - each findings have given number which can be used to reference the source
-   - Use inline citations like [1] to reference the source
-   - For example: According to recent findings [1][3], progress in this area has accelerated
-   - When information appears in multiple findings, cite all relevant findings using multiple numbers
-   - Integrate citations naturally without disrupting reading flow
-   - Must include a numbered reference list at the end with format:
-      [1] https://www.example.com
-      [2] https://www.another-source.com
+Citations et références:
+- Chaque bloc de findings possède un numéro qui peut être utilisé pour référencer la source
+- Utiliser des citations en ligne comme [1] pour référencer la source
+- Exemple: Selon les constats récents [1][3], les avancées se sont accélérées
+- Lorsque l’information apparaît dans plusieurs findings, citer tous les numéros pertinents
+- Intégrer les citations naturellement sans nuire à la lecture
+- Inclure une liste de références numérotées à la fin au format:
+  [1] https://www.example.com
+  [2] https://www.another-source.com
 </citations>
 
       `;
 
         const summary = await generateText({
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             prompt,
         });
 

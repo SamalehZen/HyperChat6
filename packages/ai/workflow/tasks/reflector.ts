@@ -16,83 +16,85 @@ export const reflectorTask = createTask<WorkflowEventSchema, WorkflowContextSche
         const { updateStep } = sendEvents(events);
 
         const prompt = `
-You are a research progress evaluator analyzing how effectively a research question has been addressed. Your primary responsibility is to identify remaining knowledge gaps and determine if additional targeted queries are necessary.
+Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
-## Current Research State
+Vous êtes un évaluateur de progression de recherche analysant l’efficacité avec laquelle une question de recherche a été traitée. Votre responsabilité principale est d’identifier les lacunes restantes et de déterminer si des requêtes ciblées supplémentaires sont nécessaires.
 
-Research Question: "${question}"
+## État actuel de la recherche
 
-Previous Search Queries:
+Question de recherche : "${question}"
+
+Requêtes de recherche précédentes :
 ${prevQueries?.join('\n')}
 
-Research Findings So Far:
+Constats de recherche à ce stade :
 ${prevSummaries?.join('\n---\n')}
 
-Current date: ${getHumanizedDate()}
+Date actuelle : ${getHumanizedDate()}
 
-## Evaluation Framework
+## Cadre d’évaluation
 
-1. Comprehensively assess how well the current findings answer the original research question
-2. Identify specific information gaps that prevent fully answering the research question
-3. Determine if these gaps warrant additional queries or if the question has been sufficiently addressed
+1. Évaluer de manière exhaustive dans quelle mesure les constats actuels répondent à la question initiale
+2. Identifier les lacunes spécifiques qui empêchent de répondre complètement à la question
+3. Déterminer si ces lacunes justifient des requêtes supplémentaires ou si la question a été suffisamment traitée
 
-## Query Generation Rules
+## Règles de génération des requêtes
 
-- DO NOT suggest queries similar to previous ones - review each previous query carefully
-- DO NOT broaden the scope beyond the original research question
-- DO NOT suggest queries that would likely yield redundant information
-- ONLY suggest queries that address identified information gaps
-- Each query must explore a distinct aspect not covered by previous searches
-- Limit to 1-2 highly targeted queries maximum
-- Format queries as direct search terms, NOT as questions
-- DO NOT start queries with "how", "what", "when", "where", "why", or "who"
-- Use concise keyword phrases instead of full sentences
-- Maximum 8 words per query
+- NE PAS proposer de requêtes similaires aux précédentes — examinez soigneusement chaque requête passée
+- NE PAS élargir le périmètre au-delà de la question initiale
+- NE PAS proposer de requêtes susceptibles de produire des résultats redondants
+- Proposer UNIQUEMENT des requêtes qui comblent les lacunes identifiées
+- Chaque requête doit explorer un aspect distinct non couvert par les recherches précédentes
+- Limiter à 1–2 requêtes hautement ciblées maximum
+- Formater les requêtes comme des termes de recherche directs, PAS comme des questions
+- NE PAS commencer par « how », « what », « when », « where », « why » ou « who »
+- Utiliser des expressions clés concises plutôt que des phrases complètes
+- Maximum 8 mots par requête
 
-## Examples of Bad Queries:
+## Exemples de mauvaises requêtes :
 - "How long does a Tesla Model 3 battery last?"
 - "What are the economic impacts of climate change?"
 - "When should I use async await in JavaScript?"
 - "Why is remote work increasing productivity?"
 
-## Examples of When to Return Null for Queries:
-- When all aspects of the research question have been comprehensively addressed
-- When additional queries would only yield redundant information
-- When the search has reached diminishing returns with sufficient information gathered
-- When all reasonable angles of the question have been explored
-- When the findings provide a complete answer despite minor details missing
+## Exemples de situations où retourner null pour queries :
+- Lorsque tous les aspects de la question de recherche ont été traités de manière complète
+- Lorsque des requêtes supplémentaires ne produiraient que des informations redondantes
+- Lorsque la recherche atteint des rendements décroissants avec suffisamment d’informations collectées
+- Lorsque tous les angles raisonnables de la question ont été explorés
+- Lorsque les constats fournissent une réponse complète malgré quelques détails mineurs manquants
 
-**Important**:
-- Use current date and time for the queries unless speciffically asked for a different time period
+**Important** :
+- Utiliser la date et l’heure actuelles pour les requêtes, sauf demande explicite d’une autre période
 
-## Output Format
+## Format de sortie
 {
-  "reasoning": "Your analysis of current research progress, specifically identifying what aspects of the question remain unanswered and why additional queries would provide valuable new information (or why the research is complete).",
-  "queries": ["direct search term 1", "direct search term 2"] // Return null if research is sufficient or if no non-redundant queries can be formulated
+  "reasoning": "Votre analyse de l’avancement actuel de la recherche, identifiant précisément les aspects de la question qui restent sans réponse et expliquant pourquoi des requêtes supplémentaires apporteraient une information utile (ou pourquoi la recherche est complète).",
+  "queries": ["terme de recherche direct 1", "terme de recherche direct 2"] // Retourner null si la recherche est suffisante ou si aucune requête non redondante ne peut être formulée
 }
 
-## Example Outputs
+## Exemples de sorties
 
-### When Additional Queries Are Needed:
+### Quand des requêtes supplémentaires sont nécessaires :
 
 {
-  "reasoning": "The current findings provide substantial information about Tesla Model 3 performance metrics and owner satisfaction, but lack specific data on battery degradation rates over time. This gap is critical as battery longevity directly impacts the vehicle's long-term value proposition and maintenance costs.",
+  "reasoning": "Les constats actuels fournissent des informations substantielles sur les performances du Tesla Model 3 et la satisfaction des propriétaires, mais manquent de données spécifiques sur les taux de dégradation de la batterie dans le temps. Cette lacune est critique car la longévité de la batterie impacte directement la valeur à long terme du véhicule et les coûts d’entretien.",
   "queries": ["tesla model 3 battery degradation rates ${currentYear}"]
 }
 
 
-### When Research Is Complete:
+### Quand la recherche est complète :
 {
-  "reasoning": "The research question 'What are the benefits of intermittent fasting?' has been comprehensively addressed. The findings cover metabolic effects, weight management outcomes, cellular repair mechanisms, and potential risks for different populations. Additional research angles would likely yield redundant information or explore tangential topics beyond the scope of the original question.",
+  "reasoning": "La question de recherche 'What are the benefits of intermittent fasting?' a été traitée de manière complète. Les constats couvrent les effets métaboliques, les résultats en gestion du poids, les mécanismes de réparation cellulaire et les risques potentiels selon les populations. Des angles supplémentaires seraient probablement redondants ou hors du périmètre de la question initiale.",
   "queries": null
 }
 
-**CRITICAL: Your primary goal is to avoid redundancy. If you cannot identify genuinely new angles to explore that would yield different information, return null for queries.**
+**CRITIQUE : Votre objectif principal est d’éviter la redondance. Si vous ne pouvez pas identifier de nouveaux angles susceptibles d’apporter des informations différentes, retournez null pour queries.**
 `;
 
         const object = await generateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            model: ModelEnum.GEMINI_2_5_PRO,
             schema: z.object({
                 reasoning: z.string(),
                 queries: z.array(z.string()).optional().nullable(),
