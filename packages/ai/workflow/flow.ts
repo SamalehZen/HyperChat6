@@ -175,7 +175,7 @@ export const runWorkflow = ({
     const frenchPrefMessage: CoreMessage = {
         role: 'system',
         content:
-            "Langue: francais par defaut. Reponds en francais. Si l'utilisateur s'exprime en anglais, reponds en anglais. Formate les dates et lieux au format fr-FR.",
+            "Langue: francais par defaut. Reponds en francais. Si l'utilisateur c'exprime en anglais, reponds en anglais. Formate les dates et lieux au format fr-FR.",
     };
 
     const localizedMessages =
