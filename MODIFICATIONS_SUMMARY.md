@@ -1,5 +1,21 @@
 # 📊 Récapitulatif Complet des Modifications
 
+## 🚀 Instrumentation TTFB & Streaming (nouveau)
+
+- Headers HTTP ajoutés: `X-Timing-Auth`, `X-Timing-BodyParse`, `X-Timing-KV`, `X-Timing-Geo`, `X-Timing-PreStream`, `X-Model-Provider`, `X-Model-Id`.
+- Events SSE ajoutés:
+  - `init` émis immédiatement à l’ouverture du stream (<200ms visé).
+  - `metrics` émis au fil de l’eau: `t_workflow_start`, `t_first_event`, `t_first_model_chunk`, `t_first_flush`, ainsi que `provider`, `model`, `mode`, `threadId`, `prompt_length`, `messages_count`.
+  - `done` inclut désormais `summary` (workflow.getTimingSummary) + `metrics`.
+- Flags env:
+  - `RESPONSE_BUFFER_THRESHOLD` (par défaut 16, autorise 1 pour tests).
+  - `RESPONSE_BUFFER_INTERVAL_MS` (par défaut 100ms; min 100ms pour ne pas dégrader le débit SSE).
+- Lecture des métriques:
+  - `TTFB_model = t_first_model_chunk - t_workflow_start`.
+  - `TTFB_answer = t_first_flush - request_start`.
+  - Les sous‑timings d’auth/KV/géo sont dans les headers ci‑dessus.
+
+
 ## 🔥 Changements de Code Spécifiques
 
 ### 1. **packages/ai/models.ts**
