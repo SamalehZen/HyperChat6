@@ -19,6 +19,7 @@ export default function OauthSignIn() {
     return (
         <div className="bg-secondary/95 fixed inset-0 z-[100] flex h-full w-full flex-col items-center justify-center gap-2 backdrop-blur-sm">
             <CustomSignIn
+                redirectUrl="/sign-in/sso-callback"
                 onClose={() => {
                     router.push('/chat');
                 }}
