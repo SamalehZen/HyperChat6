@@ -1,5 +1,4 @@
 import { createTask } from '@repo/orchestrator';
-import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { ChunkBuffer, getHumanizedDate, handleError, sendEvents } from '../utils';
 import { geminiGenerateTextStreaming } from '../../gemini';

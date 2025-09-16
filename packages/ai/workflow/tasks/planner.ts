@@ -1,6 +1,5 @@
 import { createTask } from '@repo/orchestrator';
 import { z } from 'zod';
-import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { getHumanizedDate, handleError, sendEvents } from '../utils';
 import { geminiGenerateObject } from '../../gemini';
