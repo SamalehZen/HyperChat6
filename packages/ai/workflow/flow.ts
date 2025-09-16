@@ -153,7 +153,8 @@ export const runWorkflow = ({
     };
 
     // Create typed event emitter with the proper type
-    const events = createTypedEventEmitter<WorkflowEventSchema>({�        steps: {},
+    const events = createTypedEventEmitter<WorkflowEventSchema>({
+        steps: {},
         toolCalls: [],
         toolResults: [],
         answer: {
@@ -174,7 +175,7 @@ export const runWorkflow = ({
     const frenchPrefMessage: CoreMessage = {
         role: 'system',
         content:
-            "Langue: français par défaut. Réponds en français. Si l’utilisateur s’exprime en anglais, réponds en anglais. Formate les dates et lieux au format fr-FR.",
+            "Langue: francais par defaut. Reponds en francais. Si l'utilisateur s'exprime en anglais, reponds en anglais. Formate les dates et lieux au format fr-FR.",
     };
 
     const localizedMessages =
@@ -182,7 +183,7 @@ export const runWorkflow = ({
             ? [frenchPrefMessage, ...(messages as any)]
             : (messages as any);
 
-    const context = createContext<WorkflowContextSchema>({
+    const context = createContext<WorkflowContextSchema>({{
         mcpConfig,
         question,
         mode,
@@ -201,7 +202,7 @@ export const runWorkflow = ({
         threadItemId,
         showSuggestions,
         onFinish: onFinish as any,
-    });
+    }});
 
     // Use the typed builder
     const builder = new WorkflowBuilder(threadId, {
@@ -219,7 +220,7 @@ export const runWorkflow = ({
         reflectorTask,
         analysisTask,
         writerTask,
-        refineQueryTask,
+        refineQueryTask
         modeRoutingTask,
         completionTask,
         correctionTask,
