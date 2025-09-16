@@ -5,11 +5,14 @@ import { IconSearch } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import React from 'react';
 
+import { ChatMode } from '@repo/shared/config';
+
 export type StepRendererType = {
     step: Step;
+    mode?: ChatMode;
 };
 
-export const StepRenderer = ({ step }: StepRendererType) => {
+export const StepRenderer = ({ step, mode }: StepRendererType) => {
     console.log(step);
     const renderTextStep = () => {
         if (step?.text) {
@@ -43,7 +46,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                                 spread={step.steps?.search?.status === 'COMPLETED' ? 0 : 2}
                                 className="text-xs"
                             >
-                                Searching
+                                {mode === ChatMode.Deep || mode === ChatMode.Pro ? 'Recherche en cours' : 'Searching'}
                             </TextShimmer>
                         </div>
 
@@ -84,7 +87,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.read?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Reading
+                            {mode === ChatMode.Deep || mode === ChatMode.Pro ? 'Lecture' : 'Reading'}
                         </TextShimmer>
                     </div>
                     <SearchResultsList
@@ -114,7 +117,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.reasoning?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Analyzing
+                            {mode === ChatMode.Deep || mode === ChatMode.Pro ? 'Analyse' : 'Analyzing'}
                         </TextShimmer>
                     </div>
                     <p className="text-muted-foreground text-sm">
@@ -147,7 +150,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.wrapup?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            Wrapping up
+                            {mode === ChatMode.Deep || mode === ChatMode.Pro ? 'Finalisation' : 'Wrapping up'}
                         </TextShimmer>
                     </div>
                     <p>{step.steps?.wrapup?.data || ''}</p>
