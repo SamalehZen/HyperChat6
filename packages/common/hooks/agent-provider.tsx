@@ -8,6 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo } from 'react';
 import { useApiKeysStore, useAppStore, useChatStore, useMcpToolsStore } from '../store';
 import { useAiSettingsStore } from '../store/settings.store';
+import { ThoughtPanel } from '@repo/common/components';
 
 export type AgentContextType = {
     runAgent: (body: any) => Promise<void>;
@@ -128,6 +129,15 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 }
                 if (collected) {
                     useChatStore.getState().appendRuntimeReasoning(threadItemId, collected);
+                    // Auto-open reasoning drawer on first collected chunk
+                    const current = useChatStore.getState().getRuntimeReasoning(threadItemId);
+                    if ((current?.length || 0) === collected.length) {
+                        useAppStore.getState().openSideDrawer({
+                            title: 'Raisonnement',
+                            renderContent: () => <ThoughtPanel threadItemId={threadItemId} />,
+                            badge: undefined,
+                        });
+                    }
                     if (process.env.NEXT_PUBLIC_DEBUG_REASONING === 'true') {
                         console.log('[REASONING_DEBUG][ui-collector]', { appendLen: collected.length, threadItemId });
                     }
@@ -183,6 +193,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
                 if (data.type === 'done') {
                     setIsGenerating(false);
+                    useAppStore.getState().dismissSideDrawer();
                     setTimeout(fetchRemainingCredits, 1000);
                     if (data?.threadItemId) {
                         threadItemMap.delete(data.threadItemId);
