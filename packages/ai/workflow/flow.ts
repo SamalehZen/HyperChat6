@@ -172,13 +172,24 @@ export const runWorkflow = ({
         status: 'PENDING',
     });
 
+    const frenchPrefMessage: CoreMessage = {
+        role: 'system',
+        content:
+            "Langue: français par défaut. Réponds en français. Si l’utilisateur s’exprime en anglais, réponds en anglais. Formate les dates et lieux au format fr-FR.",
+    };
+
+    const localizedMessages =
+        mode === ChatMode.Deep || mode === ChatMode.Pro
+            ? [frenchPrefMessage, ...(messages as any)]
+            : (messages as any);
+
     const context = createContext<WorkflowContextSchema>({
         mcpConfig,
         question,
         mode,
         webSearch,
         search_queries: [],
-        messages: messages as any,
+        messages: localizedMessages,
         goals: [],
         queries: [],
         steps: [],
@@ -215,7 +226,7 @@ export const runWorkflow = ({
         correctionTask,
         classificationTask,
         revisionDePrixTask,
-        nomenclatureDouaniereTask,
+        nomenclatureDouanierTask,
         smartPdfToExcelTask,
         suggestionsTask,
         quickSearchTask,
