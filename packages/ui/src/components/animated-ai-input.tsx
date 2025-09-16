@@ -377,21 +377,43 @@ export function AI_Prompt({
                                     {showWebToggle && (
                                         <button
                                             type="button"
+                                            onClick={() => !disabled && onToggleWebSearch?.()}
+                                            aria-pressed={!!webSearchEnabled}
+                                            aria-label="Toggle web search"
                                             className={cn(
-                                                "rounded-lg p-2",
+                                                "rounded-lg transition-all flex items-center gap-1 px-2 py-1 h-8 border",
                                                 "bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))]",
                                                 "focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[hsl(var(--chat-input-border))]",
-                                                "transition-colors",
                                                 webSearchEnabled
-                                                    ? "text-blue-600 dark:text-blue-400"
-                                                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
+                                                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                                    : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                                                 disabled && "opacity-50 cursor-not-allowed"
                                             )}
-                                            aria-label="Web search"
-                                            onClick={() => !disabled && onToggleWebSearch?.()}
                                             disabled={disabled}
                                         >
-                                            <Globe className="w-4 h-4" />
+                                            <div className="w-5 h-5 flex items-center justify-center">
+                                                <motion.div
+                                                    animate={{ rotate: webSearchEnabled ? 360 : 0, scale: webSearchEnabled ? 1.1 : 1 }}
+                                                    whileHover={{ scale: 1.1, transition: { type: "spring", stiffness: 300 } }}
+                                                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                                                >
+                                                    <Globe className="w-4 h-4" />
+                                                </motion.div>
+                                            </div>
+
+                                            <AnimatePresence>
+                                                {webSearchEnabled && (
+                                                    <motion.span
+                                                        initial={{ width: 0, opacity: 0 }}
+                                                        animate={{ width: "auto", opacity: 1 }}
+                                                        exit={{ width: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                        className="text-xs overflow-hidden whitespace-nowrap"
+                                                    >
+                                                        Search
+                                                    </motion.span>
+                                                )}
+                                            </AnimatePresence>
                                         </button>
                                     )}
                                     {onAttachFile && (
