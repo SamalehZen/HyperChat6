@@ -93,7 +93,7 @@ export async function geminiGenerateObject<T>({
   topP?: number;
   maxOutputTokens?: number;
   signal?: AbortSignal;
-}): Promise<{ object: T; usedModel: string; fellBack: boolean } | null> {
+}): Promise<{ object: T; usedModel: string; fellBack: boolean }> {
   const router = getGeminiRouter();
 
   const { result, usedModel, fellBack } = await router.withModel(async (modelName, client) => {
