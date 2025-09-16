@@ -14,6 +14,7 @@ export const CustomSignIn = ({
     onClose,
 }: CustomSignInProps) => {
     const [isLoading, setIsLoading] = useState<string | null>(null);
+    const afterSignInUrl = process.env.NEXT_PUBLIC_AFTER_SIGN_IN_URL || '/chat';
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
     const [verifying, setVerifying] = useState(false);
@@ -79,7 +80,7 @@ export const CustomSignIn = ({
             await signIn.authenticateWithRedirect({
                 strategy: 'oauth_google',
                 redirectUrl,
-                redirectUrlComplete: redirectUrl,
+                redirectUrlComplete: afterSignInUrl,
             });
         } catch (error) {
             console.error('Google authentication error:', error);
@@ -96,7 +97,7 @@ export const CustomSignIn = ({
             await signIn.authenticateWithRedirect({
                 strategy: 'oauth_github',
                 redirectUrl,
-                redirectUrlComplete: redirectUrl,
+                redirectUrlComplete: afterSignInUrl,
             });
         } catch (error) {
             console.error('GitHub authentication error:', error);
@@ -113,7 +114,7 @@ export const CustomSignIn = ({
             await signIn.authenticateWithRedirect({
                 strategy: 'oauth_apple',
                 redirectUrl,
-                redirectUrlComplete: redirectUrl,
+                redirectUrlComplete: afterSignInUrl,
             });
         } catch (error) {
             console.error('Apple authentication error:', error);

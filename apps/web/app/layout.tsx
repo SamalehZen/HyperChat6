@@ -105,7 +105,7 @@ export default function ParentLayout({
             </head>
             <body>
                 {/* <PostHogProvider> */}
-                <ClerkProvider>
+                <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" afterSignInUrl="/chat" afterSignUpUrl="/chat">
                     <RootProvider>
                         {/* <ThemeProvider
             attribute="class"
