@@ -13,15 +13,15 @@ import {
 import { memo, useEffect, useMemo } from 'react';
 const getTitle = (threadItem: ThreadItem) => {
     if (threadItem.mode === ChatMode.Deep) {
-        return 'Research';
+        return 'Recherche approfondie';
     }
     if ([ChatMode.DEEPSEEK_R1].includes(threadItem.mode)) {
-        return 'Thinking';
+        return 'Réflexion';
     }
     if (threadItem.mode === ChatMode.Pro) {
-        return 'Pro Search';
+        return 'Recherche Pro';
     }
-    return 'Steps';
+    return 'Étapes';
 };
 
 const getIcon = (threadItem: ThreadItem) => {
@@ -36,10 +36,10 @@ const getIcon = (threadItem: ThreadItem) => {
 
 const getNote = (threadItem: ThreadItem) => {
     if (threadItem.mode === ChatMode.Deep) {
-        return 'This process takes approximately 15 minutes. Please keep the tab open during this time.';
+        return 'Ce processus prend environ 15 minutes. Veuillez garder l’onglet ouvert pendant ce temps.';
     }
     if (threadItem.mode === ChatMode.Pro) {
-        return 'This process takes approximately 5 minutes. Please keep the tab open during this time.';
+        return 'Ce processus prend environ 5 minutes. Veuillez garder l’onglet ouvert pendant ce temps.';
     }
     return '';
 };
@@ -117,7 +117,7 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
                 renderContent: () => (
                     <div className="flex w-full flex-1 flex-col px-2 py-4">
                         {steps.map((step, index) => (
-                            <StepRenderer key={index} step={step} />
+                            <StepRenderer key={index} step={step} mode={threadItem.mode} />
                         ))}
                     </div>
                 ),
@@ -136,7 +136,7 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             renderContent: () => (
                 <div className="flex w-full flex-1 flex-col px-2 py-4">
                     {steps.map((step, index) => (
-                        <StepRenderer key={index} step={step} />
+                        <StepRenderer key={index} step={step} mode={threadItem.mode} />
                     ))}
                     {/* {toolCallAndResults.map(({ toolCall, toolResult }) => (
                         <ToolStep toolCall={toolCall} toolResult={toolResult} />
@@ -186,7 +186,14 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
                 <div className="flex-1" />
 
                 <Badge variant="default" size="sm">
-                    {stepCounts} {stepCounts === 1 ? 'Step' : 'Steps'}
+                    {stepCounts}{' '}
+                    {threadItem.mode === ChatMode.Deep || threadItem.mode === ChatMode.Pro
+                        ? stepCounts === 1
+                            ? 'Étape'
+                            : 'Étapes'
+                        : stepCounts === 1
+                          ? 'Step'
+                          : 'Steps'}
                 </Badge>
                 <IconChevronRight size={14} strokeWidth={2} />
             </div>
