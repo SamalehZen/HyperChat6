@@ -7,7 +7,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { ChatModeConfig } from '@repo/shared/config';
-import { cn, Flex } from '@repo/ui';
+import { cn, Flex, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -234,6 +234,7 @@ export const ChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
+            {!currentThreadId && <GridGradientBackground side="left" />}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',
