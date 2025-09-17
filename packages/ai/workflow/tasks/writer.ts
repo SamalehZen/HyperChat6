@@ -92,7 +92,7 @@ Votre rapport doit démontrer une expertise du sujet tout en restant accessible 
 
         const answer = await generateText({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
+            model: ModelEnum.GEMINI_2_5_FLASH,
             messages,
             signal,
             onChunk: (chunk, fullText) => {

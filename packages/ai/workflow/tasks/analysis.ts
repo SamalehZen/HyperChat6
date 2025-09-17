@@ -66,7 +66,7 @@ ${s}
 
         const text = await generateText({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
+            model: ModelEnum.GEMINI_2_5_FLASH,
             messages: messages as any,
             signal,
             onReasoning: reasoning => {
