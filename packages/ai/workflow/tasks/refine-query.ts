@@ -55,7 +55,7 @@ export const refineQueryTask = createTask<WorkflowEventSchema, WorkflowContextSc
 
         const object = await generateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
+            model: ModelEnum.GEMINI_2_5_FLASH,
             schema: ClarificationResponseSchema,
             messages: messages as any,
             signal,

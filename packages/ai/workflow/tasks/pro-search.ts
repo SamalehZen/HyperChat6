@@ -115,7 +115,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
                     ${context?.get('gl')?.country ? `Vous êtes en ${context?.get('gl')?.country}\n\n` : ''}
                     
                     Générez une requête pour rechercher des informations sur le Web. Assurez-vous que la requête n’est pas trop large et qu’elle est spécifique, en privilégiant des informations récentes.`,
-                    model: ModelEnum.GEMINI_2_5_PRO,
+                    model: ModelEnum.GEMINI_2_5_FLASH,
                     messages,
                     schema: z.object({
                         query: z.string().min(1),
@@ -232,7 +232,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             try {
                 reasoning = await generateText({
                     prompt: getAnalysisPrompt(question, webPageContent),
-                    model: ModelEnum.GEMINI_2_5_PRO,
+                    model: ModelEnum.GEMINI_2_5_FLASH,
                     messages,
                     onReasoning: chunk => {
                         reasoningBuffer.add(chunk);

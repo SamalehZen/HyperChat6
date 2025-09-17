@@ -65,7 +65,7 @@ export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema
 
         const object = await generateObject({
             prompt,
-            model: ModelEnum.GEMINI_2_5_PRO,
+            model: ModelEnum.GEMINI_2_5_FLASH,
             schema: z.object({
                 reasoning: z.string(),
                 queries: z.array(z.string()),

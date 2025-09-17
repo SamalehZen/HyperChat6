@@ -144,12 +144,13 @@ export const AnimatedChatInput = ({
         // Active model
         {
             id: ChatMode.GEMINI_2_5_FLASH,
-            name: 'Flash 2.5',
+            name: 'Gemini 2.5 Flash',
             icon: ModelIcons.GEMINI,
             creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.GEMINI_2_5_FLASH],
             isAuthRequired: ChatModeConfig[ChatMode.GEMINI_2_5_FLASH].isAuthRequired,
             category: 'standard',
         },
+        /* Masqué à la demande (Zen): garder le code mais ne pas afficher cette option.
         {
             id: ChatMode.GEMINI_2_5_PRO,
             name: 'Gemini 2.5 Pro',
@@ -158,6 +159,7 @@ export const AnimatedChatInput = ({
             isAuthRequired: ChatModeConfig[ChatMode.GEMINI_2_5_PRO].isAuthRequired,
             category: 'standard',
         },
+        */
         // Commented models (will be filtered out below)
         // {
         //     id: ChatMode.LLAMA_4_SCOUT,

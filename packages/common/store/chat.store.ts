@@ -41,7 +41,12 @@ const loadInitialData = async () => {
               showSuggestions: true,
               chatMode: ChatMode.GEMINI_2_5_FLASH,
           };
-    const chatMode = config.chatMode || ChatMode.GEMINI_2_5_FLASH;
+    // Fallback: Masqué à la demande (Zen) — si une ancienne config contient 'gemini-2.5-pro', basculer silencieusement sur 'gemini-2.5-flash'
+    const persistedChatMode = config.chatMode;
+    const chatMode =
+        persistedChatMode === ChatMode.GEMINI_2_5_PRO
+            ? ChatMode.GEMINI_2_5_FLASH
+            : persistedChatMode || ChatMode.GEMINI_2_5_FLASH;
     const useWebSearch = typeof config.useWebSearch === 'boolean' ? config.useWebSearch : false;
     const customInstructions = config.customInstructions || '';
 
@@ -521,9 +526,11 @@ export const useChatStore = create(
         },
 
         setChatMode: (chatMode: ChatMode) => {
-            localStorage.setItem(CONFIG_KEY, JSON.stringify({ chatMode }));
+            // Fallback: Masqué à la demande (Zen) — rediriger toute sélection 'gemini-2.5-pro' vers 'gemini-2.5-flash'
+            const safeChatMode = chatMode === ChatMode.GEMINI_2_5_PRO ? ChatMode.GEMINI_2_5_FLASH : chatMode;
+            localStorage.setItem(CONFIG_KEY, JSON.stringify({ chatMode: safeChatMode }));
             set(state => {
-                state.chatMode = chatMode;
+                state.chatMode = safeChatMode;
             });
         },
 

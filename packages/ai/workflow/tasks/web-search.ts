@@ -119,7 +119,7 @@ Citations et références:
       `;
 
         const summary = await generateText({
-            model: ModelEnum.GEMINI_2_5_PRO,
+            model: ModelEnum.GEMINI_2_5_FLASH,
             prompt,
         });
 
