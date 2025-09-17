@@ -5,8 +5,8 @@ import { getHumanizedDate, handleError, sendEvents } from '../utils';
 import { geminiGenerateObject } from '../../gemini';
 
 const ClarificationResponseSchema = z.object({
-    needsClarification: z.boolean(),
-    reasoning: z.string().optional(),
+    needsClarification: z.boolean().default(false),
+    reasoning: z.string().optional().default(''),
     clarifyingQuestion: z
         .object({
             question: z.string(),
@@ -53,12 +53,26 @@ export const refineQueryTask = createTask<WorkflowEventSchema, WorkflowContextSc
             Toutes les questions et options de clarification doivent être rédigées en français par défaut (sauf si la langue de l’utilisateur est manifestement différente).
             `;
 
-        const { object, fellBack, usedModel } = await geminiGenerateObject({
-            prompt,
-            schema: ClarificationResponseSchema,
-            messages: messages as any,
-            signal,
-        });
+        let parsed;
+        try {
+            parsed = await geminiGenerateObject({
+                prompt,
+                schema: ClarificationResponseSchema,
+                messages: messages as any,
+                signal,
+            });
+        } catch (e) {
+            parsed = {
+                object: {
+                    needsClarification: false,
+                    reasoning: '',
+                    refinedQuery: question,
+                },
+                usedModel: 'gemini-2.5-pro',
+                fellBack: false,
+            } as any;
+        }
+        const { object, fellBack, usedModel } = parsed;
         if (fellBack) {
             sendEvents(events).updateObject({
                 geminiFallback: {
