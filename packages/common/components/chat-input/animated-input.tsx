@@ -8,10 +8,10 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons, useToast } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast, AnimatedGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -51,6 +51,8 @@ export const AnimatedChatInput = ({
     const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
 
     const { toast } = useToast();
+
+    const [showIntroOverlay, setShowIntroOverlay] = useState(false);
 
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const { dropzonProps, readImageFile } = useImageAttachment();
@@ -280,6 +282,13 @@ export const AnimatedChatInput = ({
             threadId = optimisticId;
         }
 
+        if (typeof window !== 'undefined' && threadId) {
+            try {
+                window.sessionStorage.setItem(`hc_gradientHiddenForThread-${threadId}`, '1');
+            } catch {}
+        }
+        setShowIntroOverlay(false);
+
         // Submit the message
         const formData = new FormData();
         formData.append('query', value);
@@ -371,6 +380,43 @@ export const AnimatedChatInput = ({
         // Focus management is handled internally by the AI_Prompt component
     }, [currentThreadId]);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            setShowIntroOverlay(false);
+            return;
+        }
+
+        if (!isChatPage) {
+            setShowIntroOverlay(false);
+            return;
+        }
+
+        if (threadItemsLength > 0) {
+            setShowIntroOverlay(false);
+            return;
+        }
+
+        const threadIdStr = currentThreadId?.toString();
+
+        if (!threadIdStr) {
+            const seen = window.localStorage.getItem('hc_hasSeenFirstVisitGradient') === '1';
+            if (!seen) {
+                setShowIntroOverlay(true);
+                window.localStorage.setItem('hc_hasSeenFirstVisitGradient', '1');
+            } else {
+                setShowIntroOverlay(false);
+            }
+        } else {
+            const hidden = window.sessionStorage.getItem(`hc_gradientHiddenForThread-${threadIdStr}`) === '1';
+            if (hidden) {
+                setShowIntroOverlay(false);
+            } else {
+                setShowIntroOverlay(true);
+                window.sessionStorage.setItem(`hc_gradientShownForThread-${threadIdStr}`, '1');
+            }
+        }
+    }, [isChatPage, currentThreadId, threadItemsLength]);
+
     return (
         <div
             className={cn(
@@ -380,6 +426,11 @@ export const AnimatedChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
+            {showIntroOverlay && (
+                <div className="absolute inset-0 -z-10 pointer-events-none">
+                    <AnimatedGradientBackground Breathing={true} />
+                </div>
+            )}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',
