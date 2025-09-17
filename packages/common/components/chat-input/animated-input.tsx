@@ -427,13 +427,13 @@ export const AnimatedChatInput = ({
             )}
         >
             {showIntroOverlay && (
-                <div className="absolute inset-0 -z-10 pointer-events-none">
+                <div className="absolute inset-0 z-0 pointer-events-none">
                     <AnimatedGradientBackground Breathing={true} />
                 </div>
             )}
             <div
                 className={cn(
-                    'mx-auto flex w-full max-w-3xl flex-col items-start',
+                    'mx-auto flex w-full max-w-3xl flex-col items-start relative z-10',
                     !threadItemsLength && 'justify-start',
                     !currentThreadId && 'px-8'
                 )}
