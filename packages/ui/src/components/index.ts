@@ -42,4 +42,6 @@ export * from './animated-ai-input';
 export * from './shine-border';
 
 // Export specific components that are needed
+export * from './grid-gradient-background';
+
 export { AI_Prompt, ModelIcons } from './animated-ai-input';
