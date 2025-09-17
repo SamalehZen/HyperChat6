@@ -52,8 +52,8 @@ export class GeminiModelRouter {
   constructor(cfg?: Partial<GeminiRouterConfig>) {
     const apiKey = cfg?.apiKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '';
     this.config = {
-      primaryModel: cfg?.primaryModel || process.env.GEMINI_PRIMARY_MODEL || 'gemini-2.5-pro',
-      fallbackModel: cfg?.fallbackModel || process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-flash',
+      primaryModel: cfg?.primaryModel || process.env.GEMINI_PRIMARY_MODEL || 'gemini-2.5-flash',
+      fallbackModel: cfg?.fallbackModel || process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.5-pro',
       primaryDailyLimit: cfg?.primaryDailyLimit ?? readIntEnv('GEMINI_PRIMARY_DAILY_LIMIT', 50),
       fallbackDailyLimit: cfg?.fallbackDailyLimit ?? readIntEnv('GEMINI_FALLBACK_DAILY_LIMIT', 250),
       enableFallback: cfg?.enableFallback ?? readBoolEnv('GEMINI_ENABLE_FALLBACK', true),
