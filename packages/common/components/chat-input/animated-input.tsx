@@ -8,7 +8,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground, PortfolioGallery } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
-import { ExamplePrompts } from '../exmaple-prompts';
+// import { ExamplePrompts } from '../exmaple-prompts';
 import { usePreferencesStore } from '@repo/common/store';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
@@ -357,6 +357,11 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
+                {!currentThreadId && (
+                    <div className="w-full mt-3">
+                        <PortfolioGallery showHeader={false} containerHeight={280} maxHeight={280} />
+                    </div>
+                )}
             </motion.div>
             <MessagesRemainingBadge key="remaining-messages" />
         </AnimatePresence>
@@ -410,7 +415,7 @@ export const AnimatedChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && <ExamplePrompts />}
+                    {!currentThreadId && showGreeting && /* ExamplePrompts masqué */}
 
                     {/* <ChatFooter /> */}
                 </Flex>
