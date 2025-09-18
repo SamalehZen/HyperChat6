@@ -262,7 +262,7 @@ export const ChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && /* ExamplePrompts masqué */}
+                    {!currentThreadId && showGreeting && null}
 
                     {/* <ChatFooter /> */}
                 </Flex>
