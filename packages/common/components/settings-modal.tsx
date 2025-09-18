@@ -1,5 +1,5 @@
 'use client';
-import { useMcpToolsStore } from '@repo/common/store';
+import { useMcpToolsStore, usePreferencesStore } from '@repo/common/store';
 import { Alert, AlertDescription, DialogFooter } from '@repo/ui';
 import { Button } from '@repo/ui/src/components/button';
 import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from './icons';
@@ -464,6 +464,8 @@ export const PersonalizationSettings = () => {
     const customInstructions = useChatStore(state => state.customInstructions);
     const setCustomInstructions = useChatStore(state => state.setCustomInstructions);
     const { t, locale, setLocale } = useI18n();
+    const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
+    const setBackgroundVariant = usePreferencesStore(state => state.setBackgroundVariant);
     const { editor } = useChatEditor({
         charLimit: MAX_CHAR_LIMIT,
         defaultContent: customInstructions,
@@ -487,6 +489,19 @@ export const PersonalizationSettings = () => {
                 >
                     <option value="fr">{t('settings.language.fr')}</option>
                     <option value="en">{t('settings.language.en')}</option>
+                </select>
+            </div>
+            <div className="mt-2 flex flex-col gap-2">
+                <label className="text-sm font-medium" htmlFor="background-select">{t('settings.personalization.background.title')}</label>
+                <select
+                    id="background-select"
+                    className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
+                    value={backgroundVariant}
+                    onChange={(e) => setBackgroundVariant(e.target.value as 'new' | 'old')}
+                    aria-label={t('settings.personalization.background.title')}
+                >
+                    <option value="new">{t('settings.personalization.background.new')}</option>
+                    <option value="old">{t('settings.personalization.background.old')}</option>
                 </select>
             </div>
             <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">
