@@ -61,7 +61,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                     <Drawer.Overlay className="fixed inset-0 z-30 backdrop-blur-sm" />
                     <Drawer.Content className="fixed bottom-0 left-0 top-0 z-[50]">
                         <Flex className="pr-2">
-                            <Sidebar />
+                            <SidebarLazy />
                         </Flex>
                     </Drawer.Content>
                 </Drawer.Portal>
