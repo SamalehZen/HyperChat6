@@ -13,12 +13,12 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   const radialAt = side === 'right' ? '100% 200px' : '0% 200px';
 
   const lightGrid = `
-    linear-gradient(to right, hsl(var(--border) / 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--border) / 0.45) 1px, transparent 1px)
+    linear-gradient(to right, #eaeaea 1px, transparent 1px),
+    linear-gradient(to bottom, #eaeaea 1px, transparent 1px)
   `;
   const darkGrid = `
-    linear-gradient(to right, hsl(var(--border) / 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--border) / 0.18) 1px, transparent 1px)
+    linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
   `;
 
   const heroLightGrid = `
