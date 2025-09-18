@@ -241,7 +241,6 @@ mark.prompt-highlight {
     border-bottom-right-radius: 10px;
 }
 
-
 /* Shine border animation */
 @keyframes shine {
   0% {
@@ -253,4 +252,27 @@ mark.prompt-highlight {
   100% {
     background-position: 0% 50%;
   }
+}
+
+@theme inline {
+  @keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+        }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+        }
+    }
+  @keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+        }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+        }
+    }
 }

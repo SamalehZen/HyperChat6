@@ -1,6 +1,7 @@
 import sharedConfig from '@repo/tailwind-config';
 
 const config = {
+    darkMode: ['class'],
     presets: [sharedConfig],
     content: [
         './app/**/*.{ts,tsx}',
