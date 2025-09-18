@@ -27,7 +27,6 @@ import {
     IconSettings2,
     IconUser,
 } from './icons';
-import { motion } from 'framer-motion';
 import moment from 'moment';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -188,10 +187,7 @@ export const Sidebar = () => {
             <Flex direction="col" className="w-full flex-1 items-start overflow-hidden">
                 <div className="mb-3 flex w-full flex-row items-center justify-between">
                     <Link href="/chat" className="w-full">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3, delay: 0.2 }}
+                        <div
                             className={cn(
                                 'flex h-8 w-full cursor-pointer items-center justify-start gap-1.5 px-4',
                                 !isSidebarOpen && 'justify-center px-0'
@@ -203,7 +199,7 @@ export const Sidebar = () => {
                                     HyperFix
                                 </p>
                             )}
-                        </motion.div>
+                        </div>
                     </Link>
                     {isSidebarOpen && (
                         <Button
@@ -370,8 +366,10 @@ export const Sidebar = () => {
                                         {user && user.hasImage ? (
                                             <img
                                                 src={user?.imageUrl ?? ''}
-                                                width={0}
-                                                height={0}
+                                                width={20}
+                                                height={20}
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="size-full shrink-0 rounded-full"
                                                 alt={user?.fullName ?? ''}
                                             />

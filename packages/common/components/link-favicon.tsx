@@ -37,6 +37,10 @@ export const LinkFavicon: FC<LinkFaviconType> = ({ link, className, size = 'sm' 
             <img
                 src={`https://www.google.com/s2/favicons?domain=${link}&sz=${128}`}
                 alt="favicon"
+                loading="lazy"
+                decoding="async"
+                width={size === 'sm' ? 16 : size === 'md' ? 20 : 32}
+                height={size === 'sm' ? 16 : size === 'md' ? 20 : 32}
                 onError={() => setError(true)}
                 className={cn('absolute inset-0 h-full w-full rounded-sm object-cover', className)}
             />

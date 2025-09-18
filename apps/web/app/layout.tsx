@@ -10,6 +10,9 @@ import localFont from 'next/font/local';
 
 const bricolage = Bricolage_Grotesque({
     subsets: ['latin'],
+    weight: ['400', '600'],
+    display: 'swap',
+    preload: false,
     variable: '--font-bricolage',
 });
 
@@ -77,11 +80,15 @@ export const viewport: Viewport = {
 const inter = localFont({
     src: './InterVariable.woff2',
     variable: '--font-inter',
+    display: 'swap',
+    preload: false,
 });
 
 const clash = localFont({
     src: './ClashGrotesk-Variable.woff2',
     variable: '--font-clash',
+    display: 'swap',
+    preload: false,
 });
 
 export default function ParentLayout({

@@ -1,23 +1,21 @@
 'use client';
-import {
-    CommandSearch,
-    FeedbackWidget,
-    IntroDialog,
-    SettingsModal,
-    Sidebar,
-} from '@repo/common/components';
+import { IntroDialog, SettingsModal } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { AgentProvider } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
 import { plausible } from '@repo/shared/utils';
 import { Badge, Button, Flex, Toaster, cn } from '@repo/ui';
 import { IconMoodSadDizzy, IconX } from '../icons';
-import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@repo/common/i18n';
 import { FC, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { Drawer } from 'vaul';
+
+const SidebarLazy = dynamic(() => import('../side-bar').then(m => ({ default: m.Sidebar })), { ssr: false });
+const FeedbackWidgetLazy = dynamic(() => import('../feedback-widget').then(m => ({ default: m.FeedbackWidget })), { ssr: false });
+const CommandSearchLazy = dynamic(() => import('../command-search').then(m => ({ default: m.CommandSearch })), { ssr: false });
 
 export type TRootLayout = {
     children: React.ReactNode;
@@ -50,7 +48,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                 </div>
             </div>
             <Flex className="hidden lg:flex">
-                <AnimatePresence>{isSidebarOpen && <Sidebar />}</AnimatePresence>
+                {isSidebarOpen && <SidebarLazy />}
             </Flex>
 
             <Drawer.Root
@@ -71,25 +69,23 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 
             {/* Main Content */}
             <Flex className="flex-1 overflow-hidden">
-                <motion.div className="flex w-full py-1 pr-1">
+                <div className="flex w-full py-1 pr-1">
                     <AgentProvider>
                         <div id="main-content" className={cn(containerClass, isChat && 'chat-theme')} role="main">
                             <div className="relative flex h-full w-0 flex-1 flex-row">
                                 <div className="flex w-full flex-col gap-2 overflow-y-auto">
                                     <div className="from-secondary to-secondary/0 via-secondary/70 absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12"></div>
-                                    {/* Auth Button Header */}
-
                                     {children}
                                 </div>
                             </div>
                             <SideDrawer />
-                            <FeedbackWidget />
+                            <FeedbackWidgetLazy />
                             <IntroDialog />
                         </div>
                     </AgentProvider>
-                </motion.div>
+                </div>
                 <SettingsModal />
-                <CommandSearch />
+                <CommandSearchLazy />
             </Flex>
 
             <Toaster />
@@ -108,26 +104,13 @@ export const SideDrawer = () => {
     const isThreadPage = pathname.startsWith('/chat/');
 
     return (
-        <AnimatePresence>
+        <>
             {sideDrawer.open && isThreadPage && (
-                <motion.div
-                    initial={{ opacity: 0, x: 40 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 40 }}
-                    transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 30,
-                        exit: { duration: 0.2 },
-                    }}
-                    className="flex min-h-[99dvh] w-[500px] shrink-0 flex-col overflow-hidden py-1.5 pl-0.5 pr-1.5"
-                >
+                <div className="flex min-h-[99dvh] w-[500px] shrink-0 flex-col overflow-hidden py-1.5 pl-0.5 pr-1.5 transition-transform duration-200">
                     <div className="bg-background border-border shadow-subtle-xs flex h-full w-full flex-col overflow-hidden rounded-lg">
                         <div className="border-border flex flex-row items-center justify-between gap-2 border-b py-1.5 pl-4 pr-2">
                             <div className="text-sm font-medium">
-                                {typeof sideDrawer.title === 'function'
-                                    ? sideDrawer.title()
-                                    : sideDrawer.title}
+                                {typeof sideDrawer.title === 'function' ? sideDrawer.title() : sideDrawer.title}
                             </div>
                             {sideDrawer.badge && (
                                 <Badge variant="default">{sideDrawer.badge}</Badge>
@@ -143,17 +126,14 @@ export const SideDrawer = () => {
                                 <IconX size={14} strokeWidth={2} />
                             </Button>
                         </div>
-                        <div
-                            className="no-scrollbar flex flex-1 flex-col gap-2 overflow-y-auto p-2"
-                            ref={scrollRef}
-                        >
+                        <div className="no-scrollbar flex flex-1 flex-col gap-2 overflow-y-auto p-2" ref={scrollRef}>
                             <div ref={contentRef} className="w-full">
                                 {sideDrawer.renderContent()}
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             )}
-        </AnimatePresence>
+        </>
     );
 };

@@ -1,14 +1,6 @@
 'use client';
 
 import Prism from 'prismjs';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-yaml';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button, cn } from '@repo/ui';
@@ -48,9 +40,58 @@ export const CodeBlock = ({
     const { copy, showCopied } = useClipboard();
 
     useEffect(() => {
-        if (ref?.current && code) {
-            Prism.highlightElement(ref.current);
-        }
+        let cancelled = false;
+        const loadAndHighlight = async () => {
+            try {
+                const l = (lang || 'plaintext').toLowerCase();
+                switch (l) {
+                    case 'bash':
+                    case 'shell':
+                        await import('prismjs/components/prism-bash');
+                        break;
+                    case 'json':
+                        await import('prismjs/components/prism-json');
+                        break;
+                    case 'yaml':
+                    case 'yml':
+                        await import('prismjs/components/prism-yaml');
+                        break;
+                    case 'python':
+                        await import('prismjs/components/prism-python');
+                        break;
+                    case 'javascript':
+                    case 'js':
+                        await import('prismjs/components/prism-javascript');
+                        break;
+                    case 'typescript':
+                    case 'ts':
+                        await import('prismjs/components/prism-typescript');
+                        break;
+                    case 'jsx':
+                        await import('prismjs/components/prism-jsx');
+                        break;
+                    case 'tsx':
+                        await import('prismjs/components/prism-tsx');
+                        break;
+                    case 'markdown':
+                    case 'md':
+                        await import('prismjs/components/prism-markdown');
+                        break;
+                    case 'sql':
+                        await import('prismjs/components/prism-sql');
+                        break;
+                    default:
+                        break;
+                }
+            } catch {}
+            if (!cancelled && ref?.current && code) {
+                Prism.highlightElement(ref.current);
+            }
+        };
+        loadAndHighlight();
+        return () => {
+            cancelled = true;
+        };
     }, [code, lang]);
 
     const getLangIcon = () => {

@@ -9,14 +9,13 @@ import {
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
 import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
-import { AnimatePresence, motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
-import { ExamplePrompts } from '../exmaple-prompts';
 import { usePreferencesStore } from '@repo/common/store';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
@@ -27,6 +26,8 @@ import {
     IconCurrencyEuro,
 } from '@tabler/icons-react';
 import { NomenclatureDouaniereIcon } from '../icons';
+
+const ExamplePromptsLazy = dynamic(() => import('../exmaple-prompts').then(m => m.ExamplePrompts), { ssr: false });
 
 export const AnimatedChatInput = ({
     showGreeting = true,
@@ -41,30 +42,51 @@ export const AnimatedChatInput = ({
     const { user } = useUser();
     const { threadId: currentThreadId } = useParams();
     const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
-    const getThreadItems = useChatStore(state => state.getThreadItems);
-    const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
+    const {
+        getThreadItems,
+        threadItemsLength,
+        createThread,
+        useWebSearch,
+        setUseWebSearch,
+        isGenerating,
+        imageAttachments,
+        clearImageAttachments,
+        stopGeneration,
+        chatMode,
+        setChatMode,
+        creditLimit,
+        inputValue,
+        setInputValue,
+        showSuggestions,
+        setShowSuggestions,
+    } = useChatStore(
+        useShallow(state => ({
+            getThreadItems: state.getThreadItems,
+            threadItemsLength: state.threadItems.length,
+            createThread: state.createThread,
+            useWebSearch: state.useWebSearch,
+            setUseWebSearch: state.setUseWebSearch,
+            isGenerating: state.isGenerating,
+            imageAttachments: state.imageAttachments,
+            clearImageAttachments: state.clearImageAttachments,
+            stopGeneration: state.stopGeneration,
+            chatMode: state.chatMode,
+            setChatMode: state.setChatMode,
+            creditLimit: state.creditLimit,
+            inputValue: state.inputValue,
+            setInputValue: state.setInputValue,
+            showSuggestions: state.showSuggestions,
+            setShowSuggestions: state.setShowSuggestions,
+        }))
+    );
     const { handleSubmit } = useAgentStream();
-    const createThread = useChatStore(state => state.createThread);
-    const useWebSearch = useChatStore(state => state.useWebSearch);
-    const setUseWebSearch = useChatStore(state => state.setUseWebSearch);
-    const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
-    const imageAttachments = useChatStore(state => state.imageAttachments);
-    const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
 
     const { toast } = useToast();
 
-    const stopGeneration = useChatStore(state => state.stopGeneration);
     const { dropzonProps, readImageFile } = useImageAttachment();
     const { push } = useRouter();
-    const chatMode = useChatStore(state => state.chatMode);
-    const setChatMode = useChatStore(state => state.setChatMode);
-    const creditLimit = useChatStore(state => state.creditLimit);
-    const inputValue = useChatStore(state => state.inputValue);
-    const setInputValue = useChatStore(state => state.setInputValue);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
-    const showSuggestions = useChatStore(state => state.showSuggestions);
-    const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
 
     useEffect(() => {
         if (!currentThreadId && chatMode === ChatMode.GEMINI_2_5_FLASH) {
@@ -335,14 +357,8 @@ export const AnimatedChatInput = ({
     };
 
     const renderChatInput = () => (
-        <AnimatePresence>
-            <motion.div
-                className="w-full px-3 chat-theme"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                key={`chat-input`}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-            >
+        <>
+            <div className="w-full px-3 chat-theme">
                 <Flex direction="col" className="w-full">
                     <ImageDropzoneRoot dropzoneProps={dropzonProps}>
                         {(imageAttachments?.length || 0) > 0 && (
@@ -367,24 +383,15 @@ export const AnimatedChatInput = ({
                     </ImageDropzoneRoot>
                 </Flex>
                 <div className="mt-2 relative z-10 pointer-events-auto flex items-center justify-center">
-                    <AnimatePresence initial={false}>
-                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && !currentThreadId && (
-                            <motion.div
-                                key="example-prompts"
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 8 }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                                className="w-full"
-                            >
-                                <ExamplePrompts />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && !currentThreadId && (
+                        <div className="w-full">
+                            <ExamplePromptsLazy />
+                        </div>
+                    )}
                 </div>
-            </motion.div>
+            </div>
             {!currentThreadId && <MessagesRemainingBadge key="remaining-messages" />}
-        </AnimatePresence>
+        </>
     );
 
     const renderChatBottom = () => (
@@ -424,14 +431,9 @@ export const AnimatedChatInput = ({
                     className={cn('w-full', threadItemsLength > 0 ? 'mb-0' : 'h-full', !currentThreadId && 'pb-4')}
                 >
                     {!currentThreadId && showGreeting && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="mb-4 flex w-full flex-col items-center gap-1"
-                        >
+                        <div className="mb-4 flex w-full flex-col items-center gap-1 transition-opacity duration-300">
                             <AnimatedTitles />
-                        </motion.div>
+                        </div>
                     )}
 
                     {renderChatBottom()}
@@ -482,21 +484,11 @@ const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
             direction="col"
             className="relative h-[60px] w-full items-center justify-center overflow-hidden"
         >
-            <AnimatePresence mode="wait">
-                <motion.h1
-                    key={greeting}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    transition={{
-                        duration: 0.8,
-                        ease: 'easeInOut',
-                    }}
-                    className="from-muted-foreground/50 via-muted-foreground/40 to-muted-foreground/20 bg-gradient-to-r bg-clip-text text-center text-[43px] font-semibold tracking-tight text-transparent"
-                >
-                    {greeting}
-                </motion.h1>
-            </AnimatePresence>
+            <h1
+                className="from-muted-foreground/50 via-muted-foreground/40 to-muted-foreground/20 bg-gradient-to-r bg-clip-text text-center text-[43px] font-semibold tracking-tight text-transparent"
+            >
+                {greeting}
+            </h1>
         </Flex>
     );
 };

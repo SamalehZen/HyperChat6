@@ -15,7 +15,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "./dropdown-menu";
-import { motion, AnimatePresence } from "framer-motion";
 import { ShineBorder } from "./shine-border";
 
 interface UseAutoResizeTextareaProps {
@@ -315,31 +314,11 @@ export function AI_Prompt({
                                                         className="flex items-center gap-1 h-8 pl-1 pr-2 text-xs rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-gray-600"
                                                         disabled={disabled}
                                                     >
-                                                        <AnimatePresence mode="wait">
-                                                            <motion.div
-                                                                key={selectedModel}
-                                                                initial={{
-                                                                    opacity: 0,
-                                                                    y: -5,
-                                                                }}
-                                                                animate={{
-                                                                    opacity: 1,
-                                                                    y: 0,
-                                                                }}
-                                                                exit={{
-                                                                    opacity: 0,
-                                                                    y: 5,
-                                                                }}
-                                                                transition={{
-                                                                    duration: 0.15,
-                                                                }}
-                                                                className="flex items-center gap-1"
-                                                            >
-                                                                {selectedModelData?.icon || <Bot className="w-4 h-4" />}
-                                                                {selectedModelData?.name || selectedModel}
-                                                                <ChevronDown className="w-3 h-3 opacity-50" />
-                                                            </motion.div>
-                                                        </AnimatePresence>
+                                                        <div className="flex items-center gap-1">
+                                                        {selectedModelData?.icon || <Bot className="w-4 h-4" />}
+                                                        {selectedModelData?.name || selectedModel}
+                                                        <ChevronDown className="w-3 h-3 opacity-50" />
+                                                    </div>
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent
@@ -392,28 +371,13 @@ export function AI_Prompt({
                                             disabled={disabled}
                                         >
                                             <div className="w-5 h-5 flex items-center justify-center">
-                                                <motion.div
-                                                    animate={{ rotate: webSearchEnabled ? 360 : 0, scale: webSearchEnabled ? 1.1 : 1 }}
-                                                    whileHover={{ scale: 1.1, transition: { type: "spring", stiffness: 300 } }}
-                                                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                                                >
+                                                <span>
                                                     <Globe className="w-4 h-4" />
-                                                </motion.div>
+                                                </span>
                                             </div>
-
-                                            <AnimatePresence>
-                                                {webSearchEnabled && (
-                                                    <motion.span
-                                                        initial={{ width: 0, opacity: 0 }}
-                                                        animate={{ width: "auto", opacity: 1 }}
-                                                        exit={{ width: 0, opacity: 0 }}
-                                                        transition={{ duration: 0.2 }}
-                                                        className="text-xs overflow-hidden whitespace-nowrap"
-                                                    >
-                                                        Search
-                                                    </motion.span>
-                                                )}
-                                            </AnimatePresence>
+                                            {webSearchEnabled && (
+                                                <span className="text-xs overflow-hidden whitespace-nowrap">Search</span>
+                                            )}
                                         </button>
                                     )}
                                     {onAttachFile && (

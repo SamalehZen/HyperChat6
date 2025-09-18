@@ -1,6 +1,5 @@
 import { useUser } from '@clerk/nextjs';
 import { useApiKeysStore, useAppStore, useChatStore } from '@repo/common/store';
-import { motion } from 'framer-motion';
 import { useI18n } from '@repo/common/i18n';
 
 export function MessagesRemainingBadge() {
@@ -23,13 +22,7 @@ export function MessagesRemainingBadge() {
 
     return (
         <div className="relative flex w-full items-center justify-center px-3">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-                className="border-border bg-tertiary/70 -mt-2 flex h-10  w-full flex-row items-center gap-2 rounded-b-xl border-x border-b px-3 pt-2 font-medium"
-            >
+            <div className="border-border bg-tertiary/70 -mt-2 flex h-10  w-full flex-row items-center gap-2 rounded-b-xl border-x border-b px-3 pt-2 font-medium">
                 <div className="text-muted-foreground/50 text-xs">
                     {creditLimit.remaining === 0
                         ? t('messages.remaining.none')
@@ -46,7 +39,7 @@ export function MessagesRemainingBadge() {
                         </span>
                     </span>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }

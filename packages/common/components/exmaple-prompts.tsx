@@ -7,7 +7,7 @@ import {
     IconPencil,
     IconQuestionMark,
 } from './icons';
-import { Editor } from '@tiptap/react';
+import type { Editor } from '@tiptap/react';
 
 export const examplePrompts = {
     howTo: [
