@@ -46,7 +46,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   return (
     <>
       <div
-        className={cn('absolute inset-0 block dark:hidden', className)}
+        className={cn('absolute inset-0 block dark:hidden pointer-events-none', className)}
         style={{
           backgroundImage: lightBackgroundImage,
           backgroundSize: lightBackgroundSize,
@@ -54,7 +54,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
         }}
       />
       <div
-        className={cn('absolute inset-0 hidden dark:block', className)}
+        className={cn('absolute inset-0 hidden dark:block pointer-events-none', className)}
         style={{
           backgroundImage: darkBackgroundImage,
           backgroundSize: darkBackgroundSize,

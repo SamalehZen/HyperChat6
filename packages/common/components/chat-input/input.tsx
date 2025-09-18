@@ -167,7 +167,7 @@ export const ChatInput = ({
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: 8 }}
                                                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                                                className="mt-2"
+                                                className="mt-2 relative z-10 pointer-events-auto"
                                             >
                                                 <ExamplePrompts />
                                             </motion.div>
