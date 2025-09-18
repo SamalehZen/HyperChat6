@@ -10,7 +10,7 @@ import { ChatModeConfig, ChatMode } from '@repo/shared/config';
 import { cn, Flex, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useI18n } from '@repo/common/i18n';
 import { usePreferencesStore } from '@repo/common/store';
 import { v4 as uuidv4 } from 'uuid';
@@ -70,6 +70,7 @@ export const ChatInput = ({
     const chatMode = useChatStore(state => state.chatMode);
     const showSuggestions = useChatStore(state => state.showSuggestions);
     const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
+    const [isSubmittingFirstMessage, setIsSubmittingFirstMessage] = useState(false);
     const sendMessage = async () => {
         if (
             !isSignedIn &&
@@ -81,6 +82,10 @@ export const ChatInput = ({
 
         if (!editor?.getText()) {
             return;
+        }
+
+        if (!currentThreadId) {
+            setIsSubmittingFirstMessage(true);
         }
 
         let threadId = currentThreadId?.toString();
@@ -244,6 +249,14 @@ export const ChatInput = ({
         editor?.commands.focus('end');
     }, [currentThreadId]);
 
+    useEffect(() => {
+        setIsSubmittingFirstMessage(false);
+    }, [currentThreadId]);
+
+    const shouldShowBackground = !currentThreadId && (
+        backgroundVariant === 'hero' ? !isGenerating && !isSubmittingFirstMessage : true
+    );
+
     return (
         <div
             className={cn(
@@ -252,8 +265,10 @@ export const ChatInput = ({
                     ? 'absolute bottom-0'
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
-        >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+>
+            {shouldShowBackground && (
+                <GridGradientBackground side="left" variant={backgroundVariant} />
+            )}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',

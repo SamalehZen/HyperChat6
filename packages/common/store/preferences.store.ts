@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-export type BackgroundVariant = 'new' | 'old';
+export type BackgroundVariant = 'new' | 'old' | 'hero';
 
 type PreferencesState = {
   backgroundVariant: BackgroundVariant;
@@ -17,7 +17,7 @@ type PreferencesActions = {
 export const usePreferencesStore = create<PreferencesState & PreferencesActions>()(
   persist(
     immer((set) => ({
-      backgroundVariant: 'new',
+      backgroundVariant: 'hero',
       setBackgroundVariant: (v: BackgroundVariant) => {
         set((state) => {
           state.backgroundVariant = v;

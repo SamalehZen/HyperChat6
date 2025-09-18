@@ -6,7 +6,7 @@ type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old';
+  variant?: 'new' | 'old' | 'hero';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
@@ -26,6 +26,8 @@ export function GridGradientBackground({ side = 'left', className, style, varian
       ? `${lightGrid},
          radial-gradient(circle 600px at 0% 200px, #d5c5ff, transparent),
          radial-gradient(circle 600px at 100% 200px, #d5c5ff, transparent)`
+      : variant === 'hero'
+      ? `${lightGrid}`
       : `${lightGrid},
          radial-gradient(circle 800px at ${radialAt}, #d5c5ff, transparent)`;
 
@@ -34,11 +36,15 @@ export function GridGradientBackground({ side = 'left', className, style, varian
       ? `${darkGrid},
          radial-gradient(circle 600px at 0% 200px, rgba(139,92,246,0.25), transparent),
          radial-gradient(circle 600px at 100% 200px, rgba(139,92,246,0.25), transparent)`
+      : variant === 'hero'
+      ? `${darkGrid}`
       : `${darkGrid},
          radial-gradient(circle 800px at ${radialAt}, rgba(139,92,246,0.25), transparent)`;
 
   const lightBackgroundSize = variant === 'old'
     ? '96px 64px, 96px 64px, 100% 100%, 100% 100%'
+    : variant === 'hero'
+    ? '96px 64px, 96px 64px'
     : '96px 64px, 96px 64px, 100% 100%';
 
   const darkBackgroundSize = lightBackgroundSize;

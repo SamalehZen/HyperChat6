@@ -11,7 +11,7 @@ import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } fro
 import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -65,6 +65,7 @@ export const AnimatedChatInput = ({
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
     const showSuggestions = useChatStore(state => state.showSuggestions);
     const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
+    const [isSubmittingFirstMessage, setIsSubmittingFirstMessage] = useState(false);
 
     useEffect(() => {
         if (!currentThreadId && chatMode === ChatMode.GEMINI_2_5_FLASH) {
@@ -271,6 +272,10 @@ export const AnimatedChatInput = ({
     const sendMessage = async (value: string, modelId: string) => {
         if (!value.trim()) return;
 
+        if (!currentThreadId) {
+            setIsSubmittingFirstMessage(true);
+        }
+
         // Check authentication requirements
         const selectedModel = activeModels.find(m => m.id === modelId);
         if (
@@ -400,6 +405,14 @@ export const AnimatedChatInput = ({
         // Focus management is handled internally by the AI_Prompt component
     }, [currentThreadId]);
 
+    useEffect(() => {
+        setIsSubmittingFirstMessage(false);
+    }, [currentThreadId]);
+
+    const shouldShowBackground = !currentThreadId && (
+        backgroundVariant === 'hero' ? !isGenerating && !isSubmittingFirstMessage : true
+    );
+
     return (
         <div
             className={cn(
@@ -409,7 +422,9 @@ export const AnimatedChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {shouldShowBackground && (
+                <GridGradientBackground side="left" variant={backgroundVariant} />
+            )}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',

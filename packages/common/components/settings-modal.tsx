@@ -497,10 +497,11 @@ export const PersonalizationSettings = () => {
                     id="background-select"
                     className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
                     value={backgroundVariant}
-                    onChange={(e) => setBackgroundVariant(e.target.value as 'new' | 'old')}
+                    onChange={(e) => setBackgroundVariant(e.target.value as any)}
                     aria-label={t('settings.personalization.background.title')}
                 >
                     <option value="new">{t('settings.personalization.background.new')}</option>
+                    <option value="hero">Hero (grille uniquement)</option>
                     <option value="old">{t('settings.personalization.background.old')}</option>
                 </select>
             </div>
