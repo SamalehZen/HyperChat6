@@ -8,7 +8,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground, PortfolioGallery } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -63,6 +63,16 @@ export const AnimatedChatInput = ({
     const inputValue = useChatStore(state => state.inputValue);
     const setInputValue = useChatStore(state => state.setInputValue);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
+
+    const [hasSeenGallery, setHasSeenGallery] = React.useState(false);
+    const [galleryReady, setGalleryReady] = React.useState(false);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const seen = window.localStorage.getItem('hasSeenGallery') === '1';
+            setHasSeenGallery(seen);
+            setGalleryReady(true);
+        }
+    }, []);
 
     // Load draft message from localStorage
     useEffect(() => {
@@ -308,6 +318,11 @@ export const AnimatedChatInput = ({
             useWebSearch,
         });
         
+        if (typeof window !== 'undefined') {
+            try { window.localStorage.setItem('hasSeenGallery', '1'); } catch {}
+        }
+        setHasSeenGallery(true);
+        
         window.localStorage.removeItem('draft-message');
         setInputValue('');
         clearImageAttachments();
@@ -375,6 +390,8 @@ export const AnimatedChatInput = ({
         // Focus management is handled internally by the AI_Prompt component
     }, [currentThreadId]);
 
+    const shouldShowGallery = galleryReady && ((!currentThreadId && !hasSeenGallery) || (currentThreadId && threadItemsLength === 0));
+
     return (
         <div
             className={cn(
@@ -410,6 +427,15 @@ export const AnimatedChatInput = ({
                     )}
 
                     {renderChatBottom()}
+                    {shouldShowGallery && (
+                        <div className="hidden md:block w-full mt-6">
+                            <PortfolioGallery
+                                title="Parcourir ma galerie"
+                                archiveButton={{ text: 'Voir la galerie', href: '/work' }}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
                     {!currentThreadId && showGreeting && <ExamplePrompts />}
 
                     {/* <ChatFooter /> */}
