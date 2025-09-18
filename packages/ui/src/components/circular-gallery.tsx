@@ -24,7 +24,7 @@ const DEFAULTS = {
   font: "bold 30px DM Sans",
 };
 
-export const CircularGallery: React.FC<CircularGalleryProps> = ({
+const CircularGallery: React.FC<CircularGalleryProps> = ({
   items = DEFAULT_ITEMS,
   bend = DEFAULTS.bend,
   textColor = DEFAULTS.textColor,
