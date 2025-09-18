@@ -360,7 +360,7 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
-                <div className="mt-2 h-14 relative z-10 pointer-events-auto">
+                <div className="mt-4 h-16 md:h-14 relative z-10 pointer-events-auto">
                     <AnimatePresence initial={false}>
                         {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && (
                             <motion.div
