@@ -83,7 +83,7 @@ export const ExamplePrompts = () => {
     };
 
     return (
-        <div className="animate-fade-in mb-8 flex w-full flex-wrap justify-center gap-2 p-6 duration-[1000ms]">
+        <div className="animate-fade-in flex h-full w-full flex-nowrap items-center gap-2 overflow-x-auto px-2 py-1 duration-[1000ms] no-scrollbar">
             {Object.entries(categoryIcons).map(([category, value], index) => (
                 <Button
                     key={index}

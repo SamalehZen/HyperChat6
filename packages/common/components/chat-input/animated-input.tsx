@@ -357,20 +357,22 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
-                <AnimatePresence initial={false}>
-                    {chatMode === ChatMode.GEMINI_2_5_FLASH && (
-                        <motion.div
-                            key="example-prompts"
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 8 }}
-                            transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="mt-2 relative z-10 pointer-events-auto"
-                        >
-                            <ExamplePrompts />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                <div className="mt-2 h-14 relative z-10 pointer-events-auto">
+                    <AnimatePresence initial={false}>
+                        {chatMode === ChatMode.GEMINI_2_5_FLASH && (
+                            <motion.div
+                                key="example-prompts"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="h-full"
+                            >
+                                <ExamplePrompts />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </motion.div>
             <MessagesRemainingBadge key="remaining-messages" />
         </AnimatePresence>
