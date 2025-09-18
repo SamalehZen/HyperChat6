@@ -383,7 +383,7 @@ export const AnimatedChatInput = ({
                     </AnimatePresence>
                 </div>
             </motion.div>
-            <MessagesRemainingBadge key="remaining-messages" />
+            {!currentThreadId && <MessagesRemainingBadge key="remaining-messages" />}
         </AnimatePresence>
     );
 
@@ -405,7 +405,7 @@ export const AnimatedChatInput = ({
             className={cn(
                 'bg-secondary w-full',
                 currentThreadId
-                    ? 'absolute bottom-0'
+                    ? 'absolute bottom-0 left-0 right-0'
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
@@ -421,7 +421,7 @@ export const AnimatedChatInput = ({
                     items="start"
                     justify="start"
                     direction="col"
-                    className={cn('w-full pb-4', threadItemsLength > 0 ? 'mb-0' : 'h-full')}
+                    className={cn('w-full', threadItemsLength > 0 ? 'mb-0' : 'h-full', !currentThreadId && 'pb-4')}
                 >
                     {!currentThreadId && showGreeting && (
                         <motion.div
