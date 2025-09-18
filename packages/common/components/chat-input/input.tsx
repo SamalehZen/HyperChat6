@@ -6,7 +6,7 @@ import {
     MessagesRemainingBadge,
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
-import { ChatModeConfig } from '@repo/shared/config';
+import { ChatModeConfig, ChatMode } from '@repo/shared/config';
 import { cn, Flex, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -159,6 +159,20 @@ export const ChatInput = ({
                                             className="px-3 pt-3"
                                         />
                                     </Flex>
+                                    <AnimatePresence initial={false}>
+                                        {chatMode === ChatMode.GEMINI_2_5_FLASH && (
+                                            <motion.div
+                                                key="example-prompts"
+                                                initial={{ opacity: 0, y: 8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 8 }}
+                                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                                className="mt-2"
+                                            >
+                                                <ExamplePrompts />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
 
                                     <Flex
                                         className="border-border w-full gap-0 border-t border-dashed px-2 py-2"
@@ -262,7 +276,7 @@ export const ChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && <ExamplePrompts />}
+                    {!currentThreadId && false}
 
                     {/* <ChatFooter /> */}
                 </Flex>
