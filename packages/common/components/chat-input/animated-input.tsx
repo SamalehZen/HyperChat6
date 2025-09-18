@@ -360,7 +360,7 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
-                <div className="mt-4 h-16 md:h-14 relative z-10 pointer-events-auto">
+                <div className="mt-4 h-16 md:h-14 relative z-10 pointer-events-auto flex items-center justify-center">
                     <AnimatePresence initial={false}>
                         {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && (
                             <motion.div
@@ -369,7 +369,7 @@ export const AnimatedChatInput = ({
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 8 }}
                                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                                className="h-full"
+                                className="h-full w-full"
                             >
                                 <ExamplePrompts />
                             </motion.div>
