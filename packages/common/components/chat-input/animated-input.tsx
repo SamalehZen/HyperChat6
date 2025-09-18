@@ -63,6 +63,14 @@ export const AnimatedChatInput = ({
     const inputValue = useChatStore(state => state.inputValue);
     const setInputValue = useChatStore(state => state.setInputValue);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
+    const showSuggestions = useChatStore(state => state.showSuggestions);
+    const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
+
+    useEffect(() => {
+        if (!currentThreadId && chatMode === ChatMode.GEMINI_2_5_FLASH) {
+            setShowSuggestions(true);
+        }
+    }, [currentThreadId, chatMode, setShowSuggestions]);
 
     // Load draft message from localStorage
     useEffect(() => {
@@ -311,6 +319,7 @@ export const AnimatedChatInput = ({
         window.localStorage.removeItem('draft-message');
         setInputValue('');
         clearImageAttachments();
+        setShowSuggestions(false);
     };
 
     const handleFileAttachment = (file: File) => {
@@ -357,8 +366,24 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
+                <div className="mt-2 relative z-10 pointer-events-auto flex items-center justify-center">
+                    <AnimatePresence initial={false}>
+                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && !currentThreadId && (
+                            <motion.div
+                                key="example-prompts"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 8 }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className="w-full"
+                            >
+                                <ExamplePrompts />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </motion.div>
-            <MessagesRemainingBadge key="remaining-messages" />
+            {!currentThreadId && <MessagesRemainingBadge key="remaining-messages" />}
         </AnimatePresence>
     );
 
@@ -380,7 +405,7 @@ export const AnimatedChatInput = ({
             className={cn(
                 'bg-secondary w-full',
                 currentThreadId
-                    ? 'absolute bottom-0'
+                    ? 'absolute bottom-0 left-0 right-0'
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
@@ -396,7 +421,7 @@ export const AnimatedChatInput = ({
                     items="start"
                     justify="start"
                     direction="col"
-                    className={cn('w-full pb-4', threadItemsLength > 0 ? 'mb-0' : 'h-full')}
+                    className={cn('w-full', threadItemsLength > 0 ? 'mb-0' : 'h-full', !currentThreadId && 'pb-4')}
                 >
                     {!currentThreadId && showGreeting && (
                         <motion.div
@@ -410,7 +435,7 @@ export const AnimatedChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && <ExamplePrompts />}
+                    {!currentThreadId && false}
 
                     {/* <ChatFooter /> */}
                 </Flex>

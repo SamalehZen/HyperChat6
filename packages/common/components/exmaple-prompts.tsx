@@ -70,18 +70,20 @@ const categoryIcons = {
 
 export const ExamplePrompts = () => {
     const editor: Editor | undefined = useChatStore(state => state.editor);
+    const setInputValue = useChatStore(state => state.setInputValue);
+
     const handleCategoryClick = (category: keyof typeof examplePrompts) => {
-        console.log('editor', editor);
-        if (!editor) return;
         const randomPrompt = getRandomPrompt(category);
-        editor.commands.clearContent();
-        editor.commands.insertContent(randomPrompt);
+        if (editor) {
+            editor.commands.clearContent();
+            editor.commands.insertContent(randomPrompt);
+            return;
+        }
+        setInputValue(randomPrompt);
     };
 
-    if (!editor) return null;
-
     return (
-        <div className="animate-fade-in mb-8 flex w-full flex-wrap justify-center gap-2 p-6 duration-[1000ms]">
+        <div className="animate-fade-in flex w-full flex-nowrap items-center justify-center gap-2 overflow-x-auto px-3 py-1 duration-[300ms] no-scrollbar">
             {Object.entries(categoryIcons).map(([category, value], index) => (
                 <Button
                     key={index}
