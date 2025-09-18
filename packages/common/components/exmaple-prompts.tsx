@@ -70,14 +70,17 @@ const categoryIcons = {
 
 export const ExamplePrompts = () => {
     const editor: Editor | undefined = useChatStore(state => state.editor);
-    const handleCategoryClick = (category: keyof typeof examplePrompts) => {
-        if (!editor) return;
-        const randomPrompt = getRandomPrompt(category);
-        editor.commands.clearContent();
-        editor.commands.insertContent(randomPrompt);
-    };
+    const setInputValue = useChatStore(state => state.setInputValue);
 
-    if (!editor) return null;
+    const handleCategoryClick = (category: keyof typeof examplePrompts) => {
+        const randomPrompt = getRandomPrompt(category);
+        if (editor) {
+            editor.commands.clearContent();
+            editor.commands.insertContent(randomPrompt);
+            return;
+        }
+        setInputValue(randomPrompt);
+    };
 
     return (
         <div className="animate-fade-in mb-8 flex w-full flex-wrap justify-center gap-2 p-6 duration-[1000ms]">
