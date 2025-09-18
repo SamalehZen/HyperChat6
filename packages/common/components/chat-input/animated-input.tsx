@@ -8,10 +8,10 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground, CircularGallery } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -64,6 +64,8 @@ export const AnimatedChatInput = ({
     const setInputValue = useChatStore(state => state.setInputValue);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
 
+    const [showGallery, setShowGallery] = useState(false);
+
     // Load draft message from localStorage
     useEffect(() => {
         if (typeof window !== 'undefined' && !isFollowUp && !isSignedIn) {
@@ -80,6 +82,24 @@ export const AnimatedChatInput = ({
             window.localStorage.setItem('draft-message', inputValue);
         }
     }, [inputValue, isFollowUp]);
+
+    // CircularGallery visibility rules
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const firstVisitKey = 'cg_seen';
+        const hasVisited = localStorage.getItem(firstVisitKey) === '1';
+
+        if (!currentThreadId) {
+            if (!hasVisited) {
+                setShowGallery(true);
+                localStorage.setItem(firstVisitKey, '1');
+            } else {
+                setShowGallery(false);
+            }
+            return;
+        }
+        setShowGallery(threadItemsLength === 0);
+    }, [currentThreadId, threadItemsLength]);
 
     // Define all AI models with their icons and metadata
     const AI_MODELS = [
@@ -311,6 +331,7 @@ export const AnimatedChatInput = ({
         window.localStorage.removeItem('draft-message');
         setInputValue('');
         clearImageAttachments();
+        setShowGallery(false);
     };
 
     const handleFileAttachment = (file: File) => {
@@ -355,6 +376,15 @@ export const AnimatedChatInput = ({
                             webSearchEnabled={useWebSearch}
                             onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
                         />
+                        {showGallery && (
+                            <div className="mt-4 w-full">
+                                <div className="mx-auto w-full max-w-3xl">
+                                    <div className="h-[260px] md:h-[340px] lg:h-[380px] rounded-xl overflow-hidden">
+                                        <CircularGallery bend={3} textColor="#ffffff" borderRadius={0.05} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </ImageDropzoneRoot>
                 </Flex>
             </motion.div>
@@ -410,7 +440,7 @@ export const AnimatedChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && <ExamplePrompts />}
+                    {!currentThreadId && showGreeting && !showGallery && <ExamplePrompts />}
 
                     {/* <ChatFooter /> */}
                 </Flex>
