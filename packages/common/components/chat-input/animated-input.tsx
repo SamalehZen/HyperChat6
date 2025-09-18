@@ -66,6 +66,12 @@ export const AnimatedChatInput = ({
     const showSuggestions = useChatStore(state => state.showSuggestions);
     const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
 
+    useEffect(() => {
+        if (!currentThreadId && chatMode === ChatMode.GEMINI_2_5_FLASH) {
+            setShowSuggestions(true);
+        }
+    }, [currentThreadId, chatMode, setShowSuggestions]);
+
     // Load draft message from localStorage
     useEffect(() => {
         if (typeof window !== 'undefined' && !isFollowUp && !isSignedIn) {
@@ -360,16 +366,16 @@ export const AnimatedChatInput = ({
                         />
                     </ImageDropzoneRoot>
                 </Flex>
-                <div className="mt-4 h-16 md:h-14 relative z-10 pointer-events-auto flex items-center justify-center">
+                <div className="mt-2 relative z-10 pointer-events-auto flex items-center justify-center">
                     <AnimatePresence initial={false}>
-                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && (
+                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && !currentThreadId && (
                             <motion.div
                                 key="example-prompts"
                                 initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 8 }}
                                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                                className="h-full w-full"
+                                className="w-full"
                             >
                                 <ExamplePrompts />
                             </motion.div>
