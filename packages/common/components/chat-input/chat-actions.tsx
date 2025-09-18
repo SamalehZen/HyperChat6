@@ -25,7 +25,6 @@ import {
     IconTable,
     IconWorld,
 } from '@tabler/icons-react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { NewIcon, NomenclatureDouaniereIcon } from '../icons';
@@ -337,46 +336,23 @@ export const SendStopButton = ({
 }) => {
     return (
         <div className="flex flex-row items-center gap-2">
-            <AnimatePresence mode="wait" initial={false}>
-                {isGenerating && !isChatPage ? (
-                    <motion.div
-                        key="stop-button"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <Button
-                            size="icon-sm"
-                            variant="default"
-                            onClick={stopGeneration}
-                            tooltip="Stop Generation"
-                        >
-                            <IconPlayerStopFilled size={14} strokeWidth={2} />
-                        </Button>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="send-button"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <Button
-                            size="icon-sm"
-                            tooltip="Send Message"
-                            variant={hasTextInput ? 'default' : 'secondary'}
-                            disabled={!hasTextInput || isGenerating}
-                            onClick={() => {
-                                sendMessage();
-                            }}
-                        >
-                            <IconArrowUp size={16} strokeWidth={2} />
-                        </Button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {isGenerating && !isChatPage ? (
+                <Button size="icon-sm" variant="default" onClick={stopGeneration} tooltip="Stop Generation">
+                    <IconPlayerStopFilled size={14} strokeWidth={2} />
+                </Button>
+            ) : (
+                <Button
+                    size="icon-sm"
+                    tooltip="Send Message"
+                    variant={hasTextInput ? 'default' : 'secondary'}
+                    disabled={!hasTextInput || isGenerating}
+                    onClick={() => {
+                        sendMessage();
+                    }}
+                >
+                    <IconArrowUp size={16} strokeWidth={2} />
+                </Button>
+            )}
         </div>
     );
 };
