@@ -68,6 +68,8 @@ export const ChatInput = ({
     const { dropzonProps, handleImageUpload } = useImageAttachment();
     const { push } = useRouter();
     const chatMode = useChatStore(state => state.chatMode);
+    const showSuggestions = useChatStore(state => state.showSuggestions);
+    const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
     const sendMessage = async () => {
         if (
             !isSignedIn &&
@@ -120,6 +122,7 @@ export const ChatInput = ({
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
         clearImageAttachments();
+        setShowSuggestions(false);
     };
 
     const renderChatInput = () => (
@@ -160,7 +163,7 @@ export const ChatInput = ({
                                         />
                                     </Flex>
                                     <AnimatePresence initial={false}>
-                                        {chatMode === ChatMode.GEMINI_2_5_FLASH && (
+                                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && (
                                             <motion.div
                                                 key="example-prompts"
                                                 initial={{ opacity: 0, y: 8 }}

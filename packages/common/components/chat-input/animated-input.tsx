@@ -63,6 +63,8 @@ export const AnimatedChatInput = ({
     const inputValue = useChatStore(state => state.inputValue);
     const setInputValue = useChatStore(state => state.setInputValue);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
+    const showSuggestions = useChatStore(state => state.showSuggestions);
+    const setShowSuggestions = useChatStore(state => state.setShowSuggestions);
 
     // Load draft message from localStorage
     useEffect(() => {
@@ -311,6 +313,7 @@ export const AnimatedChatInput = ({
         window.localStorage.removeItem('draft-message');
         setInputValue('');
         clearImageAttachments();
+        setShowSuggestions(false);
     };
 
     const handleFileAttachment = (file: File) => {
@@ -359,7 +362,7 @@ export const AnimatedChatInput = ({
                 </Flex>
                 <div className="mt-2 h-14 relative z-10 pointer-events-auto">
                     <AnimatePresence initial={false}>
-                        {chatMode === ChatMode.GEMINI_2_5_FLASH && (
+                        {chatMode === ChatMode.GEMINI_2_5_FLASH && showSuggestions && (
                             <motion.div
                                 key="example-prompts"
                                 initial={{ opacity: 0, y: 8 }}
