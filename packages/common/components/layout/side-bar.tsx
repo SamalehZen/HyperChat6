@@ -52,7 +52,7 @@ export const Sidebar = () => {
         if (threads.length === 0) return null;
         return (
             <Flex gap="xs" direction="col" items="start" className="w-full">
-                <p className="text-muted-foreground py-1 text-xs">{title}</p>
+                <p className="text-muted-foreground py-1 text-xs md:text-sm">{title}</p>
                 <Flex
                     className="border-border/50 w-full gap-0.5 border-l pl-2"
                     gap="none"

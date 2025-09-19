@@ -113,7 +113,7 @@ export const HistoryItem = ({
                         className="flex-1 overflow-hidden"
                         gap="none"
                     >
-                        <p className="hover:text-foreground line-clamp-1 w-full text-xs">
+                        <p className="hover:text-foreground line-clamp-1 w-full text-sm md:text-base">
                             {thread.title}
                         </p>
                     </Flex>

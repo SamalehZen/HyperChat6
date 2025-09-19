@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html { font-size: clamp(15px, 0.25vw + 15px, 18px); }
+}
+
+@media (min-width:1024px) and (max-width:1279.98px) {
+  html { font-size: 17px; }
+}
+@media (min-width:1280px) {
+  html { font-size: 18px; }
+}
+
 @keyframes fade458 {
     from {
         opacity: 1;
