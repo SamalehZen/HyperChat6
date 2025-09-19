@@ -1,6 +1,6 @@
 'use client';
 import { useMcpToolsStore, usePreferencesStore } from '@repo/common/store';
-import { Alert, AlertDescription, DialogFooter } from '@repo/ui';
+import { Alert, AlertDescription, DialogFooter, ShineBorder, RadioGroup, RadioGroupItem } from '@repo/ui';
 import { Button } from '@repo/ui/src/components/button';
 import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from './icons';
 
@@ -15,6 +15,7 @@ import { SETTING_TABS, useAppStore } from '../store/app.store';
 import { useChatStore } from '../store/chat.store';
 import { ChatEditor } from './chat-input';
 import { BYOKIcon, ToolIcon } from './icons';
+import { SHINE_PRESETS } from '@repo/shared/config';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
@@ -466,6 +467,8 @@ export const PersonalizationSettings = () => {
     const { t, locale, setLocale } = useI18n();
     const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
     const setBackgroundVariant = usePreferencesStore(state => state.setBackgroundVariant);
+    const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
+    const setAiPromptShinePreset = usePreferencesStore(state => state.setAiPromptShinePreset);
     const { editor } = useChatEditor({
         charLimit: MAX_CHAR_LIMIT,
         defaultContent: customInstructions,
@@ -490,6 +493,35 @@ export const PersonalizationSettings = () => {
                     <option value="fr">{t('settings.language.fr')}</option>
                     <option value="en">{t('settings.language.en')}</option>
                 </select>
+            </div>
+            <div className="mt-2 flex flex-col gap-2">
+                <label className="text-sm font-medium" id="shine-select-label">{t('settings.personalization.shine.title')}</label>
+                <p className="text-muted-foreground text-xs">{t('settings.personalization.shine.description')}</p>
+                <RadioGroup
+                    aria-labelledby="shine-select-label"
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-1"
+                    value={aiPromptShinePreset}
+                    onValueChange={(v) => setAiPromptShinePreset(v as any)}
+                >
+                    {SHINE_PRESETS.map((preset) => {
+                        const id = `shine-${preset.key}`;
+                        return (
+                            <label key={preset.key} htmlFor={id} className="cursor-pointer">
+                                <div className="border-border hover:bg-muted/30 focus-within:ring-2 focus-within:ring-offset-0 focus-within:ring-ring flex items-center gap-2 rounded-lg border p-2">
+                                    <RadioGroupItem value={preset.key} id={id} />
+                                    <div className="flex items-center gap-2">
+                                        <ShineBorder className="w-14 h-9" borderRadius={12} borderWidth={2} duration={10} color={preset.colors}>
+                                            <div className="w-full h-full rounded-[12px]" />
+                                        </ShineBorder>
+                                        <span className="text-xs">
+                                            {t(`settings.personalization.shine.${preset.key}` as any) || preset.key}
+                                        </span>
+                                    </div>
+                                </div>
+                            </label>
+                        );
+                    })}
+                </RadioGroup>
             </div>
             <div className="mt-2 flex flex-col gap-2">
                 <label className="text-sm font-medium" htmlFor="background-select">{t('settings.personalization.background.title')}</label>
