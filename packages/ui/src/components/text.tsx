@@ -27,10 +27,10 @@ const typeVariants = cva('text flex !my-0', {
     },
 
     defaultVariants: {
-        size: 'sm',
+        size: 'base',
         textColor: 'primary',
         weight: 'regular',
-    },
+    }
 });
 
 export interface TypeProps

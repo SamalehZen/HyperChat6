@@ -50,7 +50,7 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
                     <>
                         <div
                             ref={messageRef}
-                            className={cn('prose-sm relative px-3 py-1.5 font-normal', {
+                            className={cn('prose relative px-3 py-1.5 font-normal', {
                                 'pb-12': isExpanded,
                                 markdownStyles,
                             })}
@@ -184,7 +184,7 @@ export const EditMessage = memo(({ message, onCancel, threadItem, width }: TEdit
                     sendMessage={() => {
                         handleSave(editor?.getText() || '');
                     }}
-                    className={cn('prose-sm max-w-full overflow-y-scroll !p-0', markdownStyles)}
+                    className={cn('prose max-w-full overflow-y-scroll !p-0', markdownStyles)}
                 />
             </div>
             <div className={cn('flex-col items-center  group-hover:flex')}>

@@ -271,7 +271,7 @@ export const CustomSignIn = ({
         return (
             <div className="flex w-[300px] flex-col items-center gap-4">
                 <div className="flex flex-col items-center gap-1">
-                    <h2 className="font-clash text-foreground !text-brand text-center text-[24px] font-semibold leading-tight">
+                    <h2 className="font-clash text-foreground !text-brand text-center text-2xl font-semibold leading-tight">
                         Vérifiez votre messagerie
                     </h2>
                     <p className="text-muted-foreground text-center text-sm">
@@ -328,7 +328,7 @@ export const CustomSignIn = ({
                 <IconX className="h-4 w-4" />
             </Button>
             <div className="flex w-[320px] flex-col items-center gap-8">
-                <h2 className="text-muted-foreground/70 text-center text-[24px] font-semibold leading-tight">
+                <h2 className="text-muted-foreground/70 text-center text-2xl font-semibold leading-tight">
                     Connectez-vous pour débloquer <br /> des outils de recherche avancés
                 </h2>
 

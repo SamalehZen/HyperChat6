@@ -12,14 +12,14 @@ import { memo, Suspense, useEffect, useState } from 'react';
 import remarkGfm from 'remark-gfm';
 
 export const markdownStyles = {
-    'animate-fade-in prose prose-sm min-w-full': true,
+    'animate-fade-in prose min-w-full prose-prosetheme': true,
 
     // Text styles
-    'prose-p:font-normal prose-p:text-base prose-p:leading-[1.65rem]': true,
-    'prose-headings:text-base prose-headings:font-medium ': true,
-    'prose-h1:text-2xl prose-h1:font-medium ': true,
-    'prose-h2:text-2xl prose-h2:font-medium ': true,
-    'prose-h3:text-lg prose-h3:font-medium ': true,
+    'prose-p:font-normal prose-p:leading-[1.65rem]': true,
+    'prose-headings:font-medium ': true,
+    'prose-h1:font-medium ': true,
+    'prose-h2:font-medium ': true,
+    'prose-h3:font-medium ': true,
     'prose-strong:font-medium prose-th:font-medium': true,
 
     'prose-li:text-muted-foreground prose-li:font-normal prose-li:leading-[1.65rem]': true,
@@ -44,7 +44,7 @@ export const markdownStyles = {
     'prose-td:px-3 prose-td:py-2.5': true,
 
     // Theme
-    'prose-prosetheme': true,
+    
 };
 
 type MarkdownContentProps = {

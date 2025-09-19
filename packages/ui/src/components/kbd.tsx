@@ -10,7 +10,7 @@ const Kbd = React.forwardRef<HTMLElement, KbdProps>(({ className, children, ...p
         <kbd
             ref={ref}
             className={cn(
-                'text-foreground border-border bg-background flex h-5 items-center justify-center rounded-md border px-1.5 font-mono text-[10px] font-semibold',
+                'text-foreground border-border bg-background flex h-5 items-center justify-center rounded-md border px-1.5 font-mono text-xs font-semibold',
                 className
             )}
             {...props}

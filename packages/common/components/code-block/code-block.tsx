@@ -111,7 +111,7 @@ export const CodeBlock = ({
             <pre
                 ref={preRef}
                 className={cn(
-                    'text-foreground border-border bg-background no-scrollbar relative overflow-x-auto rounded-lg border px-6 py-4 font-mono text-[13px] font-[300]'
+                    'text-foreground border-border bg-background no-scrollbar relative overflow-x-auto rounded-lg border px-6 py-4 font-mono text-xs font-[300]'
                 )}
             >
                 <code className={cn(`language-${lang}`)} ref={ref}>

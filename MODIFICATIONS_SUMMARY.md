@@ -181,3 +181,25 @@ Template des variables d'environnement pour Vercel avec toutes les clés API doc
 
 **Multiplier de performance**: x166 pour les prompts (6k → 1M)
 **Nouveau modèle**: Gemini 2.5 Flash avec contexte 31x plus grand
+
+---
+
+## ✨ Nouvelle typographie fluide (global Tailwind)
+
+Point de contrôle unique
+- packages/tailwind-config/index.ts
+  - theme.extend.fontSize: échelle fluide en REM via clamp(min, calc(...), max) de 360px à 1280px.
+  - text-base: clamp(1rem, calc(1rem + 2px * ((100vw - 360px) / 920)), 1.125rem) → ~16px (mobile) à ~18px (desktop).
+  - Hiérarchie titres centralisée dans @tailwindcss/typography (variant prosetheme): h1 = text-3xl (~36→40px), h2 = text-2xl (~28.8→32px), h3 = text-xl. Paragraphes/listes = text-base.
+
+Consommation & composants
+- apps/web/tailwind.config.ts et packages/ui/tailwind.config.ts héritent du preset; aucune override de l’échelle.
+- apps/web/app/globals.css: pas de font-size en px sur html/body; rem conservé.
+- Buttons/badges/labels: typographies +20–25% (ex.: text-xs → text-sm, text-sm → text-base). Jamais < 14px sur mobile.
+- Markdown: suppression des classes locales prose-h*/prose-p; rely sur la config centralisée. Remplacement de prose-sm par prose quand nécessaire.
+- Élimination des font-size en px (text-[..px]) au profit de l’échelle text-*.
+
+Critères atteints
+- ~360px: body ≈ 16px, H1 ≈ 36px, H2 ≈ 28–29px.
+- ~1280px: body ≈ 18px, H1 ≈ 40px, H2 ≈ 32px.
+- Progression fluide entre bornes; responsive sm/md/lg toujours compatible.

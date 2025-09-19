@@ -71,16 +71,43 @@ const config: any = {
                 bricolage: ['var(--font-bricolage)', ...fontFamily.sans],
             },
             fontSize: {
-                xs: ['0.725rem', { lineHeight: '1.2rem', letterSpacing: '0.01em' }],
-                sm: ['0.775rem', { lineHeight: '1.3rem', letterSpacing: '0.008em' }],
-                base: ['0.875rem', { lineHeight: '1.5rem' }],
-                lg: ['0.975rem', { lineHeight: '1.75rem' }],
-                xl: ['1.175rem', { lineHeight: '1.95rem' }],
-                '2xl': ['1.275rem', { lineHeight: '2.25rem' }],
-                '3xl': ['1.375rem', { lineHeight: '2.5rem' }],
-                '4xl': ['1.475rem', { lineHeight: '2.75rem' }],
-                '5xl': ['3.052rem'],
-            },
+                xs: [
+                    'clamp(0.9rem, calc(0.9rem + 1.8px * ((100vw - 360px) / 920)), 1.0125rem)',
+                    { lineHeight: '1.2rem', letterSpacing: '0.01em' }
+                ],
+                sm: [
+                    'clamp(0.95rem, calc(0.95rem + 1.9px * ((100vw - 360px) / 920)), 1.06875rem)',
+                    { lineHeight: '1.35rem', letterSpacing: '0.008em' }
+                ],
+                base: [
+                    'clamp(1rem, calc(1rem + 2px * ((100vw - 360px) / 920)), 1.125rem)',
+                    { lineHeight: '1.5rem' }
+                ],
+                lg: [
+                    'clamp(1.125rem, calc(1.125rem + 2.25px * ((100vw - 360px) / 920)), 1.265625rem)',
+                    { lineHeight: '1.75rem' }
+                ],
+                xl: [
+                    'clamp(1.333rem, calc(1.333rem + 2.666px * ((100vw - 360px) / 920)), 1.499625rem)',
+                    { lineHeight: '1.95rem' }
+                ],
+                '2xl': [
+                    'clamp(1.8rem, calc(1.8rem + 3.2px * ((100vw - 360px) / 920)), 2rem)',
+                    { lineHeight: '2.25rem' }
+                ],
+                '3xl': [
+                    'clamp(2.25rem, calc(2.25rem + 4px * ((100vw - 360px) / 920)), 2.5rem)',
+                    { lineHeight: '2.5rem' }
+                ],
+                '4xl': [
+                    'clamp(2.8rem, calc(2.8rem + 6.4px * ((100vw - 360px) / 920)), 3.2rem)',
+                    { lineHeight: '2.75rem' }
+                ],
+                '5xl': [
+                    'clamp(3.5rem, calc(3.5rem + 8px * ((100vw - 360px) / 920)), 4rem)',
+                    { lineHeight: '1' }
+                ],
+            ],
             fontWeight: {
                 normal: '350',
                 medium: '400',
@@ -121,7 +148,7 @@ const config: any = {
                 'fade-in-once': 'fade-in-once 10s ease-out forwards',
                 'reveal-pop': 'reveal-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
             },
-            typography: () => ({
+            typography: ({ theme }) => ({
                 prosetheme: {
                     css: {
                         '--tw-prose-body': 'hsl(var(--foreground))',
@@ -140,6 +167,31 @@ const config: any = {
                         '--tw-prose-pre-bg': 'hsl(var(--muted))',
                         '--tw-prose-th-borders': 'hsl(var(--border))',
                         '--tw-prose-td-borders': 'hsl(var(--border))',
+
+                        // Headings & text scale
+                        h1: {
+                            fontWeight: '600',
+                            fontSize: theme('fontSize.3xl')[0],
+                            lineHeight: '1.2',
+                        },
+                        h2: {
+                            fontWeight: '600',
+                            fontSize: theme('fontSize.2xl')[0],
+                            lineHeight: '1.25',
+                        },
+                        h3: {
+                            fontWeight: '600',
+                            fontSize: theme('fontSize.xl')[0],
+                            lineHeight: '1.3',
+                        },
+                        p: {
+                            fontSize: theme('fontSize.base')[0],
+                            lineHeight: '1.65',
+                        },
+                        'ul, ol': {
+                            fontSize: theme('fontSize.base')[0],
+                            lineHeight: '1.65',
+                        },
 
                         // Dark mode values
                         '--tw-prose-invert-body': 'hsl(var(--foreground))',
