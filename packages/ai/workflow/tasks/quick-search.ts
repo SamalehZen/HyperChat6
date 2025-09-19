@@ -109,15 +109,19 @@ export const quickSearchTask = createTask<WorkflowEventSchema, WorkflowContextSc
             messages = [
                 {
                     role: 'system',
-                    content: `Today is ${getHumanizedDate()}. and current location is ${gl?.city}, ${gl?.country}. \n\n ${customInstructions}`,
+                    content: `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
+
+Aujourd’hui nous sommes ${getHumanizedDate()}. and current location is ${gl?.city}, ${gl?.country}. \n\n ${customInstructions}`,
                 },
                 ...messages,
             ];
         }
 
         const query = await generateObject({
-            prompt: `Today is ${getHumanizedDate()}.${gl?.country ? `You are in ${gl?.country}\n\n` : ''}
- Generate a query to search the web for information make sure query is not too broad and be specific for recent information`,
+            prompt: `Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
+
+Aujourd’hui nous sommes ${getHumanizedDate()}.${gl?.country ? `Vous êtes en ${gl?.country}\n\n` : ''}
+ Générez une requête pour rechercher des informations sur le Web. Assurez‑vous que la requête n’est pas trop large et qu’elle est spécifique, en privilégiant des informations récentes`,
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages,
             schema: z.object({

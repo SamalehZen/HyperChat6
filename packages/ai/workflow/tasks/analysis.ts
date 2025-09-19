@@ -17,6 +17,12 @@ export const analysisTask = createTask<WorkflowEventSchema, WorkflowContextSchem
           
 Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Structure: H2/H3, paragraphes courts, listes de 3–5 puces.
+- Emojis: 0–2 max, pertinents; jamais dans le code ni les titres techniques.
+- Palette: neutre (technique) • équilibré (par défaut) • expressif (annonce/blog).
+
+
 # Cadre d’analyse de la recherche
 
 Aujourd’hui nous sommes ${getHumanizedDate()}.

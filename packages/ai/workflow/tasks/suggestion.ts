@@ -39,8 +39,8 @@ Rédige 2–3 questions de suivi basées sur la conversation.
                 ${answer}
                 </answer>
 
-                - suggest new questions user might have based on the answer and the current question. make sure questions are concise and to the point.
-                - The followup questions should always be in French, regardless of the language of the user's question.
+                - Propose des questions que l’utilisateur pourrait avoir d’après la réponse et la question initiale. Formuler en une ligne, concret et actionnable.
+                - Toujours en français (sauf demande explicite contraire).
                 `;
 
         const object = await generateObject({
