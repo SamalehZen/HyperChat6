@@ -7,7 +7,7 @@ import {
     MessagesRemainingBadge,
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
-import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName } from '@repo/shared/config';
+import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName, getShineColors } from '@repo/shared/config';
 import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -41,6 +41,7 @@ export const AnimatedChatInput = ({
     const { user } = useUser();
     const { threadId: currentThreadId } = useParams();
     const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
+    const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
     const getThreadItems = useChatStore(state => state.getThreadItems);
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
     const { handleSubmit } = useAgentStream();
@@ -363,6 +364,7 @@ export const AnimatedChatInput = ({
                             showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
                             webSearchEnabled={useWebSearch}
                             onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
+                            shineColors={getShineColors(aiPromptShinePreset)}
                         />
                     </ImageDropzoneRoot>
                 </Flex>

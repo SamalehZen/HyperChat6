@@ -197,6 +197,7 @@ interface AI_PromptProps {
     showWebToggle?: boolean;
     webSearchEnabled?: boolean;
     onToggleWebSearch?: () => void;
+    shineColors?: string[];
 }
 
 export function AI_Prompt({
@@ -212,6 +213,7 @@ export function AI_Prompt({
     showWebToggle = false,
     webSearchEnabled = false,
     onToggleWebSearch,
+    shineColors,
 }: AI_PromptProps) {
     const [internalValue, setInternalValue] = useState("");
     const [internalSelectedModel, setInternalSelectedModel] = useState(models[0]?.id || "");
@@ -272,7 +274,7 @@ export function AI_Prompt({
                 borderRadius={16}
                 borderWidth={2}
                 duration={10}
-                color={["#3B82F6", "#8B5CF6", "#F97316"]}
+                color={shineColors ?? ["#3B82F6", "#8B5CF6", "#F97316"]}
             >
                 <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl p-1.5 border border-[#e5e7eb] dark:border-gray-800" style={{ backgroundColor: 'hsl(var(--chat-input-container-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
                     <div className="relative">
