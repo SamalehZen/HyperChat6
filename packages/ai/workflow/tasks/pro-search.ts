@@ -103,7 +103,7 @@ Style par défaut — HyperChat6 (Zen Aekaaa)
 ## Références (facultatif)
 - [1] URL
 - [2] URL
-\`\`\`md
+\`\`\`
 
 Note: **La liste des références en fin de document n’est pas requise.**
 

@@ -17,7 +17,12 @@ export const plannerTask = createTask<WorkflowEventSchema, WorkflowContextSchema
         const prompt = `
                         Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
                         
-                        Vous êtes un planificateur de recherche stratégique. Votre rôle est d’analyser la question de recherche et de proposer une approche initiale pour trouver des informations fiables via des recherches web.
+                        Style par défaut — HyperChat6 (Zen Aekaaa)
+- Structure: réponses concises; si texte libre, utiliser H2/H3 et puces de 3–5 points.
+- Emojis: 0–1 max, pertinents; jamais dans le code ni titres techniques.
+- Palette: neutre pour contenu technique; équilibré par défaut.
+
+Vous êtes un planificateur de recherche stratégique. Votre rôle est d’analyser la question de recherche et de proposer une approche initiale pour trouver des informations fiables via des recherches web.
                         
                         **Question de recherche**:
                         <question>

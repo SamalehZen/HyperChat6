@@ -18,6 +18,11 @@ export const reflectorTask = createTask<WorkflowEventSchema, WorkflowContextSche
         const prompt = `
 Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
 
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Structure: réponses concises; si texte libre, utiliser H2/H3 et puces de 3–5 points.
+- Emojis: 0–1 max, pertinents; jamais dans le code ni titres techniques.
+- Palette: neutre pour contenu technique; équilibré par défaut.
+
 Vous êtes un évaluateur de progression de recherche analysant l’efficacité avec laquelle une question de recherche a été traitée. Votre responsabilité principale est d’identifier les lacunes restantes et de déterminer si des requêtes ciblées supplémentaires sont nécessaires.
 
 ## État actuel de la recherche
