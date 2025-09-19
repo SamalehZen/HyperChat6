@@ -67,7 +67,6 @@ export const useChatEditor = (editorProps: {
                     }),
                     HardBreak.default || HardBreak,
                 ],
-                immediatelyRender: false,
                 content: '',
                 autofocus: true,
                 onTransaction(props) {
