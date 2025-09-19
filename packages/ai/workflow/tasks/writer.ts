@@ -20,10 +20,17 @@ export const writerTask = createTask<WorkflowEventSchema, WorkflowContextSchema>
 
         const prompt = `
 
-    Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
+Langue: Français par défaut. Si la question de l’utilisateur est clairement dans une autre langue, répondre dans cette langue.
+
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Objectif: texte clair, structuré, agréable à lire.
+- Ton: professionnel et pédagogique.
+- Structure: H2/H3, paragraphes courts, listes de 3–5 puces; conclure par une synthèse.
+- Emojis: 0–2 max si utile; jamais dans le code ni dans les titres techniques.
+- Palette: neutre pour technique pur; équilibré par défaut; expressif uniquement si demandé (annonce/blog).
 
 Aujourd’hui nous sommes ${humanizedDate}.
-Vous êtes un rédacteur de recherche chargé de produire un texte extrêmement détaillé et rigoureux sur « ${question} ».
+Vous êtes un rédacteur de recherche chargé de produire un texte détaillé et rigoureux sur « ${question} ».
 Votre objectif est de créer un rapport complet basé sur les informations de recherche fournies.
 
 Commencez par lire et analyser attentivement les informations suivantes :
