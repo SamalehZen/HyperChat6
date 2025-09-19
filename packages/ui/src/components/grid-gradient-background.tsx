@@ -44,7 +44,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
       {variant === 'old' ? (
         <>
           <div
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-0"
             style={{
               backgroundImage: darkGrid,
               backgroundSize: gridBackgroundSize,
@@ -55,7 +55,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
             }}
           />
           <div
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-0"
             style={{
               backgroundImage: darkGrid,
               backgroundSize: gridBackgroundSize,
@@ -68,7 +68,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
         </>
       ) : (
         <div
-          className="absolute inset-0 z-10"
+          className="absolute inset-0 z-0"
           style={{
             backgroundImage: darkGrid,
             backgroundSize: gridBackgroundSize,
