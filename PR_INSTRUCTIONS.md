@@ -1,5 +1,10 @@
 # Instructions pour créer la Pull Request
 
+## Rédaction des PR
+- Suivre le guide de style: [STYLE_GUIDE.md](./STYLE_GUIDE.md) — ton, structure, emojis, concision, microcopy.
+- Utiliser le profil par défaut (équilibré) et le gabarit proposé.
+- Limiter la description à des puces vérifiables (3–5) et ajouter des liens/références.
+
 Comme les credentials GitHub ne sont pas configurés dans cette session, voici les commandes à exécuter manuellement pour créer la pull request :
 
 ## 📝 Étapes à suivre

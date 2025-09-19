@@ -16,11 +16,10 @@ export default function GlobalError({ error }: { error: Error }) {
             <body>
                 <div className="flex h-screen w-screen flex-col items-center justify-center bg-emerald-50">
                     <div className="flex w-[300px] flex-col gap-2">
-                        <p className="text-base">Oops! Something went wrong.</p>
+                        <p className="text-base">Une erreur est survenue.</p>
                         <p className="text-brand text-sm">
-                            It seems we encountered an unexpected error. Please try refreshing the
-                            page or check back later. If the problem persists, feel free to{' '}
-                            <a href="mailto:hello@hyper-fix.vercel.app">contact team</a>.
+                            Actualisez la page et réessayez. Si le problème persiste, contactez l’équipe :{' '}
+                            <a href="mailto:hello@hyper-fix.vercel.app">hello@hyper-fix.vercel.app</a>.
                         </p>
                     </div>
                 </div>

@@ -28,7 +28,7 @@ export const CustomSignIn = ({
     const handleVerify = async () => {
         // Check if code is complete
         if (code.length !== 6) {
-            setError('Please enter the complete 6-digit code');
+            setError('Veuillez saisir le code à 6 chiffres complet.');
             return;
         }
 
@@ -62,7 +62,7 @@ export const CustomSignIn = ({
                     }
 
                     console.error('Sign-in error:', error);
-                    setError('Something went wrong while signing in. Please try again.');
+                    setError('Connexion impossible. Réessayez.');
                 }
             } else {
                 console.error('Verification error:', error);
@@ -133,11 +133,11 @@ export const CustomSignIn = ({
         setError('');
 
         if (!email) {
-            setError('Email is required');
+            setError('L’e‑mail est requis.');
             setIsLoading(null);
             return;
         } else if (!validateEmail(email)) {
-            setError('Please enter a valid email');
+            setError('Saisissez une adresse e‑mail valide.');
             setIsLoading(null);
             return;
         }
@@ -189,16 +189,16 @@ export const CustomSignIn = ({
                 } catch (error: any) {
                     console.log(error.message);
                     if (error.includes('Incorrect code')) {
-                        setError('Incorrect code. Please try again.');
+                        setError('Code incorrect. Réessayez.');
                     } else {
                         console.error('Sign-in error:', error);
-                        setError('Something went wrong while signing in. Please try again.');
+                        setError('Connexion impossible. Réessayez.');
                     }
                 }
             } else {
                 console.error('Authentication error:', error);
                 setError(
-                    error?.errors?.[0]?.longMessage || 'Authentication failed. Please try again.'
+                    error?.errors?.[0]?.longMessage || 'Authentification impossible. Réessayez.'
                 );
             }
         } finally {
@@ -212,7 +212,7 @@ export const CustomSignIn = ({
 
         // Check if email is available
         if (!email) {
-            setError('Email is missing. Please try again.');
+            setError('Adresse e‑mail manquante. Réessayez.');
             return;
         }
 
@@ -253,11 +253,11 @@ export const CustomSignIn = ({
                     if (isClerkAPIResponseError(error)) {
                         console.error('Error resending code:', error);
                     }
-                    setError('Failed to resend code. Please try again.');
+                    setError('Échec de renvoi du code. Réessayez.');
                 }
             } else {
                 console.error('Error resending code:', error);
-                setError('Failed to resend code. Please try again.');
+                setError('Échec de renvoi du code. Réessayez.');
             }
         } finally {
             // Wait a moment before allowing another resend (to prevent spam)
@@ -309,7 +309,7 @@ export const CustomSignIn = ({
                 <div id="clerk-captcha"></div>
                 <div className="text-muted-foreground text-center text-sm">
                     {error && <p className="text-rose-400">{error}</p>}
-                    {resending && <p className="text-brand">Sending verification code...</p>}
+                    {resending && <p className="text-brand">Envoi du code de vérification...</p>}
                 </div>
             </div>
         );

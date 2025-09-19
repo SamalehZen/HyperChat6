@@ -1,5 +1,10 @@
 # Guide d'intégration du nouveau composant AI_Prompt
 
+## Conventions de rédaction
+- Se référer au guide: [STYLE_GUIDE.md](./STYLE_GUIDE.md)
+- Profil par défaut: équilibré; emojis discrets; titres H1/H2/H3; listes courtes.
+- Microcopy UI: boutons sans emoji, verbes d’action; erreurs claires et actionnables; confirmations directes.
+
 ## 🎯 Résumé de l'intégration
 
 Le nouveau composant `AI_Prompt` a été intégré avec succès dans votre codebase HyperChat4. Voici ce qui a été faite :

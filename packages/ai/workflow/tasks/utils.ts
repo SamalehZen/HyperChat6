@@ -1,30 +1,30 @@
 export const generateErrorMessage = (error: Error | string) => {
     if (error instanceof Error) {
         if (error.message.includes('429')) {
-            return 'You have reached the limit of requests per minute. Please try again later.';
+            return 'Vous avez atteint la limite de requêtes par minute. Réessayez plus tard.';
         }
 
         if (error.message.includes('401')) {
-            return 'You are not authorized to access this resource. Please try again.';
+            return 'Vous n’êtes pas autorisé à accéder à cette ressource. Réessayez.';
         }
 
         if (error.message.includes('403')) {
-            return 'You are not authorized to access this resource. Please try again.';
+            return 'Vous n’êtes pas autorisé à accéder à cette ressource. Réessayez.';
         }
 
         if (error.message.toLowerCase().includes('timeout')) {
-            return 'The request timed out. Please try again.';
+            return 'Délai dépassé. Réessayez.';
         }
 
         if (
             error.message.toLowerCase().includes('api') &&
             error.message.toLowerCase().includes('key')
         ) {
-            return 'The API key is invalid. Please try again.';
+            return 'Clé API invalide. Vérifiez la clé et réessayez.';
         }
 
-        return 'Something went wrong. Please try again later.';
+        return 'Une erreur est survenue. Réessayez plus tard.';
     }
 
-    return 'Something went wrong. Please try again later.';
+    return 'Une erreur est survenue. Réessayez plus tard.';
 };

@@ -41,9 +41,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             return (
                 <div className="error-boundary-fallback">
-                    <h2>Something went wrong</h2>
+                    <h2>Une erreur est survenue</h2>
                     <details>
-                        <summary>Error details</summary>
+                        <summary>Détails de l’erreur</summary>
                         <pre>{this.state.error?.toString()}</pre>
                     </details>
                 </div>
