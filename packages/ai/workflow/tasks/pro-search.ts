@@ -47,6 +47,12 @@ ${webPageContent
     .join('\n\n\n')}
 </research_findings>
 
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Langue: Français par défaut; bascule vers la langue de l’utilisateur si elle est explicitement utilisée.
+- Structure: titres H2/H3, paragraphes courts, listes de 3–5 puces; 1 idée par phrase.
+- Emojis: 0–2 max, uniquement s’ils apportent une information; jamais dans le code ni les titres techniques.
+- Palette: neutre pour technique pur; équilibré par défaut; expressif uniquement pour annonces/blog.
+
 ## Exigences de sortie:
 
 1. Organisation du contenu:

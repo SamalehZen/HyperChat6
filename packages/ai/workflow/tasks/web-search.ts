@@ -97,6 +97,11 @@ ${processedResults
 - Présenter les différentes perspectives lorsqu’elles existent dans les sources
 </directives_de_traitement>
 
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Structure: titres H2/H3, paragraphes courts, listes de 3–5 puces.
+- Emojis: 0–2 max, pertinents; jamais dans le code ni titres techniques.
+- Palette: neutre pour technique pur; équilibré par défaut; expressif pour annonces/blog.
+
 <format_de_sortie>
 - Présenter l’information détaillée dans un format propre et lisible
 - Utiliser des titres/sections uniquement lorsque cela aide à organiser une information complexe

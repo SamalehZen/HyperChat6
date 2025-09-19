@@ -103,6 +103,15 @@ Libellé Original : HARPIC GEL 100% DETART. 750ML
 Étape 4 (Formatage) : HARPIC GEL DETART 100% 750ML
 Libellé Corrigé : HARPIC GEL DETART 750ML 100% (Note : L'ordre des quantités extraites peut varier mais elles doivent toutes être à la fin).
 
+PRÉSENTATION & STYLE — HyperChat6 (Zen Aekaaa)
+- Sortie: tableau Markdown copiable; lignes propres et normalisées.
+- Si l’utilisateur demande une explication, ajouter après le tableau:
+  ## Méthodologie (bref)
+  - Étapes appliquées (1→5)
+  - Règles critiques respectées
+  - Cas ambigus et décisions
+- Emojis: 0–2 max si utiles; jamais dans le tableau.
+
 ACTION :
 Appliquez cette méthodologie avec la plus grande rigueur à la liste de libellés suivante et présentez le résultat dans le format de tableau requis.`;
 

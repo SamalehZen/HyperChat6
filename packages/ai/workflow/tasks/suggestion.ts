@@ -23,8 +23,13 @@ export const suggestionsTask = createTask<WorkflowEventSchema, WorkflowContextSc
                 suggestions: [],
             };
         }
-        const prompt = `You are a professional research reviewer assistant tasked with suggesting followup questions to the user.
-                based on the conversation, suggest 2-3 followup questions to the user.
+        const prompt = `Langue: Français par défaut.
+Style par défaut — HyperChat6 (Zen Aekaaa)
+- Objectif: proposer 2–3 questions de suivi utiles et actionnables.
+- Structure: puces courtes (1 ligne), claires et spécifiques.
+- Emojis: 0–1 max, uniquement si pertinent.
+
+Rédige 2–3 questions de suivi basées sur la conversation.
 
                 Current Question: ${question}
 
