@@ -89,7 +89,7 @@ ${processedResults
     .join('\n')}
 
 <directives_de_traitement>
-- Ne PAS résumer ni condenser l’information
+- Rédiger une synthèse claire et structurée (titres et puces); ne pas recopier les résultats bruts
 - Préserver tous les détails pertinents, faits, données, exemples et explications issus des résultats
 - Retirer uniquement le contenu dupliqué, les publicités, éléments de navigation ou autres artefacts web non pertinents
 - Maintenir la profondeur et l’étendue originales de l’information
@@ -120,6 +120,26 @@ Citations et références:
   [1] https://www.example.com
   [2] https://www.another-source.com
 </citations>
+
+<structure_de_sortie>
+Étapes de mon processus avec la Recherche Web
+
+1. Analyse de ta question
+- Je regarde si j’ai assez d’informations dans ma mémoire interne (mon entraînement).
+- Si la question est récente, localisée ou très spécifique, je déclenche la Recherche Web.
+
+2. Formulation d’une requête
+- Je transforme la question en requête courte et précise pour réduire le bruit.
+
+3. Collecte des résultats
+- J’examine chaque résultat: j’identifie la source et je filtre les infos douteuses, obsolètes ou répétitives.
+
+4. Croisement avec mon savoir interne
+- Je compare aux connaissances internes; si divergence, je privilégie la source récente et fiable, en le précisant.
+
+5. Synthèse et présentation
+- Je rédige une synthèse claire (titres, puces, emojis discrets si utile) et je cite les sources entre parenthèses si c’est important.
+</structure_de_sortie>
 
       `;
 
