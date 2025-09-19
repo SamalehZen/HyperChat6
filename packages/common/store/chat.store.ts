@@ -842,7 +842,7 @@ export const useChatStore = create(
                         createdAt: new Date(),
                         updatedAt: new Date(),
                         ...threadItem,
-                        error: threadItem.error || `Something went wrong`,
+                        error: threadItem.error || `Une erreur est survenue`,
                     };
                     await db.threadItems.put(fallbackItem);
                 } catch (fallbackError) {

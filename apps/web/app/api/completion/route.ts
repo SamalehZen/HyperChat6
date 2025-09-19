@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         if (!validatedBody.success) {
             return new Response(
                 JSON.stringify({
-                    error: 'Invalid request body',
+                    error: 'Requête invalide.',
                     details: validatedBody.error.format(),
                 }),
                 { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         const ip = getIp(request);
 
         if (!ip) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            return new Response(JSON.stringify({ error: 'Non autorisé' }), {
                 status: 401,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
 
         if (!!ChatModeConfig[data.mode]?.isAuthRequired && !userId) {
-            return new Response(JSON.stringify({ error: 'Authentication required' }), {
+            return new Response(JSON.stringify({ error: 'Authentification requise' }), {
                 status: 401,
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error in POST handler:', error);
         return new Response(
-            JSON.stringify({ error: 'Internal server error', details: String(error) }),
+            JSON.stringify({ error: 'Erreur interne du serveur', details: String(error) }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
         );
     }

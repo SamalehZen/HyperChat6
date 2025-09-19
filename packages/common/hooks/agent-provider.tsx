@@ -193,7 +193,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
                     if (response.status === 429 && !isSignedIn) {
                         errorText =
-                            'You have reached the daily limit of requests. Please sign in to enjoy more requests.';
+                            'Vous avez atteint la limite quotidienne de requêtes. Connectez‑vous pour augmenter votre quota.';
                     }
 
                     setIsGenerating(false);
@@ -302,7 +302,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     updateThreadItem(body.threadId, {
                         id: body.threadItemId,
                         status: 'ABORTED',
-                        error: 'Generation aborted',
+                        error: 'Génération annulée',
                     });
                 } else if (streamError.message.includes('429')) {
                     updateThreadItem(body.threadId, {
@@ -314,7 +314,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     updateThreadItem(body.threadId, {
                         id: body.threadItemId,
                         status: 'ERROR',
-                        error: 'Something went wrong. Please try again.',
+                        error: 'Une erreur est survenue. Réessayez.',
                     });
                 }
             } finally {
