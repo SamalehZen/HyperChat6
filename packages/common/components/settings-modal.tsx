@@ -503,6 +503,7 @@ export const PersonalizationSettings = () => {
                     <option value="new">{t('settings.personalization.background.new')}</option>
                     <option value="old">{t('settings.personalization.background.old')}</option>
                 </select>
+                <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
             </div>
             <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">
                 <ChatEditor editor={editor} />
