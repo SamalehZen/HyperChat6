@@ -89,7 +89,7 @@ Style par défaut — HyperChat6 (Zen Aekaaa)
 ## Format de sortie recommandé
 - Utiliser ce gabarit sauf contrainte contraire:
 
-```md
+\`\`\`md
 ## Points clés
 - [3–5 puces synthétiques]
 
@@ -103,7 +103,7 @@ Style par défaut — HyperChat6 (Zen Aekaaa)
 ## Références (facultatif)
 - [1] URL
 - [2] URL
-```
+\`\`\`md
 
 Note: **La liste des références en fin de document n’est pas requise.**
 
