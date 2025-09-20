@@ -11,6 +11,7 @@ const EXPORT_DIR = process.env.EXPORT_DIR || path.join(os.tmpdir(), 'hyperchat-e
 const FREE_OCR_LANGUAGES = process.env.FREE_OCR_LANGUAGES || 'eng+fra';
 const FREE_OCR_MAX_PAGES = Number(process.env.FREE_OCR_MAX_PAGES || 10);
 const FREE_OCR_TIMEOUT_MS = Number(process.env.FREE_OCR_TIMEOUT_MS || 120000);
+const FREE_ENABLE_PDF_RASTERIZE = String(process.env.FREE_ENABLE_PDF_RASTERIZE || 'false') === 'true';
 
 // Small helper to ensure directories exist
 function ensureDirSync(dir: string) {
@@ -359,17 +360,35 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
               pagesBudget -= usedPages;
               updateStep({ stepId, stepStatus: 'PENDING', subSteps: { [`pdf-${pi + 1}`]: { status: 'COMPLETED', data: { mode: 'pdfjs', pages: usedPages } } } });
             } catch {
-              updateAnswer({ text: `\nHeuristiques PDF indisponibles — utilisation de l\'OCR.`, status: 'PENDING' });
-              const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
-              pageImages = imgs;
+              if (FREE_ENABLE_PDF_RASTERIZE) {
+                updateAnswer({ text: `\nHeuristiques PDF indisponibles — utilisation de l\'OCR.`, status: 'PENDING' });
+                const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
+                pageImages = imgs;
+              } else {
+                updateAnswer({ text: `\nHeuristiques PDF indisponibles et rasterisation désactivée sur cet environnement. OCR de PDF scannés non supporté ici.`, status: 'PENDING' });
+                pageImages = [];
+              }
             }
           }
         } else {
-          // Scanned or unknown -> rasterize and OCR
-          try {
-            const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
-            pageImages = imgs;
-          } catch (e: any) {
+          // Scanned or unknown -> rasterize and OCR (only if enabled)
+          if (FREE_ENABLE_PDF_RASTERIZE) {
+            try {
+              const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
+              pageImages = imgs;
+            } catch (e: any) {
+              const msg = String(e?.message || e);
+              if (/password|encrypt/i.test(msg)) {
+                updateAnswer({ text: `\nLe PDF ${pi + 1} est chiffré/protégé. Ignoré.`, status: 'PENDING' });
+              } else {
+                updateAnswer({ text: `\nImpossible de traiter le PDF ${pi + 1}: ${msg}`, status: 'PENDING' });
+              }
+              pageImages = [];
+            }
+          } else {
+            updateAnswer({ text: `\nPDF ${pi + 1}: Document scanné détecté mais la rasterisation/ocr de PDF est désactivée sur cet environnement. Veuillez fournir des images ou activer FREE_ENABLE_PDF_RASTERIZE.`, status: 'PENDING' });
+            pageImages = [];
+          }
             const msg = String(e?.message || e);
             if (/password|encrypt/i.test(msg)) {
               updateAnswer({ text: `\nLe PDF ${pi + 1} est chiffré/protégé. Ignoré.`, status: 'PENDING' });

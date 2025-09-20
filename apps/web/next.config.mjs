@@ -14,8 +14,18 @@ const nextConfig = {
         externalDir: true,
     },
     webpack: (config, options) => {
-        if (!options.isServer) {
-            config.resolve.fallback = { fs: false, module: false, path: false };
+        if (options.isServer) {
+            config.externals = config.externals || [];
+            config.externals.push('canvas');
+            config.externals.push('@napi-rs/canvas');
+        } else {
+            config.resolve.fallback = {
+                ...(config.resolve.fallback || {}),
+                fs: false,
+                module: false,
+                path: false,
+                canvas: false,
+            };
         }
         // Experimental features
         config.experiments = {
