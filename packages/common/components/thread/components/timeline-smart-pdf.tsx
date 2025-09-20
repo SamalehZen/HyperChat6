@@ -1,11 +1,11 @@
 "use client";
 
-import { AceternityTimeline } from "@repo/ui";
+import { AutoTimeline } from "@repo/ui";
 import { Step, ThreadItem } from "@repo/shared/types";
 import React, { useMemo } from "react";
 
 export const TimelineSmartPdf = ({ steps, threadItem }: { steps: Step[]; threadItem: ThreadItem }) => {
-  const timeline = useMemo(() => {
+  const items = useMemo(() => {
     const findSub = (key: string) =>
       steps.find(s => s.steps && key in (s.steps || {}))?.steps?.[key]?.status || undefined;
 
@@ -14,46 +14,39 @@ export const TimelineSmartPdf = ({ steps, threadItem }: { steps: Step[]; threadI
     const ocr = findSub("ocr");
     const convert = findSub("convert");
 
-    const importStatus = ((): "PENDING" | "COMPLETED" | "QUEUED" => {
-      if (prepare === "COMPLETED" || extract === "COMPLETED") return "COMPLETED";
-      if (prepare === "PENDING" || extract === "PENDING") return "PENDING";
-      return "QUEUED";
+    const mapToUi = (s?: string): "queued" | "pending" | "completed" =>
+      s === "COMPLETED" ? "completed" : s === "PENDING" ? "pending" : "queued";
+
+    const importStatus = ((): "queued" | "pending" | "completed" => {
+      if (prepare === "COMPLETED" || extract === "COMPLETED") return "completed";
+      if (prepare === "PENDING" || extract === "PENDING") return "pending";
+      return "queued";
     })();
 
-    const ocrStatus = ((): "PENDING" | "COMPLETED" | "QUEUED" => {
-      if (ocr === "COMPLETED") return "COMPLETED";
-      if (ocr === "PENDING") return "PENDING";
-      return "QUEUED";
-    })();
-
-    const convertStatus = ((): "PENDING" | "COMPLETED" | "QUEUED" => {
-      if (convert === "COMPLETED") return "COMPLETED";
-      if (convert === "PENDING") return "PENDING";
-      return "QUEUED";
-    })();
+    const ocrStatus = mapToUi(ocr);
+    const convertStatus = mapToUi(convert);
 
     return [
-      { id: 0, title: "Import du document", desc: "Fichier détecté et préparé", status: importStatus, image: "/icons/image.png" },
-      { id: 1, title: "OCR & analyse", desc: "Détection des tableaux et cellules", status: ocrStatus, image: "/icons/llmchat.png" },
-      { id: 2, title: "Conversion Excel", desc: "Génération du tableau final", status: convertStatus, image: "/icons/llmchat-accent.svg" },
+      {
+        title: "Import du document",
+        description: "Fichier détecté et préparé",
+        status: importStatus,
+        icon: <img src="/icons/image.png" alt="" className="h-full w-full object-contain" />,
+      },
+      {
+        title: "OCR & analyse",
+        description: "Détection des tableaux et cellules",
+        status: ocrStatus,
+        icon: <img src="/icons/llmchat.png" alt="" className="h-full w-full object-contain" />,
+      },
+      {
+        title: "Conversion Excel",
+        description: "Génération du tableau final",
+        status: convertStatus,
+        icon: <img src="/icons/llmchat-accent.svg" alt="" className="h-full w-full object-contain" />,
+      },
     ];
   }, [steps]);
 
-  const data = timeline.map((item) => ({
-    title: item.title,
-    content: (
-      <div className="rounded-md border p-2">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{item.desc}</span>
-          <span>
-            {item.status === "COMPLETED" ? "Terminé" : item.status === "PENDING" ? "En cours" : "En attente"}
-          </span>
-        </div>
-      </div>
-    ),
-  }));
-
-  return (
-    <AceternityTimeline data={data} title="Progression" className="px-0" />
-  );
+  return <AutoTimeline items={items as any} />;
 };

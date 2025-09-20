@@ -45,5 +45,6 @@ export * from './shine-border';
 export * from './grid-gradient-background';
 export * from './timeline';
 export * from './aceternity-timeline';
+export * from './auto-timeline';
 
 export { AI_Prompt, ModelIcons } from './animated-ai-input';
