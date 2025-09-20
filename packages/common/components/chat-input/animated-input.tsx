@@ -360,7 +360,7 @@ export const AnimatedChatInput = ({
                             selectedModel={chatMode}
                             onModelChange={handleModelChange}
                             onAttachFile={ChatModeConfig[chatMode]?.imageUpload ? handleFileAttachment : undefined}
-                                fileAccept={(chatMode === ChatMode.SMART_PDF_TO_EXCEL || chatMode === ChatMode.GEMINI_2_5_FLASH) ? 'image/jpeg,image/png,image/gif,application/pdf' : 'image/jpeg,image/png,image/gif'
+                                fileAccept={(chatMode === ChatMode.SMART_PDF_TO_EXCEL || chatMode === ChatMode.GEMINI_2_5_FLASH) ? 'image/jpeg,image/png,image/gif,application/pdf' : 'image/jpeg,image/png,image/gif'}
                             disabled={isGenerating}
                             showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
                             webSearchEnabled={useWebSearch}
