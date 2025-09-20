@@ -74,7 +74,7 @@ export async function executeStream({
             threadItemId: data.threadItemId,
             messages: data.messages,
             customInstructions: data.customInstructions,
-            webSearch: data.webSearch || false,
+            webSearch: (data.mode === 'smart-pdf-to-excel' ? false : (data.webSearch || false)),
             config: {
                 maxIterations: data.maxIterations || 3,
                 signal,
@@ -93,7 +93,7 @@ export async function executeStream({
                 parentThreadItemId: data.parentThreadItemId,
                 query: data.prompt,
                 mode: data.mode,
-                webSearch: data.webSearch || false,
+                webSearch: (data.mode === 'smart-pdf-to-excel' ? false : (data.webSearch || false)),
                 showSuggestions: data.showSuggestions || false,
                 [event]: payload,
             });
@@ -119,7 +119,7 @@ export async function executeStream({
                     userId,
                     query: data.prompt,
                     mode: data.mode,
-                    webSearch: data.webSearch || false,
+                    webSearch: (data.mode === 'smart-pdf-to-excel' ? false : (data.webSearch || false)),
                     showSuggestions: data.showSuggestions || false,
                     threadId: data.threadId,
                     threadItemId: data.threadItemId,
