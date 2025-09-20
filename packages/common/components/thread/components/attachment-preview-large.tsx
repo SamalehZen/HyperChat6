@@ -17,8 +17,9 @@ const dataURItoUint8Array = (dataURI: string): Uint8Array => {
 
 const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const canvasesRef = useRef<Array<HTMLCanvasElement | null>>([]);
+    const canvasesRef = useRef<(HTMLCanvasElement | null)[]>([]);
     const [numPages, setNumPages] = useState<number>(0);
+    const [renderedPages, setRenderedPages] = useState<Record<number, boolean>>({});
     const pdfRef = useRef<any>(null);
     const [failed, setFailed] = useState(false);
 
@@ -65,7 +66,11 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
                             el.height = Math.floor(viewport.height);
                             el.style.width = `${Math.floor(viewport.width / dpr)}px`;
                             el.style.height = `${Math.floor(viewport.height / dpr)}px`;
+                            el.style.opacity = '0';
+                            el.style.transition = 'opacity 200ms ease-out';
                             await page.render({ canvasContext: ctx, viewport }).promise;
+                            el.style.opacity = '1';
+                            setRenderedPages(prev => ({ ...prev, [pageNum]: true }));
                             observer.unobserve(el);
                         } catch (e) {}
                     }
@@ -83,7 +88,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
             <object
                 data={dataUrl}
                 type="application/pdf"
-                className="w-full max-h-[360px] rounded border"
+                className="w-full max-h-[420px] rounded-md border"
                 aria-label={`Aperçu PDF #${index + 1}`}
             />
         );
@@ -92,19 +97,33 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
     return (
         <div
             ref={containerRef}
-            className="max-h-[360px] overflow-y-auto rounded border"
+            className="max-h-[420px] overflow-y-auto rounded-md border"
             aria-label={`Aperçu PDF #${index + 1}`}
             role="group"
         >
-            <div className="flex w-full flex-col items-center gap-2 p-2">
-                {Array.from({ length: numPages || 0 }).map((_, i) => (
-                    <canvas
-                        key={`pdf-${index}-page-${i + 1}`}
-                        ref={el => (canvasesRef.current[i] = el)}
-                        data-page={i + 1}
-                        className="w-full rounded bg-background"
-                    />
-                ))}
+            <div className="flex w-full flex-col items-stretch gap-3 p-3">
+                {Array.from({ length: numPages || 0 }).map((_, i) => {
+                    const pageIndex = i + 1;
+                    const isRendered = !!renderedPages[pageIndex];
+                    return (
+                        <div
+                            key={`pdf-${index}-wrap-${pageIndex}`}
+                            className="relative w-full overflow-hidden rounded-md border bg-background"
+                            style={{ minHeight: isRendered ? undefined : 220 }}
+                        >
+                            <canvas
+                                ref={el => {
+                                    canvasesRef.current[i] = el;
+                                }}
+                                data-page={pageIndex}
+                                className="w-full"
+                            />
+                            {!isRendered && (
+                                <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-muted/50 to-muted/20" />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -131,8 +150,11 @@ export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem 
                         <img
                             src={att}
                             alt={`Pièce jointe ${idx + 1}`}
-                            className="max-h-[320px] w-full rounded border object-contain"
+                            className="max-h-[340px] w-full rounded-md border object-contain opacity-0 transition-opacity duration-300"
                             role="img"
+                            onLoad={e => {
+                                (e.currentTarget as HTMLImageElement).style.opacity = '1';
+                            }}
                         />
                     </div>
                 );
@@ -144,7 +166,7 @@ export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem 
     if (!items.length) return null;
 
     return (
-        <div className="mb-3 flex w-full flex-col gap-2">
+        <div className="mb-4 flex w-full flex-col gap-3">
             {items}
         </div>
     );
