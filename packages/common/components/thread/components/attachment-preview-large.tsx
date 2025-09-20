@@ -76,7 +76,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
                     }
                 });
             },
-            { root: containerRef.current, threshold: 0.1 }
+            { root: containerRef.current, threshold: 0.1, rootMargin: '120px 0px' }
         );
 
         canvasesRef.current.forEach(c => c && observer.observe(c));
@@ -97,7 +97,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
     return (
         <div
             ref={containerRef}
-            className="max-h-[420px] overflow-y-auto rounded-md border"
+            className="max-h-[480px] md:max-h-[520px] overflow-y-auto rounded-lg border shadow-subtle-xs"
             aria-label={`Aperçu PDF #${index + 1}`}
             role="group"
         >
@@ -108,8 +108,8 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
                     return (
                         <div
                             key={`pdf-${index}-wrap-${pageIndex}`}
-                            className="relative w-full overflow-hidden rounded-md border bg-background"
-                            style={{ minHeight: isRendered ? undefined : 220 }}
+                            className="relative w-full overflow-hidden rounded-lg border bg-background shadow-subtle-xs transition-transform duration-200 hover:scale-[1.005]"
+                            style={{ minHeight: isRendered ? undefined : 240 }}
                         >
                             <canvas
                                 ref={el => {
@@ -117,6 +117,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
                                 }}
                                 data-page={pageIndex}
                                 className="w-full"
+                                style={{ willChange: 'transform, opacity' }}
                             />
                             {!isRendered && (
                                 <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-muted/50 to-muted/20" />
@@ -130,6 +131,8 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
 };
 
 export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem }) => {
+    const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
+
     const attachments = useMemo(() => {
         const arr = Array.isArray(threadItem?.imageAttachment)
             ? threadItem.imageAttachment
@@ -146,16 +149,20 @@ export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem 
             }
             if (isImage(att)) {
                 return (
-                    <div key={`att-img-${idx}`} className="w-full">
+                    <div key={`att-img-${idx}`} className="relative w-full overflow-hidden rounded-lg border shadow-subtle-xs transition-transform duration-200 hover:scale-[1.005]">
                         <img
                             src={att}
                             alt={`Pièce jointe ${idx + 1}`}
-                            className="max-h-[340px] w-full rounded-md border object-contain opacity-0 transition-opacity duration-300"
+                            className="max-h-[360px] w-full object-contain opacity-0 transition-opacity duration-300"
                             role="img"
                             onLoad={e => {
                                 (e.currentTarget as HTMLImageElement).style.opacity = '1';
+                                setLoadedImages(prev => ({ ...prev, [idx]: true }));
                             }}
                         />
+                        {!loadedImages[idx] && (
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-muted/40 to-muted/10 animate-pulse" aria-hidden />
+                        )}
                     </div>
                 );
             }
