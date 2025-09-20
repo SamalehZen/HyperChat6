@@ -73,7 +73,7 @@ async function detectPdfIsDigital(buf: Buffer): Promise<boolean> {
 
 async function extractWithTabula(pdfPath: string, pagesSpec: string): Promise<{ tables: string[][]; csvAll: string } | null> {
   try {
-    const Tabula: any = (await import('@ezpaarse-project/tabula-js')).default || (await import('@ezpaarse-project/tabula-js') as any);
+    const Tabula: any = (await import('tabula-js')).default || (await import('tabula-js') as any);
     const t = (Tabula as any)(pdfPath);
 
     // Try lattice first

@@ -36,7 +36,7 @@
         "zod": "^3.23.8",
         "zod-to-json-schema": "^3.24.1",
         "tesseract.js": "^5.1.0",
-        "@ezpaarse-project/tabula-js": "^0.1.0",
+        "tabula-js": "git+https://github.com/mhmerrill/tabula-js.git",
         "xlsx": "^0.18.5",
         "@napi-rs/canvas": "^0.1.60",
         "pdf-parse": "^1.1.1",
