@@ -27,8 +27,14 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
         (async () => {
             try {
                 const pdfjs: any = await import('pdfjs-dist');
+                try {
+                    const worker = (await import('pdfjs-dist/build/pdf.worker.min.js?url')).default as string;
+                    if (pdfjs?.GlobalWorkerOptions) {
+                        pdfjs.GlobalWorkerOptions.workerSrc = worker;
+                    }
+                } catch {}
                 const data = dataURItoUint8Array(dataUrl);
-                const loadingTask = pdfjs.getDocument({ data, disableWorker: true });
+                const loadingTask = pdfjs.getDocument({ data });
                 const pdf = await loadingTask.promise;
                 if (cancelled) return;
                 pdfRef.current = pdf;
