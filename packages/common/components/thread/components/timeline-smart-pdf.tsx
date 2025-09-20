@@ -1,6 +1,6 @@
 "use client";
 
-import { Timeline, TimelineItem } from "@repo/ui";
+import { AceternityTimeline } from "@repo/ui";
 import { Step, ThreadItem } from "@repo/shared/types";
 import React, { useMemo } from "react";
 
@@ -39,18 +39,21 @@ export const TimelineSmartPdf = ({ steps, threadItem }: { steps: Step[]; threadI
     ];
   }, [steps]);
 
+  const data = timeline.map((item) => ({
+    title: item.title,
+    content: (
+      <div className="rounded-md border p-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{item.desc}</span>
+          <span>
+            {item.status === "COMPLETED" ? "Terminé" : item.status === "PENDING" ? "En cours" : "En attente"}
+          </span>
+        </div>
+      </div>
+    ),
+  }));
+
   return (
-    <Timeline title="Progression">
-      {timeline.map((item) => (
-        <TimelineItem
-          key={item.id}
-          title={item.title}
-          description={item.desc}
-          thumbnail={<img src={item.image} alt="" className="h-full w-full object-contain" />}
-          right={item.status === "COMPLETED" ? "Terminé" : item.status === "PENDING" ? "En cours" : "En attente"}
-          status={item.status === "QUEUED" ? "pending" : (item.status?.toLowerCase() as any)}
-        />
-      ))}
-    </Timeline>
+    <AceternityTimeline data={data} title="Progression" className="px-0" />
   );
 };
