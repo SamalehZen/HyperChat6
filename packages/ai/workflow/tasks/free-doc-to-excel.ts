@@ -389,15 +389,6 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
             updateAnswer({ text: `\nPDF ${pi + 1}: Document scanné détecté mais la rasterisation/ocr de PDF est désactivée sur cet environnement. Veuillez fournir des images ou activer FREE_ENABLE_PDF_RASTERIZE.`, status: 'PENDING' });
             pageImages = [];
           }
-            const msg = String(e?.message || e);
-            if (/password|encrypt/i.test(msg)) {
-              updateAnswer({ text: `\nLe PDF ${pi + 1} est chiffré/protégé. Ignoré.`, status: 'PENDING' });
-            } else {
-              updateAnswer({ text: `\nImpossible de traiter le PDF ${pi + 1}: ${msg}`, status: 'PENDING' });
-            }
-            pageImages = [];
-          }
-        }
 
         if (pageImages.length) {
           const take = Math.min(pageImages.length, pagesBudget);
