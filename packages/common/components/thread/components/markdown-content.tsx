@@ -53,6 +53,7 @@ type MarkdownContentProps = {
     shouldAnimate?: boolean;
     isCompleted?: boolean;
     isLast?: boolean;
+    totalAttachments?: number;
 };
 
 type NestedChunk = {
@@ -105,13 +106,23 @@ function parseCitationsWithSourceTags(markdown: string): string {
 }
 
 export const MarkdownContent = memo(
-    ({ content, className, isCompleted, isLast }: MarkdownContentProps) => {
+    ({ content, className, isCompleted, isLast, totalAttachments }: MarkdownContentProps) => {
         const [previousContent, setPreviousContent] = useState<string[]>([]);
         const [currentContent, setCurrentContent] = useState<string>('');
         const { chunkMdx } = useMdxChunker();
+        const containerRef = useRef<HTMLDivElement | null>(null);
+        const [tableCount, setTableCount] = useState<number>(0);
 
         useEffect(() => {
             if (!content) return;
+
+            // Count tables after content updates
+            setTimeout(() => {
+                if (containerRef.current) {
+                    const count = containerRef.current.querySelectorAll('table').length;
+                    setTableCount(count);
+                }
+            }, 0);
 
             (async () => {
                 try {
@@ -139,9 +150,89 @@ export const MarkdownContent = memo(
             })();
         }, [content, isCompleted]);
 
+        const renderExportBar = () => {
+            const shouldShowMulti = (tableCount > 1) || ((totalAttachments || 0) > 1);
+            if (!shouldShowMulti) return null;
+
+            const tableToAOA = (table: HTMLTableElement): string[][] => {
+                const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
+                const aoa: string[][] = [];
+                for (const row of rows) {
+                    const cells = Array.from(row.querySelectorAll('th,td')) as (HTMLTableCellElement)[];
+                    const rowData = cells.map(cell => (cell.textContent || '').trim());
+                    if (rowData.length > 0) aoa.push(rowData);
+                }
+                return aoa;
+            };
+
+            const exportMultiXLSX = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const wb = XLSX.utils.book_new();
+                tables.forEach((t, i) => {
+                    const aoa = tableToAOA(t);
+                    const ws = XLSX.utils.aoa_to_sheet(aoa);
+                    XLSX.utils.book_append_sheet(wb, ws, `Doc ${i + 1}`);
+                });
+                XLSX.writeFile(wb, 'extraction-multi.xlsx');
+            };
+
+            const exportGlobalXLSX = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const all: string[][] = [];
+                tables.forEach((t, idx) => {
+                    const aoa = tableToAOA(t);
+                    if (idx === 0) {
+                        all.push(...aoa);
+                    } else {
+                        // skip header row if shapes match and header likely present
+                        const dataRows = aoa.length > 1 ? aoa.slice(1) : aoa;
+                        all.push(...dataRows);
+                    }
+                });
+                const ws = XLSX.utils.aoa_to_sheet(all);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Global');
+                XLSX.writeFile(wb, 'extraction-global.xlsx');
+            };
+
+            const exportGlobalCSV = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const all: string[][] = [];
+                tables.forEach((t, idx) => {
+                    const aoa = tableToAOA(t);
+                    if (idx === 0) all.push(...aoa);
+                    else all.push(...(aoa.length > 1 ? aoa.slice(1) : aoa));
+                });
+                const escape = (s: string) => '"' + s.replace(/"/g, '""') + '"';
+                const csv = all.map(r => r.map(escape).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extraction-global.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            return (
+                <div className="not-prose mb-2 flex items-center justify-end gap-2">
+                    <button type="button" onClick={exportGlobalCSV} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">CSV global</button>
+                    <button type="button" onClick={exportGlobalXLSX} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX global</button>
+                    <button type="button" onClick={exportMultiXLSX} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX multi‑onglets</button>
+                </div>
+            );
+        };
+
         if (isCompleted && !isLast) {
             return (
-                <div className={cn('', markdownStyles, className)}>
+                <div className={cn('', markdownStyles, className)} ref={containerRef}>
+                    {renderExportBar()}
                     <ErrorBoundary fallback={<ErrorPlaceholder />}>
                         <MemoizedMdxChunk chunk={currentContent} />
                     </ErrorBoundary>
@@ -150,7 +241,8 @@ export const MarkdownContent = memo(
         }
 
         return (
-            <div className={cn('', markdownStyles, className)}>
+            <div className={cn('', markdownStyles, className)} ref={containerRef}>
+                {renderExportBar()}
                 {previousContent.length > 0 &&
                     previousContent.map((chunk, index) => (
                         <ErrorBoundary fallback={<ErrorPlaceholder />} key={`prev-${index}`}>
