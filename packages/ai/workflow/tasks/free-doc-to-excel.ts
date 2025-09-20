@@ -316,58 +316,26 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
 
         if (isDigital) {
           try {
-            const pagesSpec = `1-${Math.max(1, pagesBudget)}`; // bounded below
-            const tabula = await extractWithTabula(tmpPdf, pagesSpec);
-            if (tabula && tabula.tables.length) {
-              // Split into pages heuristically by empty rows as separators
-              const perPage: string[][][] = [];
-              let current: string[][] = [];
-              for (const row of tabula.tables) {
-                if (row.every(c => c.trim() === '')) {
-                  if (current.length) { perPage.push(current); current = []; }
-                } else {
-                  current.push(row);
-                }
-              }
-              if (current.length) perPage.push(current);
-
-              const takePages = Math.min(perPage.length, pagesBudget);
-              for (let p = 0; p < takePages; p++) {
-                const rows = perPage[p];
-                const title = `PDF${pi + 1}-Page${p + 1}`;
-                sheets.push({ name: title, rows });
-                consolidated.push(...rows);
-              }
-              usedPages = takePages;
-              pagesBudget -= usedPages;
-              updateStep({ stepId, stepStatus: 'PENDING', subSteps: { [`pdf-${pi + 1}`]: { status: 'COMPLETED', data: { mode: 'tabula', pages: usedPages } } } });
-            } else {
-              throw new Error('Extraction Tabula vide, bascule en OCR.');
+            // Digital PDF: use pdfjs text heuristics to reconstruct tables
+            const pages = await extractDigitalPdfTablesWithPdfjs(pdfBuf, pagesBudget);
+            const takePages = Math.min(pages.length, pagesBudget);
+            for (let p = 0; p < takePages; p++) {
+              const rows = pages[p];
+              const title = `PDF${pi + 1}-Page${p + 1}`;
+              sheets.push({ name: title, rows });
+              consolidated.push(...rows);
             }
+            usedPages = takePages;
+            pagesBudget -= usedPages;
+            updateStep({ stepId, stepStatus: 'PENDING', subSteps: { [`pdf-${pi + 1}`]: { status: 'COMPLETED', data: { mode: 'pdfjs', pages: usedPages } } } });
           } catch (e: any) {
-            updateAnswer({ text: `\nTabula indisponible — heuristiques PDF (pdfjs)`, status: 'PENDING' });
-            // Fallback to pdfjs text positioning heuristics for digital PDFs
-            try {
-              const pages = await extractDigitalPdfTablesWithPdfjs(pdfBuf, pagesBudget);
-              const takePages = Math.min(pages.length, pagesBudget);
-              for (let p = 0; p < takePages; p++) {
-                const rows = pages[p];
-                const title = `PDF${pi + 1}-Page${p + 1}`;
-                sheets.push({ name: title, rows });
-                consolidated.push(...rows);
-              }
-              usedPages = takePages;
-              pagesBudget -= usedPages;
-              updateStep({ stepId, stepStatus: 'PENDING', subSteps: { [`pdf-${pi + 1}`]: { status: 'COMPLETED', data: { mode: 'pdfjs', pages: usedPages } } } });
-            } catch {
-              if (FREE_ENABLE_PDF_RASTERIZE) {
-                updateAnswer({ text: `\nHeuristiques PDF indisponibles — utilisation de l\'OCR.`, status: 'PENDING' });
-                const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
-                pageImages = imgs;
-              } else {
-                updateAnswer({ text: `\nHeuristiques PDF indisponibles et rasterisation désactivée sur cet environnement. OCR de PDF scannés non supporté ici.`, status: 'PENDING' });
-                pageImages = [];
-              }
+            if (FREE_ENABLE_PDF_RASTERIZE) {
+              updateAnswer({ text: `\nHeuristiques PDF indisponibles — utilisation de l\'OCR.`, status: 'PENDING' });
+              const imgs = await rasterizePdfToImages(pdfBuf, pagesBudget);
+              pageImages = imgs;
+            } else {
+              updateAnswer({ text: `\nHeuristiques PDF indisponibles et rasterisation désactivée sur cet environnement.`, status: 'PENDING' });
+              pageImages = [];
             }
           }
         } else {
@@ -389,6 +357,7 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
             updateAnswer({ text: `\nPDF ${pi + 1}: Document scanné détecté mais la rasterisation/ocr de PDF est désactivée sur cet environnement. Veuillez fournir des images ou activer FREE_ENABLE_PDF_RASTERIZE.`, status: 'PENDING' });
             pageImages = [];
           }
+        }
 
         if (pageImages.length) {
           const take = Math.min(pageImages.length, pagesBudget);
