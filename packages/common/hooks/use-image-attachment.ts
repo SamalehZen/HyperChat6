@@ -29,7 +29,7 @@ export const useImageAttachment = () => {
             'image/png': ['.png'],
             'image/gif': ['.gif'],
         };
-        if (chatMode === ChatMode.GEMINI_2_5_FLASH) {
+        if (chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL) {
             base['application/pdf'] = ['.pdf'];
         }
         return base;
@@ -37,7 +37,7 @@ export const useImageAttachment = () => {
 
     const readFilesToAttachments = async (files: File[]): Promise<{ base64?: string; file?: File }[]> => {
         const results: { base64?: string; file?: File }[] = [];
-        const pdfAllowed = chatMode === ChatMode.GEMINI_2_5_FLASH;
+        const pdfAllowed = chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL;
 
         for (const file of files) {
             const isPDF = file.type === 'application/pdf';
@@ -91,7 +91,7 @@ export const useImageAttachment = () => {
 
     const addFiles = async (files: File[]) => {
         if (!files?.length) return;
-        const pdfAllowed = chatMode === ChatMode.GEMINI_2_5_FLASH;
+        const pdfAllowed = chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL;
         let availableSlots = Math.max(0, MAX_ATTACHMENTS - (imageAttachments?.length || 0));
         if (availableSlots <= 0) {
             toast({

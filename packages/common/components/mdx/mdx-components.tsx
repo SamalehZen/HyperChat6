@@ -1,7 +1,60 @@
 import { CitationProviderContext, CodeBlock, LinkPreviewPopover } from '@repo/common/components';
 import { isValidUrl } from '@repo/shared/utils';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { ComponentProps, ReactElement, useContext } from 'react';
+import { ComponentProps, ReactElement, useContext, useRef } from 'react';
+import * as XLSX from 'xlsx';
+
+function tableToAOA(table: HTMLTableElement): string[][] {
+    const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
+    const aoa: string[][] = [];
+    for (const row of rows) {
+        const cells = Array.from(row.querySelectorAll('th,td')) as (HTMLTableCellElement)[];
+        const rowData = cells.map(cell => (cell.textContent || '').trim());
+        if (rowData.length > 0) aoa.push(rowData);
+    }
+    return aoa;
+}
+
+function downloadCSV(aoa: string[][], filename = 'extraction.csv') {
+    const escape = (s: string) => '"' + s.replace(/"/g, '""') + '"';
+    const csv = aoa.map(row => row.map(escape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function downloadXLSX(aoa: string[][], filename = 'extraction.xlsx') {
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Feuille1');
+    XLSX.writeFile(wb, filename);
+}
+
+const TableWithExport = ({ children, ...props }: any) => {
+    const tableRef = useRef<HTMLTableElement | null>(null);
+    const handleDownload = (type: 'csv' | 'xlsx') => {
+        if (!tableRef.current) return;
+        const aoa = tableToAOA(tableRef.current);
+        if (!aoa || aoa.length === 0) return;
+        if (type === 'csv') downloadCSV(aoa);
+        else downloadXLSX(aoa);
+    };
+    return (
+        <div className="relative">
+            <table ref={tableRef} {...props}>
+                {children}
+            </table>
+            <div className="absolute right-1 top-1 flex gap-1">
+                <button type="button" onClick={() => handleDownload('csv')} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">CSV</button>
+                <button type="button" onClick={() => handleDownload('xlsx')} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX</button>
+            </div>
+        </div>
+    );
+};
 
 export const mdxComponents: ComponentProps<typeof MDXRemote>['components'] = {
     Source: ({ children }) => {
@@ -59,4 +112,5 @@ export const mdxComponents: ComponentProps<typeof MDXRemote>['components'] = {
         const lang = className.replace('language-', '');
         return <CodeBlock code={String(children).replace(/<FadeEffect \/>$/, '')} lang={lang} />;
     },
+    table: (props: any) => <TableWithExport {...props} />,
 };
