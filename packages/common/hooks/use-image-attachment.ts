@@ -1,6 +1,7 @@
 import { useChatStore } from '@repo/common/store';
+import { ChatMode } from '@repo/shared/config';
 import { useToast } from '@repo/ui';
-import { ChangeEvent, useCallback } from 'react';
+import { ChangeEvent, useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 export type TRenderImageUpload = {
@@ -9,35 +10,67 @@ export type TRenderImageUpload = {
     tooltip?: string;
 };
 
-const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
-const MAX_IMAGES = 10; // adjust between 5-10 as needed
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'] as const;
+const MAX_FILE_SIZE_IMAGE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE_PDF = 20 * 1024 * 1024; // 20MB
+const MAX_ATTACHMENTS = 10; // adjust between 5-10 as needed
 
 export const useImageAttachment = () => {
     const imageAttachments = useChatStore(state => state.imageAttachments);
     const setImageAttachments = useChatStore(state => state.setImageAttachments);
     const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
+    const chatMode = useChatStore(state => state.chatMode);
 
     const { toast } = useToast();
+
+    const allowPdf = useMemo(
+        () => chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL,
+        [chatMode]
+    );
+
+    const SUPPORTED_TYPES = useMemo(
+        () => [...IMAGE_TYPES, ...(allowPdf ? ['application/pdf'] : [])],
+        [allowPdf]
+    );
 
     const readFilesToAttachments = async (files: File[]): Promise<{ base64?: string; file?: File }[]> => {
         const results: { base64?: string; file?: File }[] = [];
 
         for (const file of files) {
-            if (!SUPPORTED_TYPES.includes(file.type)) {
+            const isPdf = file.type === 'application/pdf';
+            const isSupported = SUPPORTED_TYPES.includes(file.type as any);
+
+            if (!isSupported) {
                 toast({
                     title: 'Invalid format',
-                    description: 'Please select a valid image (JPEG, PNG, GIF).',
+                    description: allowPdf
+                        ? 'Please select an image (JPEG, PNG, GIF) or a PDF.'
+                        : 'Please select a valid image (JPEG, PNG, GIF).',
                     variant: 'destructive',
                 });
                 continue;
             }
-            if (file.size > MAX_FILE_SIZE) {
+
+            if (!isPdf && file.size > MAX_FILE_SIZE_IMAGE) {
                 toast({
                     title: 'File too large',
                     description: 'Image size should be less than 3MB.',
                     variant: 'destructive',
                 });
+                continue;
+            }
+
+            if (isPdf && file.size > MAX_FILE_SIZE_PDF) {
+                toast({
+                    title: 'PDF too large',
+                    description: 'PDF size should be less than 20MB.',
+                    variant: 'destructive',
+                });
+                continue;
+            }
+
+            if (isPdf) {
+                results.push({ file });
                 continue;
             }
 
@@ -60,11 +93,11 @@ export const useImageAttachment = () => {
 
     const addFiles = async (files: File[]) => {
         if (!files?.length) return;
-        let availableSlots = Math.max(0, MAX_IMAGES - (imageAttachments?.length || 0));
+        let availableSlots = Math.max(0, MAX_ATTACHMENTS - (imageAttachments?.length || 0));
         if (availableSlots <= 0) {
             toast({
                 title: 'Limit reached',
-                description: `Maximum ${MAX_IMAGES} images per message.`,
+                description: `Maximum ${MAX_ATTACHMENTS} attachments per message.`,
                 variant: 'destructive',
             });
             return;
@@ -73,8 +106,8 @@ export const useImageAttachment = () => {
         const filesToProcess = files.slice(0, availableSlots);
         if (files.length > availableSlots) {
             toast({
-                title: 'Some images not added',
-                description: `Only ${availableSlots} more image(s) can be attached (max ${MAX_IMAGES}).`,
+                title: 'Some files not added',
+                description: `Only ${availableSlots} more attachment(s) can be added (max ${MAX_ATTACHMENTS}).`,
                 variant: 'destructive',
             });
         }
@@ -87,13 +120,19 @@ export const useImageAttachment = () => {
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         addFiles(acceptedFiles);
-    }, [imageAttachments]);
+    }, [imageAttachments, allowPdf]);
 
-    const dropzonProps = useDropzone({ onDrop, multiple: true, noClick: true, accept: {
-        'image/jpeg': ['.jpg', '.jpeg'],
-        'image/png': ['.png'],
-        'image/gif': ['.gif'],
-    } });
+    const dropzonProps = useDropzone({
+        onDrop,
+        multiple: true,
+        noClick: true,
+        accept: {
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/png': ['.png'],
+            'image/gif': ['.gif'],
+            ...(allowPdf ? { 'application/pdf': ['.pdf'] } : {}),
+        },
+    });
 
     const clearAttachment = () => {
         clearImageAttachments();
@@ -107,7 +146,6 @@ export const useImageAttachment = () => {
     const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files ? Array.from(e.target.files) : [];
         await addFiles(files);
-        // reset the input to allow re-selecting the same files if needed
         e.target.value = '';
     };
 

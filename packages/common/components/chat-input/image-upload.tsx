@@ -1,8 +1,8 @@
 import { useChatStore } from '@repo/common/store';
-import { ChatModeConfig } from '@repo/shared/config';
+import { ChatModeConfig, ChatMode } from '@repo/shared/config';
 import { Button, Tooltip } from '@repo/ui';
 import { IconPaperclip } from '../icons';
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 
 export type TImageUpload = {
     id: string;
@@ -28,9 +28,15 @@ export const ImageUpload: FC<TImageUpload> = ({
         return null;
     }
 
+    const acceptAttr = useMemo(() => {
+        const base = 'image/jpeg,image/png,image/gif';
+        const allowPdf = chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL;
+        return allowPdf ? `${base},application/pdf,.pdf` : base;
+    }, [chatMode]);
+
     return (
         <>
-            <input type="file" id={id} className="hidden" onChange={handleImageUpload} multiple accept="image/jpeg,image/png,image/gif" />
+            <input type="file" id={id} className="hidden" onChange={handleImageUpload} multiple accept={acceptAttr} />
             <Tooltip content={tooltip}>
                 {showIcon ? (
                     <Button variant="ghost" size="icon-sm" onClick={handleFileSelect}>

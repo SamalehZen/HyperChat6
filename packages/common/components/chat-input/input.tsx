@@ -11,6 +11,7 @@ import { cn, Flex, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
 import { useI18n } from '@repo/common/i18n';
 import { usePreferencesStore } from '@repo/common/store';
 import { v4 as uuidv4 } from 'uuid';
@@ -94,22 +95,68 @@ export const ChatInput = ({
             threadId = optimisticId;
         }
 
-        // First submit the message
+        const originalQuery = editor.getText();
+        const allowPdf = chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL;
+        const images = (imageAttachments || []).filter(att => (att.base64 || '').startsWith('data:image/'));
+        const pdfs = allowPdf ? (imageAttachments || []).filter(att => att.file?.type === 'application/pdf') : [];
+
+        let finalQuery = originalQuery;
+        if (allowPdf && pdfs.length > 0) {
+            try {
+                const fd = new FormData();
+                pdfs.forEach(att => {
+                    if (att.file) fd.append('file', att.file);
+                });
+                const controller = new AbortController();
+                const t = setTimeout(() => controller.abort(), 15000);
+                const res = await fetch('/api/pdf/extract', { method: 'POST', body: fd, signal: controller.signal });
+                clearTimeout(t);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data?.combinedText) {
+                        finalQuery = `${originalQuery}\n\n[Pièce jointe PDF]\n${data.combinedText}`.trim();
+                    }
+                } else {
+                    try {
+                        // Fallback to client extraction
+                        // @ts-ignore
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+                        const extractPdfText = async (file: File) => {
+                            const data = new Uint8Array(await file.arrayBuffer());
+                            // @ts-ignore
+                            const doc = await pdfjsLib.getDocument({ data }).promise;
+                            let fullText = '';
+                            for (let p = 1; p <= doc.numPages; p++) {
+                                const page = await doc.getPage(p);
+                                const textContent = await page.getTextContent();
+                                const pageText = textContent.items.map((it: any) => it.str).join(' ');
+                                fullText += (p > 1 ? '\n\n' : '') + pageText;
+                            }
+                            return fullText.trim();
+                        };
+                        const texts = await Promise.all(pdfs.map(p => p.file ? extractPdfText(p.file) : Promise.resolve('')));
+                        const combined = texts.filter(Boolean).join('\n\n');
+                        if (combined) {
+                            finalQuery = `${originalQuery}\n\n[Pièce jointe PDF]\n${combined}`.trim();
+                        }
+                    } catch {}
+                }
+            } catch {}
+        }
+
         const formData = new FormData();
-        formData.append('query', editor.getText());
-        if (imageAttachments && imageAttachments.length > 0) {
-            imageAttachments.forEach((img, index) => {
+        formData.append('query', finalQuery);
+        if (images && images.length > 0) {
+            images.forEach((img, index) => {
                 if (img.base64) {
                     formData.append(`imageAttachment_${index}`, img.base64);
                 }
             });
-            formData.append('imageAttachmentCount', imageAttachments.length.toString());
+            formData.append('imageAttachmentCount', images.length.toString());
         } else {
             formData.append('imageAttachmentCount', '0');
         }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
-
-        console.log('threadItems', threadItems);
 
         handleSubmit({
             formData,

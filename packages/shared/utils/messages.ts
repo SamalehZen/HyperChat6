@@ -9,6 +9,8 @@ export const buildCoreMessagesFromThreadItems = ({
     query: string;
     imageAttachments?: string[];
 }) => {
+    const safeAttachments = (imageAttachments || []).filter(img => typeof img === 'string' && img.startsWith('data:image/'));
+
     const coreMessages = [
         ...(messages || []).flatMap(item => {
             const imgs = Array.isArray(item.imageAttachment)
@@ -38,10 +40,10 @@ export const buildCoreMessagesFromThreadItems = ({
         }),
         (() => {
             const finalContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
-                imageAttachments && imageAttachments.length > 0
+                safeAttachments && safeAttachments.length > 0
                     ? ([
                           { type: 'text', text: query || '' },
-                          ...imageAttachments.map(img => ({ type: 'image', image: img })),
+                          ...safeAttachments.map(img => ({ type: 'image', image: img })),
                       ] as Array<{ type: 'text'; text: string } | { type: 'image'; image: string }>)
                     : query || '';
             return {

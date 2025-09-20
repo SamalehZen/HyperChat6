@@ -10,20 +10,29 @@ export const ImageAttachment = () => {
 
     if (!attachments || attachments.length === 0) return null;
 
+    const isPdf = (att: { base64?: string; file?: File }) =>
+        att?.file?.type === 'application/pdf' || (att?.base64?.startsWith?.('data:application/pdf') ?? false);
+
     return (
         <Flex className="pl-2 pr-2 pt-2 md:pl-3" gap="sm" direction="col">
             <div className="text-xs text-muted-foreground">{attachments.length} image{attachments.length > 1 ? 's' : ''} attached</div>
             <div className="flex flex-wrap gap-2">
                 {attachments.map((att, idx) => (
-                    <div key={idx} className="relative h-[40px] w-[40px] rounded-lg border border-black/10 shadow-sm dark:border-white/10">
-                        {att.base64 && (
-                            <Image
-                                src={att.base64}
-                                alt={`uploaded image ${idx + 1}`}
-                                className="h-full w-full overflow-hidden rounded-lg object-cover"
-                                width={40}
-                                height={40}
-                            />
+                    <div key={idx} className="relative h-[40px] w-[40px] rounded-lg border border-black/10 shadow-sm dark:border-white/10" title={att?.file?.name || undefined}>
+                        {isPdf(att) ? (
+                            <div className="flex h-full w-full items-center justify-center rounded-lg bg-muted text-[10px] font-medium text-foreground/80">
+                                PDF
+                            </div>
+                        ) : (
+                            att.base64 && (
+                                <Image
+                                    src={att.base64}
+                                    alt={`uploaded image ${idx + 1}`}
+                                    className="h-full w-full overflow-hidden rounded-lg object-cover"
+                                    width={40}
+                                    height={40}
+                                />
+                            )
                         )}
                         <Button
                             size={'icon-xs'}
