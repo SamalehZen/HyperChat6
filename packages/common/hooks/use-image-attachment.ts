@@ -30,11 +30,11 @@ export const useImageAttachment = () => {
             const isPdf = file.type === 'application/pdf';
             const isImage = IMAGE_TYPES.includes(file.type);
 
-            // Only allow PDFs in Smart PDF/Image → Excel mode
-            if (isPdf && chatMode !== ChatMode.SMART_PDF_TO_EXCEL) {
+            // Only allow PDFs in Gemini 2.5 Flash and Smart PDF/Image → Excel modes
+            if (isPdf && chatMode !== ChatMode.SMART_PDF_TO_EXCEL && chatMode !== ChatMode.GEMINI_2_5_FLASH) {
                 toast({
                     title: 'Unsupported file type',
-                    description: 'PDF upload is only available in Image → Excel mode.',
+                    description: 'PDF upload is only available in Gemini 2.5 Flash and Image → Excel modes.',
                     variant: 'destructive',
                 });
                 continue;
@@ -43,7 +43,7 @@ export const useImageAttachment = () => {
             if (!isImage && !isPdf) {
                 toast({
                     title: 'Invalid format',
-                    description: 'Please select a valid image (JPEG, PNG, GIF) or a PDF (Image → Excel mode).',
+                    description: 'Please select a valid image (JPEG, PNG, GIF) or a PDF (Gemini 2.5 Flash or Image → Excel modes).',
                     variant: 'destructive',
                 });
                 continue;
@@ -121,7 +121,7 @@ export const useImageAttachment = () => {
             'image/png': ['.png'],
             'image/gif': ['.gif'],
         };
-        if (chatMode === ChatMode.SMART_PDF_TO_EXCEL) {
+        if (chatMode === ChatMode.SMART_PDF_TO_EXCEL || chatMode === ChatMode.GEMINI_2_5_FLASH) {
             base['application/pdf'] = ['.pdf'];
         }
         return base;

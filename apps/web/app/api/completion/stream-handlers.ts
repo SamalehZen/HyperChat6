@@ -1,5 +1,5 @@
 import { runWorkflow } from '@repo/ai/workflow';
-import { CHAT_MODE_CREDIT_COSTS } from '@repo/shared/config';
+import { CHAT_MODE_CREDIT_COSTS, ChatMode } from '@repo/shared/config';
 import { logger } from '@repo/shared/logger';
 import { EVENT_TYPES, posthog } from '@repo/shared/posthog';
 import { Geo } from '@vercel/functions';
@@ -67,6 +67,8 @@ export async function executeStream({
 
         const { signal } = abortController;
 
+        const effectiveWebSearch = data.mode === ChatMode.SMART_PDF_TO_EXCEL ? false : (data.webSearch || false);
+
         const workflow = runWorkflow({
             mode: data.mode,
             question: data.prompt,
@@ -74,7 +76,7 @@ export async function executeStream({
             threadItemId: data.threadItemId,
             messages: data.messages,
             customInstructions: data.customInstructions,
-            webSearch: data.webSearch || false,
+            webSearch: effectiveWebSearch,
             config: {
                 maxIterations: data.maxIterations || 3,
                 signal,
@@ -93,7 +95,7 @@ export async function executeStream({
                 parentThreadItemId: data.parentThreadItemId,
                 query: data.prompt,
                 mode: data.mode,
-                webSearch: data.webSearch || false,
+                webSearch: effectiveWebSearch,
                 showSuggestions: data.showSuggestions || false,
                 [event]: payload,
             });
@@ -119,7 +121,7 @@ export async function executeStream({
                     userId,
                     query: data.prompt,
                     mode: data.mode,
-                    webSearch: data.webSearch || false,
+                    webSearch: effectiveWebSearch,
                     showSuggestions: data.showSuggestions || false,
                     threadId: data.threadId,
                     threadItemId: data.threadItemId,

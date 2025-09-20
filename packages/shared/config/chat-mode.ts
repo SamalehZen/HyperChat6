@@ -149,7 +149,7 @@ export const ChatModeConfig: Record<
         isAuthRequired: false,
     },
     [ChatMode.SMART_PDF_TO_EXCEL]: {
-        webSearch: true,
+        webSearch: false,
         imageUpload: true,
         retry: true,
         isNew: true,
