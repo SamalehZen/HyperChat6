@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import type { Worker as TesseractWorker } from 'tesseract.js';
 
 const EXPORT_DIR = process.env.EXPORT_DIR || path.join(os.tmpdir(), 'hyperchat-exports');
 const FREE_OCR_LANGUAGES = process.env.FREE_OCR_LANGUAGES || 'eng+fra';
@@ -213,15 +214,18 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message = 'Timeout'): P
 
 async function ocrImageToRows(buf: Buffer, languages: string, timeoutMs: number): Promise<string[][]> {
   const { createWorker } = await import('tesseract.js');
-  const worker = await createWorker({
+  const worker = (await createWorker({
     langPath: process.env.TESSDATA_BASE || 'https://tessdata.projectnaptha.com/4.0.0',
     cacheMethod: 'readOnly',
     logger: () => {},
-  } as any);
+  } as any)) as unknown as TesseractWorker;
   try {
-    await worker.loadLanguage(languages);
-    await worker.initialize(languages);
-    const { data } = await withTimeout(worker.recognize(buf as any), timeoutMs, 'OCR timeout');
+    if ((worker as any).load) {
+      await (worker as any).load();
+    }
+    await (worker as any).loadLanguage(languages);
+    await (worker as any).initialize(languages);
+    const { data } = await withTimeout((worker as any).recognize(buf as any), timeoutMs, 'OCR timeout');
     const words = (data?.words || []).map((w: any) => ({
       text: w?.text || '',
       bbox: { x0: w?.bbox?.x0 || w?.x0 || 0, x1: w?.bbox?.x1 || w?.x1 || 0, y0: w?.bbox?.y0 || w?.y0 || 0, y1: w?.bbox?.y1 || w?.y1 || 0 },
