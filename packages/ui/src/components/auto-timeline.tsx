@@ -81,7 +81,7 @@ export function AutoTimeline({
 
         <div className="flex flex-col gap-3">
           {items.map((item, idx) => (
-            <div key={idx} ref={(el) => (rowRefs.current[idx] = el)} className="relative flex w-full items-start gap-3">
+            <div key={idx} ref={(el) => { rowRefs.current[idx] = el; }} className="relative flex w-full items-start gap-3">
               <div className="z-10 mt-0.5 shrink-0" data-marker>
                 <div
                   className={cn(
