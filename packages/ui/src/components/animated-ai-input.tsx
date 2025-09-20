@@ -193,6 +193,7 @@ interface AI_PromptProps {
     selectedModel?: string;
     onModelChange?: (model: string) => void;
     onAttachFile?: (file: File) => void;
+    fileAccept?: string;
     disabled?: boolean;
     showWebToggle?: boolean;
     webSearchEnabled?: boolean;
@@ -209,6 +210,7 @@ export function AI_Prompt({
     selectedModel: controlledSelectedModel,
     onModelChange,
     onAttachFile,
+    fileAccept,
     disabled = false,
     showWebToggle = false,
     webSearchEnabled = false,
@@ -435,7 +437,7 @@ export function AI_Prompt({
                                                 className="hidden" 
                                                 onChange={handleFileInputChange}
                                                 disabled={disabled}
-                                                accept="image/jpeg,image/png,image/gif"
+                                                accept={fileAccept || "image/jpeg,image/png,image/gif"}
                                             />
                                             <Paperclip className="w-4 h-4" />
                                         </label>
