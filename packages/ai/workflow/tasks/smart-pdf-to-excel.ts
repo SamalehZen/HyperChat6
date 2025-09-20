@@ -30,11 +30,14 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
         updateAnswer({ text: '', status: 'PENDING' });
 
         if (enableStepSimulation) {
+            const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
             // Step 0: Préparation
             updateStep({ stepId: 0, stepStatus: 'PENDING', subSteps: { prepare: { status: 'PENDING' } } });
+            await wait(250);
             updateStep({ stepId: 0, stepStatus: 'COMPLETED', subSteps: { prepare: { status: 'COMPLETED' } } });
-            // Step 1: Extraction
+            // Step 1: Extraction (garde visible le scan)
             updateStep({ stepId: 1, stepStatus: 'PENDING', subSteps: { extract: { status: 'PENDING' } } });
+            await wait(700);
             updateStep({ stepId: 1, stepStatus: 'COMPLETED', subSteps: { extract: { status: 'COMPLETED' } } });
             // Step 2: OCR
             updateStep({ stepId: 2, stepStatus: 'PENDING', subSteps: { ocr: { status: 'PENDING' } } });
@@ -59,6 +62,8 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
         updateAnswer({ text: '', finalText: response, status: 'COMPLETED' });
 
         if (enableStepSimulation) {
+            const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
+            await wait(350);
             updateStep({ stepId: 3, stepStatus: 'COMPLETED', subSteps: { convert: { status: 'COMPLETED' } } });
         }
 
