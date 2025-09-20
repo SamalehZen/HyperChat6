@@ -4,11 +4,12 @@ import {
     mdxComponents,
     useMdxChunker,
 } from '@repo/common/components';
-import { cn } from '@repo/ui';
+import { Button, cn } from '@repo/ui';
 import { MDXRemote } from 'next-mdx-remote';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote/rsc';
 import { serialize } from 'next-mdx-remote/serialize';
 import { memo, Suspense, useEffect, useRef, useState } from 'react';
+import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv, IconTableExport } from '@tabler/icons-react';
 import remarkGfm from 'remark-gfm';
 import * as XLSX from 'xlsx';
 
@@ -113,6 +114,7 @@ export const MarkdownContent = memo(
         const { chunkMdx } = useMdxChunker();
         const containerRef = useRef<HTMLDivElement | null>(null);
         const [tableCount, setTableCount] = useState<number>(0);
+        const [lastDownloaded, setLastDownloaded] = useState<null | 'csv' | 'xlsx' | 'xlsx-multi'>(null);
 
         useEffect(() => {
             if (!content) return;
@@ -152,8 +154,8 @@ export const MarkdownContent = memo(
         }, [content, isCompleted]);
 
         const renderExportBar = () => {
-            const shouldShowMulti = (tableCount > 1) || ((totalAttachments || 0) > 1);
-            if (!shouldShowMulti) return null;
+            const hasMultiple = (tableCount > 1) || ((totalAttachments || 0) > 1);
+            const disableMulti = !hasMultiple;
 
             const tableToAOA = (table: HTMLTableElement): string[][] => {
                 const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
@@ -177,6 +179,8 @@ export const MarkdownContent = memo(
                     XLSX.utils.book_append_sheet(wb, ws, `Doc ${i + 1}`);
                 });
                 XLSX.writeFile(wb, 'extraction-multi.xlsx');
+                setLastDownloaded('xlsx-multi');
+                setTimeout(() => setLastDownloaded(null), 1500);
             };
 
             const exportGlobalXLSX = () => {
@@ -189,7 +193,6 @@ export const MarkdownContent = memo(
                     if (idx === 0) {
                         all.push(...aoa);
                     } else {
-                        // skip header row if shapes match and header likely present
                         const dataRows = aoa.length > 1 ? aoa.slice(1) : aoa;
                         all.push(...dataRows);
                     }
@@ -198,6 +201,8 @@ export const MarkdownContent = memo(
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Global');
                 XLSX.writeFile(wb, 'extraction-global.xlsx');
+                setLastDownloaded('xlsx');
+                setTimeout(() => setLastDownloaded(null), 1500);
             };
 
             const exportGlobalCSV = () => {
@@ -219,13 +224,21 @@ export const MarkdownContent = memo(
                 a.download = 'extraction-global.csv';
                 a.click();
                 URL.revokeObjectURL(url);
+                setLastDownloaded('csv');
+                setTimeout(() => setLastDownloaded(null), 1500);
             };
 
             return (
                 <div className="not-prose mb-2 flex items-center justify-end gap-2">
-                    <button type="button" onClick={exportGlobalCSV} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">CSV global</button>
-                    <button type="button" onClick={exportGlobalXLSX} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX global</button>
-                    <button type="button" onClick={exportMultiXLSX} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX multi‑onglets</button>
+                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger CSV (global)" onClick={exportGlobalCSV}>
+                        {lastDownloaded === 'csv' ? <IconCheck size={14} /> : <IconFileTypeCsv size={14} />}
+                    </Button>
+                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger XLSX (global)" onClick={exportGlobalXLSX}>
+                        {lastDownloaded === 'xlsx' ? <IconCheck size={14} /> : <IconFileSpreadsheet size={14} />}
+                    </Button>
+                    <Button size="icon-sm" variant="ghost" tooltip={disableMulti ? 'Plusieurs tableaux requis' : 'Télécharger XLSX (multi‑onglets)'} onClick={exportMultiXLSX} disabled={disableMulti}>
+                        {lastDownloaded === 'xlsx-multi' ? <IconCheck size={14} /> : <IconTableExport size={14} />}
+                    </Button>
                 </div>
             );
         };

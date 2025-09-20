@@ -1,7 +1,9 @@
 import { CitationProviderContext, CodeBlock, LinkPreviewPopover } from '@repo/common/components';
 import { isValidUrl } from '@repo/shared/utils';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { ComponentProps, ReactElement, useContext, useRef } from 'react';
+import { Button } from '@repo/ui';
+import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv } from '@tabler/icons-react';
+import { ComponentProps, ReactElement, useContext, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
 function tableToAOA(table: HTMLTableElement): string[][] {
@@ -36,12 +38,15 @@ function downloadXLSX(aoa: string[][], filename = 'extraction.xlsx') {
 
 const TableWithExport = ({ children, ...props }: any) => {
     const tableRef = useRef<HTMLTableElement | null>(null);
+    const [justDownloaded, setJustDownloaded] = useState<null | 'csv' | 'xlsx'>(null);
     const handleDownload = (type: 'csv' | 'xlsx') => {
         if (!tableRef.current) return;
         const aoa = tableToAOA(tableRef.current);
         if (!aoa || aoa.length === 0) return;
         if (type === 'csv') downloadCSV(aoa);
         else downloadXLSX(aoa);
+        setJustDownloaded(type);
+        setTimeout(() => setJustDownloaded(null), 1500);
     };
     return (
         <div className="relative">
@@ -49,8 +54,12 @@ const TableWithExport = ({ children, ...props }: any) => {
                 {children}
             </table>
             <div className="absolute right-1 top-1 flex gap-1">
-                <button type="button" onClick={() => handleDownload('csv')} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">CSV</button>
-                <button type="button" onClick={() => handleDownload('xlsx')} className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--chat-input-control-bg))] hover:bg-[hsl(var(--chat-input-control-hover-bg))] border border-[hsl(var(--chat-input-border))]">XLSX</button>
+                <Button size="icon-sm" variant="ghost" tooltip="Télécharger CSV" onClick={() => handleDownload('csv')}>
+                    {justDownloaded === 'csv' ? <IconCheck size={14} /> : <IconFileTypeCsv size={14} />}
+                </Button>
+                <Button size="icon-sm" variant="ghost" tooltip="Télécharger XLSX" onClick={() => handleDownload('xlsx')}>
+                    {justDownloaded === 'xlsx' ? <IconCheck size={14} /> : <IconFileSpreadsheet size={14} />}
+                </Button>
             </div>
         </div>
     );
