@@ -4,6 +4,8 @@ import {
     mdxComponents,
     useMdxChunker,
 } from '@repo/common/components';
+import { useChatStore } from '@repo/common/store';
+import { ChatMode } from '@repo/shared/config';
 import { Button, cn } from '@repo/ui';
 import { MDXRemote } from 'next-mdx-remote';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote/rsc';
@@ -115,6 +117,7 @@ export const MarkdownContent = memo(
         const containerRef = useRef<HTMLDivElement | null>(null);
         const [tableCount, setTableCount] = useState<number>(0);
         const [lastDownloaded, setLastDownloaded] = useState<null | 'csv' | 'xlsx' | 'xlsx-multi'>(null);
+        const chatMode = useChatStore(state => state.chatMode);
 
         useEffect(() => {
             if (!content) return;
@@ -154,6 +157,16 @@ export const MarkdownContent = memo(
         }, [content, isCompleted]);
 
         const renderExportBar = () => {
+            // Vérifier si on doit afficher la barre d'export
+            const shouldShowExportBar = 
+                [ChatMode.SMART_PDF_TO_EXCEL, ChatMode.GEMINI_2_5_FLASH].includes(chatMode) &&
+                tableCount > 0 &&
+                typeof totalAttachments !== 'undefined'; // Éviter l'affichage sur les pages non-chat (privacy/terms)
+            
+            if (!shouldShowExportBar) {
+                return null;
+            }
+
             const hasMultiple = (tableCount > 1) || ((totalAttachments || 0) > 1);
             const disableMulti = !hasMultiple;
 
