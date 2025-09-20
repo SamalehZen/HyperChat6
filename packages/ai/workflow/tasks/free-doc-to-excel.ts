@@ -212,6 +212,9 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message = 'Timeout'): P
   });
 }
 
+type OCRWord = { text?: string; bbox?: { x0?: number; x1?: number; y0?: number; y1?: number } };
+type OCRResult = { data: { words?: OCRWord[] } };
+
 async function ocrImageToRows(buf: Buffer, languages: string, timeoutMs: number): Promise<string[][]> {
   const { createWorker } = await import('tesseract.js');
   const worker = (await createWorker({
@@ -225,15 +228,15 @@ async function ocrImageToRows(buf: Buffer, languages: string, timeoutMs: number)
     }
     await (worker as any).loadLanguage(languages);
     await (worker as any).initialize(languages);
-    const { data } = await withTimeout((worker as any).recognize(buf as any), timeoutMs, 'OCR timeout');
-    const words = (data?.words || []).map((w: any) => ({
+    const result = await withTimeout<OCRResult>((worker as any).recognize(buf as any), timeoutMs, 'OCR timeout');
+    const words = (result?.data?.words || []).map((w: any) => ({
       text: w?.text || '',
       bbox: { x0: w?.bbox?.x0 || w?.x0 || 0, x1: w?.bbox?.x1 || w?.x1 || 0, y0: w?.bbox?.y0 || w?.y0 || 0, y1: w?.bbox?.y1 || w?.y1 || 0 },
     })).filter((w: any) => !!w.text);
     const rows = reconstructTableFromWords(words);
     return rows;
   } finally {
-    try { await worker.terminate(); } catch {}
+    try { await (worker as any).terminate(); } catch {}
   }
 }
 
