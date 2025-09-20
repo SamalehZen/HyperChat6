@@ -8,8 +8,9 @@ import { cn } from '@repo/ui';
 import { MDXRemote } from 'next-mdx-remote';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote/rsc';
 import { serialize } from 'next-mdx-remote/serialize';
-import { memo, Suspense, useEffect, useState } from 'react';
+import { memo, Suspense, useEffect, useRef, useState } from 'react';
 import remarkGfm from 'remark-gfm';
+import * as XLSX from 'xlsx';
 
 export const markdownStyles = {
     'animate-fade-in prose prose-sm min-w-full': true,
