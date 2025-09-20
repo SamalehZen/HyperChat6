@@ -120,6 +120,7 @@ export const ThreadItem = memo(
                                             )
                                         }
                                         isLast={isLast}
+                                        totalAttachments={Array.isArray(threadItem?.imageAttachment) ? threadItem.imageAttachment.length : (threadItem?.imageAttachment ? 1 : 0)}
                                     />
                                 </div>
                             )}

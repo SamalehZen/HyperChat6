@@ -4,12 +4,14 @@ import {
     mdxComponents,
     useMdxChunker,
 } from '@repo/common/components';
-import { cn } from '@repo/ui';
+import { Button, cn } from '@repo/ui';
 import { MDXRemote } from 'next-mdx-remote';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote/rsc';
 import { serialize } from 'next-mdx-remote/serialize';
-import { memo, Suspense, useEffect, useState } from 'react';
+import { memo, Suspense, useEffect, useRef, useState } from 'react';
+import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv, IconTableExport } from '@tabler/icons-react';
 import remarkGfm from 'remark-gfm';
+import * as XLSX from 'xlsx';
 
 export const markdownStyles = {
     'animate-fade-in prose prose-sm min-w-full': true,
@@ -53,6 +55,7 @@ type MarkdownContentProps = {
     shouldAnimate?: boolean;
     isCompleted?: boolean;
     isLast?: boolean;
+    totalAttachments?: number;
 };
 
 type NestedChunk = {
@@ -105,13 +108,24 @@ function parseCitationsWithSourceTags(markdown: string): string {
 }
 
 export const MarkdownContent = memo(
-    ({ content, className, isCompleted, isLast }: MarkdownContentProps) => {
+    ({ content, className, isCompleted, isLast, totalAttachments }: MarkdownContentProps) => {
         const [previousContent, setPreviousContent] = useState<string[]>([]);
         const [currentContent, setCurrentContent] = useState<string>('');
         const { chunkMdx } = useMdxChunker();
+        const containerRef = useRef<HTMLDivElement | null>(null);
+        const [tableCount, setTableCount] = useState<number>(0);
+        const [lastDownloaded, setLastDownloaded] = useState<null | 'csv' | 'xlsx' | 'xlsx-multi'>(null);
 
         useEffect(() => {
             if (!content) return;
+
+            // Count tables after content updates
+            setTimeout(() => {
+                if (containerRef.current) {
+                    const count = containerRef.current.querySelectorAll('table').length;
+                    setTableCount(count);
+                }
+            }, 0);
 
             (async () => {
                 try {
@@ -139,9 +153,100 @@ export const MarkdownContent = memo(
             })();
         }, [content, isCompleted]);
 
+        const renderExportBar = () => {
+            const hasMultiple = (tableCount > 1) || ((totalAttachments || 0) > 1);
+            const disableMulti = !hasMultiple;
+
+            const tableToAOA = (table: HTMLTableElement): string[][] => {
+                const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
+                const aoa: string[][] = [];
+                for (const row of rows) {
+                    const cells = Array.from(row.querySelectorAll('th,td')) as (HTMLTableCellElement)[];
+                    const rowData = cells.map(cell => (cell.textContent || '').trim());
+                    if (rowData.length > 0) aoa.push(rowData);
+                }
+                return aoa;
+            };
+
+            const exportMultiXLSX = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const wb = XLSX.utils.book_new();
+                tables.forEach((t, i) => {
+                    const aoa = tableToAOA(t);
+                    const ws = XLSX.utils.aoa_to_sheet(aoa);
+                    XLSX.utils.book_append_sheet(wb, ws, `Doc ${i + 1}`);
+                });
+                XLSX.writeFile(wb, 'extraction-multi.xlsx');
+                setLastDownloaded('xlsx-multi');
+                setTimeout(() => setLastDownloaded(null), 1500);
+            };
+
+            const exportGlobalXLSX = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const all: string[][] = [];
+                tables.forEach((t, idx) => {
+                    const aoa = tableToAOA(t);
+                    if (idx === 0) {
+                        all.push(...aoa);
+                    } else {
+                        const dataRows = aoa.length > 1 ? aoa.slice(1) : aoa;
+                        all.push(...dataRows);
+                    }
+                });
+                const ws = XLSX.utils.aoa_to_sheet(all);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Global');
+                XLSX.writeFile(wb, 'extraction-global.xlsx');
+                setLastDownloaded('xlsx');
+                setTimeout(() => setLastDownloaded(null), 1500);
+            };
+
+            const exportGlobalCSV = () => {
+                if (!containerRef.current) return;
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                if (tables.length === 0) return;
+                const all: string[][] = [];
+                tables.forEach((t, idx) => {
+                    const aoa = tableToAOA(t);
+                    if (idx === 0) all.push(...aoa);
+                    else all.push(...(aoa.length > 1 ? aoa.slice(1) : aoa));
+                });
+                const escape = (s: string) => '"' + s.replace(/"/g, '""') + '"';
+                const csv = all.map(r => r.map(escape).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extraction-global.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+                setLastDownloaded('csv');
+                setTimeout(() => setLastDownloaded(null), 1500);
+            };
+
+            return (
+                <div className="not-prose mb-2 flex items-center justify-end gap-2">
+                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger CSV (global)" onClick={exportGlobalCSV}>
+                        {lastDownloaded === 'csv' ? <IconCheck size={14} /> : <IconFileTypeCsv size={14} />}
+                    </Button>
+                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger XLSX (global)" onClick={exportGlobalXLSX}>
+                        {lastDownloaded === 'xlsx' ? <IconCheck size={14} /> : <IconFileSpreadsheet size={14} />}
+                    </Button>
+                    <Button size="icon-sm" variant="ghost" tooltip={disableMulti ? 'Plusieurs tableaux requis' : 'Télécharger XLSX (multi‑onglets)'} onClick={exportMultiXLSX} disabled={disableMulti}>
+                        {lastDownloaded === 'xlsx-multi' ? <IconCheck size={14} /> : <IconTableExport size={14} />}
+                    </Button>
+                </div>
+            );
+        };
+
         if (isCompleted && !isLast) {
             return (
-                <div className={cn('', markdownStyles, className)}>
+                <div className={cn('', markdownStyles, className)} ref={containerRef}>
+                    {renderExportBar()}
                     <ErrorBoundary fallback={<ErrorPlaceholder />}>
                         <MemoizedMdxChunk chunk={currentContent} />
                     </ErrorBoundary>
@@ -150,7 +255,8 @@ export const MarkdownContent = memo(
         }
 
         return (
-            <div className={cn('', markdownStyles, className)}>
+            <div className={cn('', markdownStyles, className)} ref={containerRef}>
+                {renderExportBar()}
                 {previousContent.length > 0 &&
                     previousContent.map((chunk, index) => (
                         <ErrorBoundary fallback={<ErrorPlaceholder />} key={`prev-${index}`}>

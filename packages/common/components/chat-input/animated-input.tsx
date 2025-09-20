@@ -57,6 +57,8 @@ export const AnimatedChatInput = ({
 
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const { dropzonProps, readImageFile } = useImageAttachment();
+    const [showExtractionPrompt, setShowExtractionPrompt] = React.useState(false);
+    const extractionLabel = 'Toutes les tables';
     const { push } = useRouter();
     const chatMode = useChatStore(state => state.chatMode);
     const setChatMode = useChatStore(state => state.setChatMode);
@@ -295,7 +297,9 @@ export const AnimatedChatInput = ({
 
         // Submit the message
         const formData = new FormData();
-        formData.append('query', value);
+        const shouldEmbedExtraction = chatMode === ChatMode.SMART_PDF_TO_EXCEL && (imageAttachments?.length || 0) > 0;
+        const effectiveQuery = shouldEmbedExtraction ? `Mode d’extraction: ${extractionLabel}\n${value}` : value;
+        formData.append('query', effectiveQuery);
         if (imageAttachments && imageAttachments.length > 0) {
             imageAttachments.forEach((img, index) => {
                 if (img.base64) {
@@ -321,10 +325,14 @@ export const AnimatedChatInput = ({
         setInputValue('');
         clearImageAttachments();
         setShowSuggestions(false);
+        setShowExtractionPrompt(false);
     };
 
     const handleFileAttachment = (file: File) => {
         readImageFile(file);
+        if (chatMode === ChatMode.SMART_PDF_TO_EXCEL) {
+            setShowExtractionPrompt(true);
+        }
     };
 
     const handleModelChange = (modelId: string) => {
@@ -351,6 +359,19 @@ export const AnimatedChatInput = ({
                                 <ImageAttachment />
                             </div>
                         )}
+                        {chatMode === ChatMode.SMART_PDF_TO_EXCEL && (imageAttachments?.length || 0) > 0 && showExtractionPrompt && (
+                            <div className="mb-2 rounded-md border p-2 text-xs flex items-center justify-between" style={{ backgroundColor: 'hsl(var(--chat-input-surface-bg))', borderColor: 'hsl(var(--chat-input-border))' }}>
+                                <span>Quel mode d’extraction souhaitez-vous appliquer ?</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowExtractionPrompt(false)}
+                                    className="px-2 py-1 rounded border text-[11px]"
+                                    style={{ backgroundColor: 'hsl(var(--chat-input-control-bg))', borderColor: 'hsl(var(--chat-input-border))' }}
+                                >
+                                    Appliquer « {extractionLabel} »
+                                </button>
+                            </div>
+                        )}
                         <AI_Prompt
                             value={inputValue}
                             onChange={setInputValue}
@@ -360,6 +381,7 @@ export const AnimatedChatInput = ({
                             selectedModel={chatMode}
                             onModelChange={handleModelChange}
                             onAttachFile={ChatModeConfig[chatMode]?.imageUpload ? handleFileAttachment : undefined}
+                            fileAccept={(chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL) ? 'image/jpeg,image/png,image/gif,application/pdf' : 'image/jpeg,image/png,image/gif'}
                             disabled={isGenerating}
                             showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
                             webSearchEnabled={useWebSearch}
