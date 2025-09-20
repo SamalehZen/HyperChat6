@@ -71,54 +71,9 @@ async function detectPdfIsDigital(buf: Buffer): Promise<boolean> {
   }
 }
 
-async function extractWithTabula(pdfPath: string, pagesSpec: string): Promise<{ tables: string[][]; csvAll: string } | null> {
-  try {
-    const Tabula: any = (await import('tabula-js')).default || (await import('tabula-js') as any);
-    const t = (Tabula as any)(pdfPath);
-
-    // Try lattice first
-    const csvLattice: string = await new Promise((resolve, reject) => {
-      try {
-        t.pages(pagesSpec).lattice(true).extractCsv((err: any, data: string) => {
-          if (err) return reject(err);
-          resolve(data || '');
-        });
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    let csv = csvLattice;
-
-    if (!csv || csv.trim().length === 0) {
-      // Fallback to stream
-      const t2 = (Tabula as any)(pdfPath);
-      csv = await new Promise((resolve, reject) => {
-        try {
-          t2.pages(pagesSpec).stream(true).extractCsv((err: any, data: string) => {
-            if (err) return reject(err);
-            resolve(data || '');
-          });
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }
-
-    const tables = csv
-      .split('\n')
-      .map(row => row.split(','))
-      .filter(row => row.length > 1 || (row.length === 1 && row[0].trim() !== ''));
-
-    return { tables, csvAll: csv };
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-    if (/java|spawn/i.test(msg)) {
-      throw new Error('Java/Tabula indisponible. Bascule sur un mode de secours (sans Tabula).');
-    }
-    // Other errors -> return null to fallback
-    return null;
-  }
+async function extractWithTabula(_pdfPath: string, _pagesSpec: string): Promise<{ tables: string[][]; csvAll: string } | null> {
+  // Tabula path removed: use pdfjs heuristics instead
+  return null;
 }
 
 // Minimal canvas factory for pdfjs-dist using @napi-rs/canvas
@@ -477,7 +432,7 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
     const csvUrl = `/api/exports/${csvFile}`;
 
     updateAnswer({
-      text: `\nConversion terminée.\n\n• [Télécharger XLSX](${xlsxUrl})\n• [Télécharger CSV](${csvUrl})\n\nMode: 100% gratuit (Tabula/Tesseract). Pages traitées: ${FREE_OCR_MAX_PAGES - pagesBudget}/${FREE_OCR_MAX_PAGES}.`,
+      text: `\nConversion terminée.\n\n• [Télécharger XLSX](${xlsxUrl})\n• [Télécharger CSV](${csvUrl})\n\nMode: 100% gratuit (pdfjs/Tesseract). Pages traitées: ${FREE_OCR_MAX_PAGES - pagesBudget}/${FREE_OCR_MAX_PAGES}.`,
       status: 'COMPLETED',
     });
     updateStatus('COMPLETED');
