@@ -34,7 +34,13 @@
         "together-ai": "^0.13.0",
         "uuid": "^11.0.5",
         "zod": "^3.23.8",
-        "zod-to-json-schema": "^3.24.1"
+        "zod-to-json-schema": "^3.24.1",
+        "tesseract.js": "^5.1.0",
+        "tabula-js": "^1.0.5",
+        "xlsx": "^0.18.5",
+        "@napi-rs/canvas": "^0.1.60",
+        "pdf-parse": "^1.1.1",
+        "pdfjs-dist": "3.11.174"
     },
     "devDependencies": {
         "@repo/typescript-config": "*",

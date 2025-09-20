@@ -175,7 +175,7 @@ export const CHAT_MODE_CREDIT_COSTS = {
     [ChatMode.GEMINI_2_5_PRO]: 2,
     [ChatMode.DEEPSEEK_R1]: 5,
     [ChatMode.NOMENCLATURE_DOUANIERE]: 1,
-    [ChatMode.SMART_PDF_TO_EXCEL]: 1,
+    [ChatMode.SMART_PDF_TO_EXCEL]: 0,
 };
 
 export const getChatModeName = (mode: ChatMode) => {
@@ -215,6 +215,6 @@ export const getChatModeName = (mode: ChatMode) => {
         case ChatMode.NOMENCLATURE_DOUANIERE:
             return 'Nomenclature Douanière';
         case ChatMode.SMART_PDF_TO_EXCEL:
-            return 'Smart PDF to Excel';
+            return 'Image/PDF → Excel (gratuit)';
     }
 };

@@ -1,14 +1,21 @@
 import { Flex } from '@repo/ui';
 import { IconPhotoPlus } from '../icons';
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { DropzoneState } from 'react-dropzone';
 import { useChatStore } from '@repo/common/store';
+import { ChatMode } from '@repo/shared/config';
 
 export type TImageDropzone = {
     dropzonProps: DropzoneState;
 };
 export const ImageDropzone: FC<TImageDropzone> = ({ dropzonProps }) => {
     const count = useChatStore(state => state.imageAttachments?.length || 0);
+    const chatMode = useChatStore(state => state.chatMode);
+    const helperText = useMemo(() => {
+        return chatMode === ChatMode.SMART_PDF_TO_EXCEL
+            ? 'Drag and drop images or PDFs here, or click to select'
+            : 'Drag and drop images here, or click to select images';
+    }, [chatMode]);
     return (
         <>
             <input {...dropzonProps.getInputProps()} />
@@ -20,9 +27,7 @@ export const ImageDropzone: FC<TImageDropzone> = ({ dropzonProps }) => {
                     gap="sm"
                 >
                     <IconPhotoPlus size={16} className="text-muted-foreground" />
-                    <p className="text-muted-foreground text-sm">
-                        Drag and drop images here, or click to select images
-                    </p>
+                    <p className="text-muted-foreground text-sm">{helperText}</p>
                 </Flex>
             )}
             {count > 0 && (

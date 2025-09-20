@@ -6,6 +6,7 @@ export * from './correction';
 export * from './nomenclature-douaniere';
 export * from './revision-de-prix';
 export * from './smart-pdf-to-excel';
+export * from './free-doc-to-excel';
 export * from './planner';
 export * from './pro-search';
 export * from './quick-search';

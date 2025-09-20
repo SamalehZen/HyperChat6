@@ -67,8 +67,8 @@ export const chatOptions = [
         creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.NOMENCLATURE_DOUANIERE],
     },
     {
-        label: 'Smart PDF to Excel',
-        description: 'Convertir facture PDF en Excel',
+        label: 'Image/PDF → Excel (gratuit)',
+        description: 'Images & PDFs supported (gratuit)',
         value: ChatMode.SMART_PDF_TO_EXCEL,
         icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
         creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.SMART_PDF_TO_EXCEL],

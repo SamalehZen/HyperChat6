@@ -1,5 +1,5 @@
 import { useChatStore } from '@repo/common/store';
-import { ChatModeConfig } from '@repo/shared/config';
+import { ChatMode, ChatModeConfig } from '@repo/shared/config';
 import { Button, Tooltip } from '@repo/ui';
 import { IconPaperclip } from '../icons';
 import { FC } from 'react';
@@ -28,9 +28,13 @@ export const ImageUpload: FC<TImageUpload> = ({
         return null;
     }
 
+    const accept = chatMode === ChatMode.SMART_PDF_TO_EXCEL
+        ? 'image/jpeg,image/png,image/gif,application/pdf'
+        : 'image/jpeg,image/png,image/gif';
+
     return (
         <>
-            <input type="file" id={id} className="hidden" onChange={handleImageUpload} multiple accept="image/jpeg,image/png,image/gif" />
+            <input type="file" id={id} className="hidden" onChange={handleImageUpload} multiple accept={accept} />
             <Tooltip content={tooltip}>
                 {showIcon ? (
                     <Button variant="ghost" size="icon-sm" onClick={handleFileSelect}>
