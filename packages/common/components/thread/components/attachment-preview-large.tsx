@@ -15,7 +15,7 @@ const dataURItoUint8Array = (dataURI: string): Uint8Array => {
     return bytes;
 };
 
-const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
+const PdfPreview = ({ dataUrl, index, isScanning = false }: { dataUrl: string; index: number; isScanning?: boolean }) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const canvasesRef = useRef<(HTMLCanvasElement | null)[]>([]);
     const [numPages, setNumPages] = useState<number>(0);
@@ -146,7 +146,7 @@ export const AttachmentPreviewLarge = ({ threadItem, isScanning = false }: { thr
     const items = attachments
         .map((att, idx) => {
             if (isPdf(att)) {
-                return <PdfPreview key={`att-pdf-${idx}`} dataUrl={att} index={idx} />;
+                return <PdfPreview key={`att-pdf-${idx}`} dataUrl={att} index={idx} isScanning={isScanning} />;
             }
             if (isImage(att)) {
                 return (
