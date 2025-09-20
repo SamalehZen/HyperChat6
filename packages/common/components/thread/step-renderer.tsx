@@ -10,7 +10,6 @@ export type StepRendererType = {
 };
 
 export const StepRenderer = ({ step }: StepRendererType) => {
-    console.log(step);
     const renderTextStep = () => {
         if (step?.text) {
             return (
@@ -22,6 +21,54 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                 >
                     {step.text}
                 </motion.p>
+            );
+        }
+        return null;
+    };
+
+    const renderExtractStep = () => {
+        if (step?.steps && 'extract' in step.steps) {
+            return (
+                <motion.div
+                    className="flex flex-col gap-2"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                    <div className="w-[120px]">
+                        <TextShimmer
+                            duration={0.7}
+                            spread={step.steps?.extract?.status === 'COMPLETED' ? 0 : 2}
+                            className="text-xs"
+                        >
+                            Extraction
+                        </TextShimmer>
+                    </div>
+                </motion.div>
+            );
+        }
+        return null;
+    };
+
+    const renderOCRStep = () => {
+        if (step?.steps && 'ocr' in step.steps) {
+            return (
+                <motion.div
+                    className="flex flex-col gap-2"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.25 }}
+                >
+                    <div className="w-[140px]">
+                        <TextShimmer
+                            duration={0.7}
+                            spread={step.steps?.ocr?.status === 'COMPLETED' ? 0 : 2}
+                            className="text-xs"
+                        >
+                            OCR & conversion
+                        </TextShimmer>
+                    </div>
+                </motion.div>
             );
         }
         return null;
@@ -179,6 +226,8 @@ export const StepRenderer = ({ step }: StepRendererType) => {
             >
                 {renderWrapupStep()}
                 {renderTextStep()}
+                {renderExtractStep()}
+                {renderOCRStep()}
                 {renderReasoningStep()}
                 {renderSearchStep()}
                 {renderReadStep()}

@@ -1,4 +1,4 @@
-import { StepRenderer, StepStatus, ToolCallStep, ToolResultStep } from '@repo/common/components';
+import { AttachmentPreviewLarge, StepRenderer, StepStatus, ToolCallStep, ToolResultStep } from '@repo/common/components';
 import { useAppStore } from '@repo/common/store';
 import { ChatMode } from '@repo/shared/config';
 import { Step, ThreadItem, ToolCall, ToolResult } from '@repo/shared/types';
@@ -84,11 +84,20 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             threadItem.status === 'ABORTED' ||
             threadItem.status === 'ERROR');
 
-    console.log('hasAnswer', hasAnswer);
+    const shouldShowPreview = useMemo(() => {
+        const imgs = Array.isArray(threadItem?.imageAttachment)
+            ? threadItem.imageAttachment
+            : threadItem?.imageAttachment
+            ? [threadItem.imageAttachment as any]
+            : [];
+        const hasAttachment = imgs.some(
+            (s: string) => typeof s === 'string' && (s.startsWith('data:image/') || s.startsWith('data:application/pdf'))
+        );
+        return threadItem.mode === ChatMode.SMART_PDF_TO_EXCEL && hasAttachment;
+    }, [threadItem?.imageAttachment, threadItem.mode]);
 
     useEffect(() => {
         if (hasAnswer) {
-            console.log('dismissing side drawer');
             dismissSideDrawer();
         }
     }, [hasAnswer]);
@@ -116,6 +125,7 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             updateSideDrawer({
                 renderContent: () => (
                     <div className="flex w-full flex-1 flex-col px-2 py-4">
+                        {shouldShowPreview && <AttachmentPreviewLarge threadItem={threadItem} />}
                         {steps.map((step, index) => (
                             <StepRenderer key={index} step={step} />
                         ))}
@@ -125,7 +135,7 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
                 title: () => renderTitle(false),
             });
         }
-    }, [steps, threadItem?.status]);
+    }, [steps, threadItem?.status, shouldShowPreview]);
 
     const handleClick = () => {
         dismissSideDrawer();
@@ -135,6 +145,7 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             title: () => renderTitle(false),
             renderContent: () => (
                 <div className="flex w-full flex-1 flex-col px-2 py-4">
+                    {shouldShowPreview && <AttachmentPreviewLarge threadItem={threadItem} />}
                     {steps.map((step, index) => (
                         <StepRenderer key={index} step={step} />
                     ))}
