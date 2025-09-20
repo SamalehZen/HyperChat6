@@ -317,8 +317,9 @@ export const freeDocToExcelTask = createTask<WorkflowEventSchema, WorkflowContex
         let isDigital = false;
         try {
           isDigital = await detectPdfIsDigital(pdfBuf);
-        } catch (e: any) {
-          updateAnswer({ text: `\n${e?.message || String(e)}`, status: 'PENDING' });
+        } catch (_e: any) {
+          // If detection fails, assume scanned silently
+          isDigital = false;
         }
 
         if (isDigital) {
