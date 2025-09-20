@@ -19,7 +19,9 @@
     "@repo/ui": "*",
     "@repo/actions": "*",
     "@tiptap/extension-character-count": "^2.11.7",
-    "react-intl": "^6.6.3"
+    "react-intl": "^6.6.3",
+    "pdfjs-dist": "3.11.174",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

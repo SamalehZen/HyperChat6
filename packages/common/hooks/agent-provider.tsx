@@ -371,17 +371,21 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
             const optimisticAiThreadItemId = existingThreadItemId || nanoid();
             const query = formData.get('query') as string;
-            const countStr = formData.get('imageAttachmentCount') as string;
-            const count = parseInt(countStr || '0', 10);
+            const fileCountStr = formData.get('fileAttachmentCount') as string;
+            const fileCount = parseInt(fileCountStr || '0', 10);
+            const fileAttachments: { name: string; mimeType: string; base64: string }[] = [];
             const imageAttachments: string[] = [];
-            if (!isNaN(count) && count > 0) {
-                for (let i = 0; i < count; i++) {
-                    const val = formData.get(`imageAttachment_${i}`) as string;
-                    if (val) imageAttachments.push(val);
+            if (!isNaN(fileCount) && fileCount > 0) {
+                for (let i = 0; i < fileCount; i++) {
+                    const val = formData.get(`fileAttachment_${i}`) as string;
+                    if (val) {
+                        try {
+                            const obj = JSON.parse(val) as { name: string; mimeType: string; base64: string };
+                            fileAttachments.push(obj);
+                            if (obj.mimeType?.startsWith('image/')) imageAttachments.push(obj.base64);
+                        } catch {}
+                    }
                 }
-            } else {
-                const single = formData.get('imageAttachment') as string;
-                if (single) imageAttachments.push(single);
             }
 
             const aiThreadItem: ThreadItem = {
@@ -392,6 +396,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 threadId,
                 query,
                 imageAttachment: imageAttachments,
+                fileAttachments,
                 mode,
             };
 
@@ -411,6 +416,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 messages: messages || [],
                 query,
                 imageAttachments,
+                fileAttachments,
             });
 
             if (hasApiKeyForChatMode(mode)) {

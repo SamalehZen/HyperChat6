@@ -35,6 +35,54 @@ export async function POST(request: NextRequest) {
         }
 
         const { data } = validatedBody;
+
+        // Server-side attachment validations
+        try {
+            const history = Array.isArray(data.messages) ? data.messages : [];
+            const lastUser = [...history].reverse().find((m: any) => m.role === 'user');
+            const parts = Array.isArray(lastUser?.content) ? lastUser.content : [];
+            const attachments = parts.filter((p: any) => p?.type === 'image' || p?.type === 'file');
+            if (attachments.length > 30) {
+                return new Response(JSON.stringify({ error: 'Maximum 30 fichiers par message.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+            }
+
+            const toBytes = (dataUrlOrBase64: string) => {
+                const base64 = typeof dataUrlOrBase64 === 'string' && dataUrlOrBase64.includes(',') ? dataUrlOrBase64.split(',')[1] : dataUrlOrBase64;
+                try {
+                    return Buffer.from(base64 || '', 'base64');
+                } catch {
+                    return Buffer.alloc(0);
+                }
+            };
+
+            for (const p of attachments) {
+                if (p.type === 'image') {
+                    const buf = toBytes(p.image);
+                    if (buf.length > 3 * 1024 * 1024) {
+                        return new Response(JSON.stringify({ error: 'Image >3MB non autorisée.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    }
+                }
+                if (p.type === 'file' && p.mimeType === 'application/pdf') {
+                    const buf = toBytes(p.data || '');
+                    if (buf.length > 20 * 1024 * 1024) {
+                        return new Response(JSON.stringify({ error: 'PDF >20MB non autorisé.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                    }
+                    try {
+                        const pdfParse = (await import('pdf-parse')).default as any;
+                        const info = await pdfParse(buf);
+                        const pages = info?.numpages || info?.numPages || 0;
+                        if (pages > 20) {
+                            return new Response(JSON.stringify({ error: `PDF limité à 20 pages (fichier: ${p.name || 'document'}).` }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse PDF for page count', e);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Attachment validation skipped due to error', e);
+        }
+
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
         const ip = getIp(request);
 

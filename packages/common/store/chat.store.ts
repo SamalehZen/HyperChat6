@@ -74,6 +74,7 @@ type State = {
     context: string;
     inputValue: string;
     imageAttachments: { base64?: string; file?: File }[];
+    fileAttachments: { name: string; mimeType: string; base64: string }[];
     abortController: AbortController | null;
     threads: Thread[];
     threadItems: ThreadItem[];
@@ -103,6 +104,9 @@ type Actions = {
     setImageAttachments: (imageAttachments: { base64?: string; file?: File }[]) => void;
     clearImageAttachments: () => void;
     removeImageAttachment: (index: number) => void;
+    setFileAttachments: (files: { name: string; mimeType: string; base64: string }[]) => void;
+    clearFileAttachments: () => void;
+    removeFileAttachment: (index: number) => void;
     setIsGenerating: (isGenerating: boolean) => void;
     stopGeneration: () => void;
     setAbortController: (abortController: AbortController) => void;
@@ -461,6 +465,7 @@ export const useChatStore = create(
         currentThread: null,
         currentThreadItem: null,
         imageAttachments: [],
+        fileAttachments: [],
         messageGroups: [],
         abortController: null,
         isLoadingThreads: false,
@@ -501,6 +506,32 @@ export const useChatStore = create(
         removeImageAttachment: (index: number) => {
             set(state => {
                 state.imageAttachments = state.imageAttachments.filter((_, i) => i !== index);
+            });
+        },
+
+        setFileAttachments: (files: { name: string; mimeType: string; base64: string }[]) => {
+            set(state => {
+                state.fileAttachments = files;
+                state.imageAttachments = files
+                    .filter(f => f.mimeType.startsWith('image/'))
+                    .map(f => ({ base64: f.base64 }));
+            });
+        },
+
+        clearFileAttachments: () => {
+            set(state => {
+                state.fileAttachments = [];
+                state.imageAttachments = [];
+            });
+        },
+
+        removeFileAttachment: (index: number) => {
+            set(state => {
+                const next = (state.fileAttachments || []).filter((_, i) => i !== index);
+                state.fileAttachments = next;
+                state.imageAttachments = next
+                    .filter(f => f.mimeType.startsWith('image/'))
+                    .map(f => ({ base64: f.base64 }));
             });
         },
 

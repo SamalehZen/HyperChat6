@@ -1,11 +1,11 @@
 'use client';
 import { useAuth } from '@clerk/nextjs';
 import {
-    ImageAttachment,
-    ImageDropzoneRoot,
+    FileAttachment,
+    FileDropzoneRoot,
     MessagesRemainingBadge,
 } from '@repo/common/components';
-import { useImageAttachment } from '@repo/common/hooks';
+import { useFileAttachment } from '@repo/common/hooks';
 import { ChatModeConfig, ChatMode } from '@repo/shared/config';
 import { cn, Flex, GridGradientBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,7 +21,7 @@ import { useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
 import { ChatModeButton, GeneratingStatus, SendStopButton, WebSearchButton } from './chat-actions';
 import { ChatEditor } from './chat-editor';
-import { ImageUpload } from './image-upload';
+import { FileUpload } from './file-upload';
 
 export const ChatInput = ({
     showGreeting = true,
@@ -61,11 +61,11 @@ export const ChatInput = ({
     const useWebSearch = useChatStore(state => state.useWebSearch);
     const isGenerating = useChatStore(state => state.isGenerating);
     const isChatPage = usePathname().startsWith('/chat');
-    const imageAttachments = useChatStore(state => state.imageAttachments);
-    const clearImageAttachments = useChatStore(state => state.clearImageAttachments);
+    const fileAttachments = useChatStore(state => state.fileAttachments);
+    const clearFileAttachments = useChatStore(state => state.clearFileAttachments as () => void);
     const stopGeneration = useChatStore(state => state.stopGeneration);
     const hasTextInput = !!editor?.getText();
-    const { dropzonProps, handleImageUpload } = useImageAttachment();
+    const { dropzonProps, handleFileUpload } = useFileAttachment();
     const { push } = useRouter();
     const chatMode = useChatStore(state => state.chatMode);
     const showSuggestions = useChatStore(state => state.showSuggestions);
@@ -97,15 +97,13 @@ export const ChatInput = ({
         // First submit the message
         const formData = new FormData();
         formData.append('query', editor.getText());
-        if (imageAttachments && imageAttachments.length > 0) {
-            imageAttachments.forEach((img, index) => {
-                if (img.base64) {
-                    formData.append(`imageAttachment_${index}`, img.base64);
-                }
+        if (fileAttachments && fileAttachments.length > 0) {
+            fileAttachments.forEach((f, index) => {
+                formData.append(`fileAttachment_${index}`, JSON.stringify({ name: f.name, mimeType: f.mimeType, base64: f.base64 }));
             });
-            formData.append('imageAttachmentCount', imageAttachments.length.toString());
+            formData.append('fileAttachmentCount', fileAttachments.length.toString());
         } else {
-            formData.append('imageAttachmentCount', '0');
+            formData.append('fileAttachmentCount', '0');
         }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
 
@@ -121,7 +119,7 @@ export const ChatInput = ({
         });
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
-        clearImageAttachments();
+        clearFileAttachments();
         setShowSuggestions(false);
     };
 
@@ -140,7 +138,7 @@ export const ChatInput = ({
                         'bg-background border-hard/50 shadow-subtle-sm relative z-10 w-full rounded-xl border'
                     )}
                 >
-                    <ImageDropzoneRoot dropzoneProps={dropzonProps}>
+                    <FileDropzoneRoot dropzoneProps={dropzonProps}>
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -154,7 +152,7 @@ export const ChatInput = ({
                                     transition={{ duration: 0.15, ease: 'easeOut' }}
                                     className="w-full"
                                 >
-                                    <ImageAttachment />
+                                    <FileAttachment />
                                     <Flex className="flex w-full flex-row items-end gap-0">
                                         <ChatEditor
                                             sendMessage={sendMessage}
@@ -191,12 +189,12 @@ export const ChatInput = ({
                                                 {/* <AttachmentButton /> */}
                                                 <WebSearchButton />
                                                 {/* <ToolsMenu /> */}
-                                                <ImageUpload
-                                                    id="image-attachment"
-                                                    label="Images"
-                                                    tooltip="Attach images"
+                                                <FileUpload
+                                                    id="file-attachment"
+                                                    label="Fichiers"
+                                                    tooltip="Joindre images ou PDF"
                                                     showIcon={true}
-                                                    handleImageUpload={handleImageUpload}
+                                                    handleFileUpload={handleFileUpload}
                                                 />
                                             </Flex>
                                         )}
@@ -224,7 +222,7 @@ export const ChatInput = ({
                                 </motion.div>
                             )}
                         </motion.div>
-                    </ImageDropzoneRoot>
+                    </FileDropzoneRoot>
                 </Flex>
             </motion.div>
             <MessagesRemainingBadge key="remaining-messages" />

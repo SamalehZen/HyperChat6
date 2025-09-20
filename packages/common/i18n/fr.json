@@ -90,5 +90,14 @@
   "history.item.rename": "Renommer",
   "history.item.deleteChat": "Supprimer le chat",
   "history.item.pin": "Épingler",
-  "history.item.unpin": "Désépingler"
+  "history.item.unpin": "Désépingler",
+  "attachments.drop.zone": "Glissez-déposez des images ou PDF ici, ou cliquez pour sélectionner",
+  "attachments.counter": "{count} sélectionné(s)",
+  "attachments.downloadCsv": "Télécharger CSV",
+  "attachments.downloadXlsx": "Télécharger XLSX",
+  "attachments.plainText": "Texte brut",
+  "errors.pdfTooLarge": "PDF trop volumineux (max 20MB)",
+  "errors.pdfTooManyPages": "PDF limité à 20 pages (fichier: {name})",
+  "errors.imageTooLarge": "Image trop volumineuse (max 3MB)",
+  "errors.maxFiles": "Maximum {max} fichiers par message"
 }

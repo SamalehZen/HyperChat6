@@ -12,10 +12,11 @@ import {
 import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem as ThreadItemType } from '@repo/shared/types';
-import { Alert, AlertDescription, cn } from '@repo/ui';
+import { Alert, AlertDescription, Button, cn, Flex } from '@repo/ui';
 import { IconAlertCircle, IconBook } from '@tabler/icons-react';
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
+import * as XLSX from 'xlsx';
 
 export const ThreadItem = memo(
     ({
@@ -121,6 +122,71 @@ export const ThreadItem = memo(
                                         }
                                         isLast={isLast}
                                     />
+
+                                    {Array.isArray((threadItem as any).object?.tables) && (
+                                        <Flex className="mt-2" gap="sm">
+                                            <Button
+                                                size="sm"
+                                                variant="bordered"
+                                                onClick={() => {
+                                                    const tables = (threadItem as any).object.tables as Array<{ headers: string[]; rows: string[][] }>;
+                                                    const buildCSV = () => {
+                                                        const chunks: string[] = [];
+                                                        tables.forEach((t, idx) => {
+                                                            const header = (t.headers || []).join(',');
+                                                            const rows = (t.rows || []).map(r => r.map(c => `"${(c || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+                                                            chunks.push([header, rows].filter(Boolean).join('\n'));
+                                                            if (idx < tables.length - 1) chunks.push('');
+                                                        });
+                                                        return chunks.join('\n');
+                                                    };
+                                                    const csv = buildCSV();
+                                                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const a = document.createElement('a');
+                                                    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+                                                    a.href = url;
+                                                    a.download = `hyperchat-extraction-${threadItem.threadId}-${ts}.csv`;
+                                                    a.click();
+                                                    URL.revokeObjectURL(url);
+                                                }}
+                                            >
+                                                Télécharger CSV
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="bordered"
+                                                onClick={() => {
+                                                    const tables = (threadItem as any).object.tables as Array<{ headers: string[]; rows: string[][] }>;
+                                                    const wb = XLSX.utils.book_new();
+                                                    tables.forEach((t, idx) => {
+                                                        const aoa = [t.headers || [], ...(t.rows || [])];
+                                                        const ws = XLSX.utils.aoa_to_sheet(aoa);
+                                                        const name = `Table${idx + 1}`;
+                                                        XLSX.utils.book_append_sheet(wb, ws, name);
+                                                    });
+                                                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                                                    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const a = document.createElement('a');
+                                                    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+                                                    a.href = url;
+                                                    a.download = `hyperchat-extraction-${threadItem.threadId}-${ts}.xlsx`;
+                                                    a.click();
+                                                    URL.revokeObjectURL(url);
+                                                }}
+                                            >
+                                                Télécharger XLSX
+                                            </Button>
+                                        </Flex>
+                                    )}
+
+                                    {(threadItem as any).object?.plainText && (
+                                        <div className="mt-3">
+                                            <div className="text-muted-foreground mb-1 text-xs font-medium">Texte brut</div>
+                                            <div className="whitespace-pre-wrap rounded-md border border-dashed p-2 text-sm">{(threadItem as any).object.plainText}</div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -90,5 +90,14 @@
   "history.item.rename": "Rename",
   "history.item.deleteChat": "Delete Chat",
   "history.item.pin": "Pin",
-  "history.item.unpin": "Unpin"
+  "history.item.unpin": "Unpin",
+  "attachments.drop.zone": "Drag and drop images or PDFs here, or click to select",
+  "attachments.counter": "{count} selected",
+  "attachments.downloadCsv": "Download CSV",
+  "attachments.downloadXlsx": "Download XLSX",
+  "attachments.plainText": "Plain text",
+  "errors.pdfTooLarge": "PDF too large (max 20MB)",
+  "errors.pdfTooManyPages": "PDF limited to 20 pages (file: {name})",
+  "errors.imageTooLarge": "Image too large (max 3MB)",
+  "errors.maxFiles": "Maximum {max} files per message"
 }

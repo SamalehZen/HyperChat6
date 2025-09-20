@@ -1,13 +1,15 @@
-import { ThreadItem } from '@repo/shared/types';
+import { FileAttachment, ThreadItem } from '@repo/shared/types';
 
 export const buildCoreMessagesFromThreadItems = ({
     messages,
     query,
     imageAttachments,
+    fileAttachments,
 }: {
     messages: ThreadItem[];
     query: string;
     imageAttachments?: string[];
+    fileAttachments?: FileAttachment[];
 }) => {
     const coreMessages = [
         ...(messages || []).flatMap(item => {
@@ -17,13 +19,27 @@ export const buildCoreMessagesFromThreadItems = ({
                 ? [item.imageAttachment as unknown as string]
                 : [];
 
-            const userContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
-                imgs.length > 0
-                    ? ([
-                          { type: 'text', text: item.query || '' },
-                          ...imgs.map(img => ({ type: 'image', image: img })),
-                      ] as Array<{ type: 'text'; text: string } | { type: 'image'; image: string }>)
-                    : item.query || '';
+            const files = Array.isArray(item.fileAttachments) ? item.fileAttachments : [];
+
+            const hasAttachments = imgs.length > 0 || files.length > 0;
+
+            const userContent:
+                | string
+                | Array<
+                      | { type: 'text'; text: string }
+                      | { type: 'image'; image: string }
+                      | { type: 'file'; mimeType: string; data: string; name?: string }
+                  > = hasAttachments
+                ? ([
+                      { type: 'text', text: item.query || '' },
+                      ...imgs.map(img => ({ type: 'image', image: img })),
+                      ...files.map(f => ({ type: 'file', mimeType: f.mimeType, data: f.base64, name: f.name })),
+                  ] as Array<
+                      | { type: 'text'; text: string }
+                      | { type: 'image'; image: string }
+                      | { type: 'file'; mimeType: string; data: string; name?: string }
+                  >)
+                : item.query || '';
 
             return [
                 {
@@ -37,13 +53,24 @@ export const buildCoreMessagesFromThreadItems = ({
             ];
         }),
         (() => {
-            const finalContent: string | Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
-                imageAttachments && imageAttachments.length > 0
-                    ? ([
-                          { type: 'text', text: query || '' },
-                          ...imageAttachments.map(img => ({ type: 'image', image: img })),
-                      ] as Array<{ type: 'text'; text: string } | { type: 'image'; image: string }>)
-                    : query || '';
+            const hasNewAttachments = (imageAttachments && imageAttachments.length > 0) || (fileAttachments && fileAttachments.length > 0);
+            const finalContent:
+                | string
+                | Array<
+                      | { type: 'text'; text: string }
+                      | { type: 'image'; image: string }
+                      | { type: 'file'; mimeType: string; data: string; name?: string }
+                  > = hasNewAttachments
+                ? ([
+                      { type: 'text', text: query || '' },
+                      ...(imageAttachments || []).map(img => ({ type: 'image', image: img })),
+                      ...(fileAttachments || []).map(f => ({ type: 'file', mimeType: f.mimeType, data: f.base64, name: f.name })),
+                  ] as Array<
+                      | { type: 'text'; text: string }
+                      | { type: 'image'; image: string }
+                      | { type: 'file'; mimeType: string; data: string; name?: string }
+                  >)
+                : query || '';
             return {
                 role: 'user' as const,
                 content: finalContent,
