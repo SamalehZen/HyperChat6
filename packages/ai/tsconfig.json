@@ -10,6 +10,6 @@
         "moduleResolution": "bundler",
         "skipLibCheck": true
     },
-    "include": ["**/*.ts", "**/*.tsx", "**/**/*.ts", "**/**/*.tsx"],
+    "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts", "**/**/*.ts", "**/**/*.tsx"],
     "exclude": ["node_modules"]
 }
