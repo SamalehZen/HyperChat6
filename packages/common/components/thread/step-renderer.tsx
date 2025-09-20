@@ -26,6 +26,30 @@ export const StepRenderer = ({ step }: StepRendererType) => {
         return null;
     };
 
+    const renderPrepareStep = () => {
+        if (step?.steps && 'prepare' in step.steps) {
+            return (
+                <motion.div
+                    className="flex flex-col gap-2"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.15 }}
+                >
+                    <div className="w-[120px]">
+                        <TextShimmer
+                            duration={0.7}
+                            spread={step.steps?.prepare?.status === 'COMPLETED' ? 0 : 2}
+                            className="text-xs"
+                        >
+                            Préparation
+                        </TextShimmer>
+                    </div>
+                </motion.div>
+            );
+        }
+        return null;
+    };
+
     const renderExtractStep = () => {
         if (step?.steps && 'extract' in step.steps) {
             return (
@@ -50,6 +74,30 @@ export const StepRenderer = ({ step }: StepRendererType) => {
         return null;
     };
 
+    const renderConvertStep = () => {
+        if (step?.steps && 'convert' in step.steps) {
+            return (
+                <motion.div
+                    className="flex flex-col gap-2"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                    <div className="w-[120px]">
+                        <TextShimmer
+                            duration={0.7}
+                            spread={step.steps?.convert?.status === 'COMPLETED' ? 0 : 2}
+                            className="text-xs"
+                        >
+                            Conversion
+                        </TextShimmer>
+                    </div>
+                </motion.div>
+            );
+        }
+        return null;
+    };
+
     const renderOCRStep = () => {
         if (step?.steps && 'ocr' in step.steps) {
             return (
@@ -65,7 +113,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                             spread={step.steps?.ocr?.status === 'COMPLETED' ? 0 : 2}
                             className="text-xs"
                         >
-                            OCR & conversion
+                            OCR
                         </TextShimmer>
                     </div>
                 </motion.div>
@@ -226,8 +274,10 @@ export const StepRenderer = ({ step }: StepRendererType) => {
             >
                 {renderWrapupStep()}
                 {renderTextStep()}
+                {renderPrepareStep()}
                 {renderExtractStep()}
                 {renderOCRStep()}
+                {renderConvertStep()}
                 {renderReasoningStep()}
                 {renderSearchStep()}
                 {renderReadStep()}

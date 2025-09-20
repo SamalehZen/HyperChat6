@@ -122,6 +122,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
                             {!isRendered && (
                                 <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-muted/50 to-muted/20" />
                             )}
+                            {isScanning && <div className="scan-overlay" aria-hidden />}
                         </div>
                     );
                 })}
@@ -130,7 +131,7 @@ const PdfPreview = ({ dataUrl, index }: { dataUrl: string; index: number }) => {
     );
 };
 
-export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem }) => {
+export const AttachmentPreviewLarge = ({ threadItem, isScanning = false }: { threadItem: ThreadItem; isScanning?: boolean }) => {
     const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
 
     const attachments = useMemo(() => {
@@ -163,6 +164,7 @@ export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem 
                         {!loadedImages[idx] && (
                             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-muted/40 to-muted/10 animate-pulse" aria-hidden />
                         )}
+                        {isScanning && <div className="scan-overlay" aria-hidden />}
                     </div>
                 );
             }
@@ -175,6 +177,21 @@ export const AttachmentPreviewLarge = ({ threadItem }: { threadItem: ThreadItem 
     return (
         <div className="mb-4 flex w-full flex-col gap-3">
             {items}
+            <style jsx>{`
+                .scan-overlay {
+                    position: absolute;
+                    inset: 0;
+                    pointer-events: none;
+                    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%);
+                    mix-blend-mode: overlay;
+                    animation: scanY 1.6s ease-in-out infinite;
+                }
+                @keyframes scanY {
+                    0% { transform: translateY(-100%); opacity: 0.25; }
+                    50% { transform: translateY(0%); opacity: 0.45; }
+                    100% { transform: translateY(100%); opacity: 0.25; }
+                }
+            `}</style>
         </div>
     );
 };

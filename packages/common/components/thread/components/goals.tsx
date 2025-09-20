@@ -9,6 +9,7 @@ import {
     IconChevronRight,
     IconLoader2,
     IconNorthStar,
+    IconTable,
 } from '@tabler/icons-react';
 import { memo, useEffect, useMemo } from 'react';
 const getTitle = (threadItem: ThreadItem) => {
@@ -21,6 +22,9 @@ const getTitle = (threadItem: ThreadItem) => {
     if (threadItem.mode === ChatMode.Pro) {
         return 'Pro Search';
     }
+    if (threadItem.mode === ChatMode.SMART_PDF_TO_EXCEL) {
+        return 'Smart PDF to Excel';
+    }
     return 'Steps';
 };
 
@@ -30,6 +34,9 @@ const getIcon = (threadItem: ThreadItem) => {
     }
     if (threadItem.mode === ChatMode.Pro) {
         return <IconNorthStar size={16} strokeWidth={2} className="text-muted-foreground" />;
+    }
+    if (threadItem.mode === ChatMode.SMART_PDF_TO_EXCEL) {
+        return <IconTable size={16} strokeWidth={2} className="text-muted-foreground" />;
     }
     return <IconChecklist size={16} strokeWidth={2} className="text-muted-foreground" />;
 };
@@ -125,7 +132,12 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             updateSideDrawer({
                 renderContent: () => (
                     <div className="flex w-full flex-1 flex-col px-2 py-4">
-                        {shouldShowPreview && <AttachmentPreviewLarge threadItem={threadItem} />}
+                        {shouldShowPreview && (
+                            <AttachmentPreviewLarge
+                                threadItem={threadItem}
+                                isScanning={steps.some(s => (s.steps as any)?.extract?.status === 'PENDING' || (s.steps as any)?.ocr?.status === 'PENDING')}
+                            />
+                        )}
                         {steps.map((step, index) => (
                             <StepRenderer key={index} step={step} />
                         ))}
@@ -145,7 +157,12 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
             title: () => renderTitle(false),
             renderContent: () => (
                 <div className="flex w-full flex-1 flex-col px-2 py-4">
-                    {shouldShowPreview && <AttachmentPreviewLarge threadItem={threadItem} />}
+                    {shouldShowPreview && (
+                        <AttachmentPreviewLarge
+                            threadItem={threadItem}
+                            isScanning={steps.some(s => (s.steps as any)?.extract?.status === 'PENDING' || (s.steps as any)?.ocr?.status === 'PENDING')}
+                        />
+                    )}
                     {steps.map((step, index) => (
                         <StepRenderer key={index} step={step} />
                     ))}

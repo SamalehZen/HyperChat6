@@ -30,21 +30,14 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
         updateAnswer({ text: '', status: 'PENDING' });
 
         if (enableStepSimulation) {
-            updateStep({
-                stepId: 0,
-                stepStatus: 'PENDING',
-                subSteps: { extract: { status: 'PENDING' } },
-            });
-            updateStep({
-                stepId: 0,
-                stepStatus: 'COMPLETED',
-                subSteps: { extract: { status: 'COMPLETED' } },
-            });
-            updateStep({
-                stepId: 1,
-                stepStatus: 'PENDING',
-                subSteps: { ocr: { status: 'PENDING' } },
-            });
+            // Step 0: Préparation
+            updateStep({ stepId: 0, stepStatus: 'PENDING', subSteps: { prepare: { status: 'PENDING' } } });
+            updateStep({ stepId: 0, stepStatus: 'COMPLETED', subSteps: { prepare: { status: 'COMPLETED' } } });
+            // Step 1: Extraction
+            updateStep({ stepId: 1, stepStatus: 'PENDING', subSteps: { extract: { status: 'PENDING' } } });
+            updateStep({ stepId: 1, stepStatus: 'COMPLETED', subSteps: { extract: { status: 'COMPLETED' } } });
+            // Step 2: OCR
+            updateStep({ stepId: 2, stepStatus: 'PENDING', subSteps: { ocr: { status: 'PENDING' } } });
         }
 
         const response = await generateText({
@@ -52,24 +45,22 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages,
             signal,
-            onChunk: (chunk) => {
+            onChunk: chunk => {
                 updateAnswer({ text: chunk, status: 'PENDING' });
             },
         });
 
         if (enableStepSimulation) {
-            updateStep({
-                stepId: 1,
-                stepStatus: 'COMPLETED',
-                subSteps: { ocr: { status: 'COMPLETED' } },
-            });
+            // Complete OCR and run conversion
+            updateStep({ stepId: 2, stepStatus: 'COMPLETED', subSteps: { ocr: { status: 'COMPLETED' } } });
+            updateStep({ stepId: 3, stepStatus: 'PENDING', subSteps: { convert: { status: 'PENDING' } } });
         }
 
-        updateAnswer({
-            text: '',
-            finalText: response,
-            status: 'COMPLETED',
-        });
+        updateAnswer({ text: '', finalText: response, status: 'COMPLETED' });
+
+        if (enableStepSimulation) {
+            updateStep({ stepId: 3, stepStatus: 'COMPLETED', subSteps: { convert: { status: 'COMPLETED' } } });
+        }
 
         context?.get('onFinish')?.({
             answer: response,
