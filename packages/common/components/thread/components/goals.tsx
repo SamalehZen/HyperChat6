@@ -1,4 +1,4 @@
-import { AttachmentPreviewLarge, StepRenderer, StepStatus, ToolCallStep, ToolResultStep } from '@repo/common/components';
+import { AttachmentPreviewLarge, StepRenderer, StepStatus, TimelineSmartPdf, ToolCallStep, ToolResultStep } from '@repo/common/components';
 import { useAppStore } from '@repo/common/store';
 import { ChatMode } from '@repo/shared/config';
 import { Step, ThreadItem, ToolCall, ToolResult } from '@repo/shared/types';
@@ -138,9 +138,11 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
                                 isScanning={steps.some(s => (s.steps as any)?.extract?.status === 'PENDING' || (s.steps as any)?.ocr?.status === 'PENDING')}
                             />
                         )}
-                        {steps.map((step, index) => (
-                            <StepRenderer key={index} step={step} />
-                        ))}
+                        {threadItem.mode === ChatMode.SMART_PDF_TO_EXCEL ? (
+                            <TimelineSmartPdf steps={steps} threadItem={threadItem} />
+                        ) : (
+                            steps.map((step, index) => <StepRenderer key={index} step={step} />)
+                        )}
                     </div>
                 ),
                 badge: stepCounts,
@@ -163,9 +165,11 @@ export const Steps = ({ steps, threadItem }: { steps: Step[]; threadItem: Thread
                             isScanning={steps.some(s => (s.steps as any)?.extract?.status === 'PENDING' || (s.steps as any)?.ocr?.status === 'PENDING')}
                         />
                     )}
-                    {steps.map((step, index) => (
-                        <StepRenderer key={index} step={step} />
-                    ))}
+                    {threadItem.mode === ChatMode.SMART_PDF_TO_EXCEL ? (
+                        <TimelineSmartPdf steps={steps} threadItem={threadItem} />
+                    ) : (
+                        steps.map((step, index) => <StepRenderer key={index} step={step} />)
+                    )}
                     {/* {toolCallAndResults.map(({ toolCall, toolResult }) => (
                         <ToolStep toolCall={toolCall} toolResult={toolResult} />
                     ))} */}
