@@ -7,5 +7,6 @@ export * from './question-prompt';
 export * from './source-grid';
 export * from './source-list';
 export * from './tool-call';
-
+export * from './attachment-preview-large';
+export * from './timeline-smart-pdf';
 export * from './tool-result';

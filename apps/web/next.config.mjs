@@ -14,8 +14,19 @@ const nextConfig = {
         externalDir: true,
     },
     webpack: (config, options) => {
-        if (!options.isServer) {
-            config.resolve.fallback = { fs: false, module: false, path: false };
+        if (options.isServer) {
+            // Avoid bundling native canvas on server build
+            config.externals = config.externals || [];
+            config.externals.push({ canvas: 'canvas' });
+        } else {
+            // Prevent attempts to polyfill native canvas in client bundle
+            config.resolve.fallback = {
+                ...(config.resolve.fallback || {}),
+                fs: false,
+                module: false,
+                path: false,
+                canvas: false,
+            };
         }
         // Experimental features
         config.experiments = {
