@@ -2,17 +2,21 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 import { MeshShaderBackground } from './mesh-shader-background';
+import { ShaderAnimationBackground } from './shader-animation-background';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old' | 'mesh';
+  variant?: 'new' | 'old' | 'mesh' | 'shader';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
   if (variant === 'mesh') {
     return <MeshShaderBackground />;
+  }
+  if (variant === 'shader') {
+    return <ShaderAnimationBackground />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';

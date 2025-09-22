@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { ShinePreset } from '@repo/shared/config';
 
-export type BackgroundVariant = 'new' | 'old' | 'mesh';
+export type BackgroundVariant = 'new' | 'old' | 'mesh' | 'shader';
 
 type PreferencesState = {
   backgroundVariant: BackgroundVariant;

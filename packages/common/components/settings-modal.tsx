@@ -535,8 +535,9 @@ export const PersonalizationSettings = () => {
                     <option value="new">{t('settings.personalization.background.new')}</option>
                     <option value="old">{t('settings.personalization.background.old')}</option>
                     <option value="mesh">{t('settings.personalization.background.mesh')}</option>
+                    <option value="shader">{t('settings.personalization.background.shader')}</option>
                 </select>
-                {backgroundVariant !== 'mesh' && (
+                {(backgroundVariant === 'new' || backgroundVariant === 'old') && (
                     <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
                 )}
             </div>
