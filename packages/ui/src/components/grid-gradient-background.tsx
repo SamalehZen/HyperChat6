@@ -4,12 +4,14 @@ import { cn } from '../lib/utils';
 import { MeshShaderBackground } from './mesh-shader-background';
 import { ShaderAnimationBackground } from './shader-animation-background';
 import { NeuralNoiseBackground } from './neural-noise-background';
+import { RedLinesFogBackground } from './red-lines-fog-background';
+import { ShaderLinesBackground } from './shader-lines-background';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural';
+  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
@@ -21,6 +23,12 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   }
   if (variant === 'neural') {
     return <NeuralNoiseBackground />;
+  }
+  if (variant === 'redlines') {
+    return <RedLinesFogBackground />;
+  }
+  if (variant === 'shaderlines') {
+    return <ShaderLinesBackground />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';
