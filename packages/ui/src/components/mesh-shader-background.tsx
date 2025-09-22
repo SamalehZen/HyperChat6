@@ -19,18 +19,18 @@ export function MeshShaderBackground({ children }: { children?: ReactNode }) {
           </filter>
         </defs>
       </svg>
-      <MeshGradient
-        className="absolute inset-0 w-full h-full"
-        colors={["#000000", "#8b5cf6", "#ffffff", "#1e1b4b", "#4c1d95"]}
-        speed={0.3}
-        backgroundColor="#000000"
-      />
+      <div className="absolute inset-0" style={{ backgroundColor: "#000000" }}>
+        <MeshGradient
+          className="absolute inset-0 w-full h-full"
+          colors={["#000000", "#8b5cf6", "#ffffff", "#1e1b4b", "#4c1d95"]}
+          speed={0.3}
+        />
+      </div>
       <MeshGradient
         className="absolute inset-0 w-full h-full opacity-60"
         colors={["#000000", "#ffffff", "#8b5cf6", "#000000"]}
         speed={0.2}
         wireframe
-        backgroundColor="transparent"
       />
       {children}
     </div>
