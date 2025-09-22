@@ -53,6 +53,7 @@
   "settings.personalization.background.shader": "Shader animation",
   "settings.personalization.background.neural": "Neural noise",
   "settings.personalization.background.redlines": "Lignes rouges (brume)",
+  "settings.personalization.background.shaderlines": "Lignes shader",
   "settings.personalization.shine.title": "Couleurs de la bordure lumineuse",
   "settings.personalization.shine.description": "Choisissez un préréglage de 3 couleurs pour la bordure animée de l’entrée de chat.",
   "settings.personalization.shine.palette1": "Palette 1",

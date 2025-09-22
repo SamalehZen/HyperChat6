@@ -538,6 +538,7 @@ export const PersonalizationSettings = () => {
                     <option value="shader">{t('settings.personalization.background.shader')}</option>
                     <option value="neural">{t('settings.personalization.background.neural')}</option>
                     <option value="redlines">{t('settings.personalization.background.redlines')}</option>
+                    <option value="shaderlines">{t('settings.personalization.background.shaderlines')}</option>
                 </select>
                 {(backgroundVariant === 'new' || backgroundVariant === 'old') && (
                     <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
