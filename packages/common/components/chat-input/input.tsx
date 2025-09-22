@@ -253,7 +253,9 @@ export const ChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && (
+                <GridGradientBackground side="left" variant={backgroundVariant === 'old' ? 'old' : 'new'} />
+            )}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',

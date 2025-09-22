@@ -437,7 +437,7 @@ export const AnimatedChatInput = ({
                 backgroundVariant === 'red-beam' ? (
                     <RedBeamBackground className="hidden md:block absolute inset-0 z-0 pointer-events-none" />
                 ) : (
-                    <GridGradientBackground side="left" variant={backgroundVariant as any} />
+                    <GridGradientBackground side="left" variant={backgroundVariant === 'old' ? 'old' : 'new'} />
                 )
             )}
             <div
