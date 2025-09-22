@@ -30,7 +30,6 @@ export function MeshShaderBackground({ children }: { children?: ReactNode }) {
         className="absolute inset-0 w-full h-full opacity-60"
         colors={["#000000", "#ffffff", "#8b5cf6", "#000000"]}
         speed={0.2}
-        wireframe
       />
       {children}
     </div>
