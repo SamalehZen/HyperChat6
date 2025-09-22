@@ -50,6 +50,8 @@
   "settings.personalization.background.new": "New",
   "settings.personalization.background.old": "Old",
   "settings.personalization.background.mesh": "Mesh shader",
+  "settings.personalization.background.shader": "Shader animation",
+  "settings.personalization.background.neural": "Neural noise",
   "settings.personalization.shine.title": "Shine border colors",
   "settings.personalization.shine.description": "Choose a 3‑color preset for the animated chat input border.",
   "settings.personalization.shine.palette1": "Palette 1",
