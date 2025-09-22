@@ -1,4 +1,5 @@
 import { AnimatedChatInput } from '@repo/common/components';
+import ChatBackgroundWrapper from "../../components/chat-background-wrapper";
 
 export default function ChatPageLayout({
     children,
@@ -9,7 +10,9 @@ export default function ChatPageLayout({
 }) {
     return (
         <div className="chat-theme relative flex h-full w-full flex-col">
-            {children}
+            <ChatBackgroundWrapper>
+                {children}
+            </ChatBackgroundWrapper>
             <AnimatedChatInput />
         </div>
     );
