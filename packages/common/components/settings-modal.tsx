@@ -529,13 +529,16 @@ export const PersonalizationSettings = () => {
                     id="background-select"
                     className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
                     value={backgroundVariant}
-                    onChange={(e) => setBackgroundVariant(e.target.value as 'new' | 'old')}
+                    onChange={(e) => setBackgroundVariant(e.target.value as any)}
                     aria-label={t('settings.personalization.background.title')}
                 >
                     <option value="new">{t('settings.personalization.background.new')}</option>
                     <option value="old">{t('settings.personalization.background.old')}</option>
+                    <option value="mesh">{t('settings.personalization.background.mesh')}</option>
                 </select>
-                <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
+                {backgroundVariant !== 'mesh' && (
+                    <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
+                )}
             </div>
             <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">
                 <ChatEditor editor={editor} />
