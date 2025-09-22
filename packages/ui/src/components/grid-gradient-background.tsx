@@ -3,12 +3,13 @@ import React from 'react';
 import { cn } from '../lib/utils';
 import { MeshShaderBackground } from './mesh-shader-background';
 import { ShaderAnimationBackground } from './shader-animation-background';
+import { NeuralNoiseBackground } from './neural-noise-background';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old' | 'mesh' | 'shader';
+  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
@@ -17,6 +18,9 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   }
   if (variant === 'shader') {
     return <ShaderAnimationBackground />;
+  }
+  if (variant === 'neural') {
+    return <NeuralNoiseBackground />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';

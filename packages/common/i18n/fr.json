@@ -51,6 +51,7 @@
   "settings.personalization.background.old": "Ancien",
   "settings.personalization.background.mesh": "Mesh shader",
   "settings.personalization.background.shader": "Shader animation",
+  "settings.personalization.background.neural": "Neural noise",
   "settings.personalization.shine.title": "Couleurs de la bordure lumineuse",
   "settings.personalization.shine.description": "Choisissez un préréglage de 3 couleurs pour la bordure animée de l’entrée de chat.",
   "settings.personalization.shine.palette1": "Palette 1",
