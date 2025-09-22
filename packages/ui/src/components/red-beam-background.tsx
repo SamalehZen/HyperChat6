@@ -117,18 +117,18 @@ export function RedBeamBackground({
   color = "#FF4444",
   intensity = 0.9,
   mouseTiltStrength = 0,
-  performance,
+  performance: perfOptions,
 }: RedBeamBackgroundProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const stoppedRef = useRef(false);
 
   const perf = useMemo(
     () => ({
-      minFps: performance?.minFps ?? 50,
-      maxFps: performance?.maxFps ?? 58,
-      dprFloor: performance?.dprFloor ?? 0.6,
+      minFps: perfOptions?.minFps ?? 50,
+      maxFps: perfOptions?.maxFps ?? 58,
+      dprFloor: perfOptions?.dprFloor ?? 0.6,
     }),
-    [performance]
+    [perfOptions]
   );
 
   useEffect(() => {
@@ -239,7 +239,12 @@ export function RedBeamBackground({
     };
     window.addEventListener("mousemove", handleMouse);
 
-    function now() { return (typeof performance !== "undefined" ? performance.now() : Date.now()); }
+    function now() {
+      if (typeof window !== "undefined" && window.performance && typeof window.performance.now === "function") {
+        return window.performance.now();
+      }
+      return Date.now();
+    }
 
     const loop = () => {
       if (stoppedRef.current) {
