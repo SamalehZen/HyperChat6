@@ -8,7 +8,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName, getShineColors } from '@repo/shared/config';
-import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground } from '@repo/ui';
+import { cn, Flex, AI_Prompt, ModelIcons, useToast, GridGradientBackground, RedBeamBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -433,10 +433,16 @@ export const AnimatedChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && (
+                backgroundVariant === 'red-beam' ? (
+                    <RedBeamBackground className="hidden md:block absolute inset-0 z-0 pointer-events-none" />
+                ) : (
+                    <GridGradientBackground side="left" variant={backgroundVariant as any} />
+                )
+            )}
             <div
                 className={cn(
-                    'mx-auto flex w-full max-w-3xl flex-col items-start',
+                    'relative z-10 mx-auto flex w-full max-w-3xl flex-col items-start',
                     !threadItemsLength && 'justify-start',
                     !currentThreadId && 'px-8'
                 )}

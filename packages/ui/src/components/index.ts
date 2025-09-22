@@ -43,5 +43,6 @@ export * from './shine-border';
 
 // Export specific components that are needed
 export * from './grid-gradient-background';
+export * from './red-beam-background';
 
 export { AI_Prompt, ModelIcons } from './animated-ai-input';

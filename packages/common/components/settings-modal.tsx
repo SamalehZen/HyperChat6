@@ -1,5 +1,6 @@
 'use client';
 import { useMcpToolsStore, usePreferencesStore } from '@repo/common/store';
+import type { BackgroundVariant } from '@repo/common/store';
 import { Alert, AlertDescription, DialogFooter, ShineBorder, RadioGroup, RadioGroupItem } from '@repo/ui';
 import { Button } from '@repo/ui/src/components/button';
 import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from './icons';
@@ -529,11 +530,12 @@ export const PersonalizationSettings = () => {
                     id="background-select"
                     className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
                     value={backgroundVariant}
-                    onChange={(e) => setBackgroundVariant(e.target.value as 'new' | 'old')}
+                    onChange={(e) => setBackgroundVariant(e.target.value as BackgroundVariant)}
                     aria-label={t('settings.personalization.background.title')}
                 >
                     <option value="new">{t('settings.personalization.background.new')}</option>
                     <option value="old">{t('settings.personalization.background.old')}</option>
+                    <option value="red-beam">{t('settings.personalization.background.red_beam')}</option>
                 </select>
                 <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
             </div>
