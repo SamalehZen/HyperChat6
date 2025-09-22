@@ -1,15 +1,20 @@
 'use client';
 import React from 'react';
 import { cn } from '../lib/utils';
+import { MeshShaderBackground } from './mesh-shader-background';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old';
+  variant?: 'new' | 'old' | 'mesh';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
+  if (variant === 'mesh') {
+    return <MeshShaderBackground />;
+  }
+
   const haloColor = 'rgba(139,92,246,0.25)';
   const radialAt = side === 'right' ? '100% 200px' : '0% 200px';
 

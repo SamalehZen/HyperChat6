@@ -49,6 +49,7 @@
   "settings.personalization.background.title": "Style d’arrière‑plan",
   "settings.personalization.background.new": "Nouveau",
   "settings.personalization.background.old": "Ancien",
+  "settings.personalization.background.mesh": "Mesh shader",
   "settings.personalization.shine.title": "Couleurs de la bordure lumineuse",
   "settings.personalization.shine.description": "Choisissez un préréglage de 3 couleurs pour la bordure animée de l’entrée de chat.",
   "settings.personalization.shine.palette1": "Palette 1",
