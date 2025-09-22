@@ -7,7 +7,7 @@ import {
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { ChatModeConfig, ChatMode } from '@repo/shared/config';
-import { cn, Flex, GridGradientBackground } from '@repo/ui';
+import { cn, Flex, GridGradientBackground, RedBeamBackground } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -254,7 +254,11 @@ export const ChatInput = ({
             )}
         >
             {!currentThreadId && (
-                <GridGradientBackground side="left" variant={backgroundVariant === 'old' ? 'old' : 'new'} />
+                backgroundVariant === 'red-beam' ? (
+                    <RedBeamBackground className="hidden md:block absolute inset-0 z-0 pointer-events-none" />
+                ) : (
+                    <GridGradientBackground side="left" variant={backgroundVariant === 'old' ? 'old' : 'new'} />
+                )
             )}
             <div
                 className={cn(
