@@ -469,6 +469,8 @@ export const PersonalizationSettings = () => {
     const setBackgroundVariant = usePreferencesStore(state => state.setBackgroundVariant);
     const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
     const setAiPromptShinePreset = usePreferencesStore(state => state.setAiPromptShinePreset);
+    const unicornProjectId = usePreferencesStore(state => state.unicornProjectId);
+    const setUnicornProjectId = usePreferencesStore(state => state.setUnicornProjectId);
     const { editor } = useChatEditor({
         charLimit: MAX_CHAR_LIMIT,
         defaultContent: customInstructions,
@@ -539,9 +541,21 @@ export const PersonalizationSettings = () => {
                     <option value="neural">{t('settings.personalization.background.neural')}</option>
                     <option value="redlines">{t('settings.personalization.background.redlines')}</option>
                     <option value="shaderlines">{t('settings.personalization.background.shaderlines')}</option>
+                    <option value="unicorn">{t('settings.personalization.background.unicorn')}</option>
                 </select>
                 {(backgroundVariant === 'new' || backgroundVariant === 'old') && (
                     <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
+                )}
+                {backgroundVariant === 'unicorn' && (
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium" htmlFor="unicorn-project-id">{t('settings.personalization.unicorn.projectId.label')}</label>
+                        <Input
+                            id="unicorn-project-id"
+                            placeholder={t('settings.personalization.unicorn.projectId.placeholder')}
+                            value={unicornProjectId}
+                            onChange={(e) => setUnicornProjectId(e.target.value)}
+                        />
+                    </div>
                 )}
             </div>
             <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">

@@ -5,16 +5,18 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { ShinePreset } from '@repo/shared/config';
 
-export type BackgroundVariant = 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines';
+export type BackgroundVariant = 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines' | 'unicorn';
 
 type PreferencesState = {
   backgroundVariant: BackgroundVariant;
   aiPromptShinePreset: ShinePreset;
+  unicornProjectId: string;
 };
 
 type PreferencesActions = {
   setBackgroundVariant: (v: BackgroundVariant) => void;
   setAiPromptShinePreset: (preset: ShinePreset) => void;
+  setUnicornProjectId: (id: string) => void;
 };
 
 export const usePreferencesStore = create<PreferencesState & PreferencesActions>()(
@@ -22,6 +24,7 @@ export const usePreferencesStore = create<PreferencesState & PreferencesActions>
     immer((set) => ({
       backgroundVariant: 'new',
       aiPromptShinePreset: 'palette2',
+      unicornProjectId: 'SAMALEHARKA',
       setBackgroundVariant: (v: BackgroundVariant) => {
         set((state) => {
           state.backgroundVariant = v;
@@ -30,6 +33,11 @@ export const usePreferencesStore = create<PreferencesState & PreferencesActions>
       setAiPromptShinePreset: (preset: ShinePreset) => {
         set((state) => {
           state.aiPromptShinePreset = preset;
+        });
+      },
+      setUnicornProjectId: (id: string) => {
+        set((state) => {
+          state.unicornProjectId = id;
         });
       },
     })),

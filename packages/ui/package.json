@@ -22,7 +22,8 @@
     "lucide-react": "^0.468.0",
     "three": "^0.160.0",
     "tailwind-merge": "^2.0.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "unicornstudio-react": "^1.4.29-1"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

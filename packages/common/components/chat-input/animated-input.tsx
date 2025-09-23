@@ -41,6 +41,7 @@ export const AnimatedChatInput = ({
     const { user } = useUser();
     const { threadId: currentThreadId } = useParams();
     const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
+    const unicornProjectId = usePreferencesStore(state => state.unicornProjectId);
     const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
     const getThreadItems = useChatStore(state => state.getThreadItems);
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
@@ -433,7 +434,7 @@ export const AnimatedChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} unicornProjectId={unicornProjectId} />}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',

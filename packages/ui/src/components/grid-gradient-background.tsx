@@ -6,15 +6,17 @@ import { ShaderAnimationBackground } from './shader-animation-background';
 import { NeuralNoiseBackground } from './neural-noise-background';
 import { RedLinesFogBackground } from './red-lines-fog-background';
 import { ShaderLinesBackground } from './shader-lines-background';
+import { UnicornBackground } from './unicorn-background';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines';
+  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines' | 'unicorn';
+  unicornProjectId?: string;
 };
 
-export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
+export function GridGradientBackground({ side = 'left', className, style, variant = 'new', unicornProjectId }: GridGradientBackgroundProps) {
   if (variant === 'mesh') {
     return <MeshShaderBackground />;
   }
@@ -29,6 +31,9 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   }
   if (variant === 'shaderlines') {
     return <ShaderLinesBackground />;
+  }
+  if (variant === 'unicorn') {
+    return <UnicornBackground projectId={unicornProjectId || ''} />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';

@@ -54,6 +54,7 @@ export const ChatInput = ({
     });
     const size = currentThreadId ? 'base' : 'sm';
     const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
+    const unicornProjectId = usePreferencesStore(state => state.unicornProjectId);
     const getThreadItems = useChatStore(state => state.getThreadItems);
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
     const { handleSubmit } = useAgentStream();
@@ -253,7 +254,7 @@ export const ChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} unicornProjectId={unicornProjectId} />}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',
