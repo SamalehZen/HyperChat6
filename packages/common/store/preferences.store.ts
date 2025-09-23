@@ -24,7 +24,7 @@ export const usePreferencesStore = create<PreferencesState & PreferencesActions>
     immer((set) => ({
       backgroundVariant: 'new',
       aiPromptShinePreset: 'palette2',
-      unicornProjectId: 'SAMALEHARKA',
+      unicornProjectId: '4gZ4it90JCXyP8TH783D',
       setBackgroundVariant: (v: BackgroundVariant) => {
         set((state) => {
           state.backgroundVariant = v;
