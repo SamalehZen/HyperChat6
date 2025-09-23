@@ -33,7 +33,7 @@ export function GridGradientBackground({ side = 'left', className, style, varian
     return <ShaderLinesBackground />;
   }
   if (variant === 'unicorn') {
-    return <UnicornBackground projectId={unicornProjectId || ''} />;
+    return <UnicornBackground projectId={unicornProjectId || '4gZ4it90JCXyP8TH783D'} />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';
