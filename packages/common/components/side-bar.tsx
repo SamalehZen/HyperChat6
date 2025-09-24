@@ -1,5 +1,5 @@
 'use client';
-import { useClerk, useUser } from '@clerk/nextjs';
+import { useAuth, useUser } from '@repo/common/context';
 import { FullPageLoader, HistoryItem, Logo } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { useAppStore, useChatStore } from '@repo/common/store';
@@ -46,8 +46,8 @@ export const Sidebar = () => {
     const unpinThread = useChatStore(state => state.unpinThread);
     const { t } = useI18n();
 
-    const { isSignedIn, user } = useUser();
-    const { openUserProfile, signOut } = useClerk();
+    const { isSignedIn } = useAuth();
+    const { user } = useUser();
     const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
     const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
     const setIsSettingsOpen = useAppStore(state => state.setIsSettingsOpen);
@@ -367,26 +367,12 @@ export const Sidebar = () => {
                                     )}
                                 >
                                     <div className="bg-brand flex size-5 shrink-0 items-center justify-center rounded-full">
-                                        {user && user.hasImage ? (
-                                            <img
-                                                src={user?.imageUrl ?? ''}
-                                                width={0}
-                                                height={0}
-                                                className="size-full shrink-0 rounded-full"
-                                                alt={user?.fullName ?? ''}
-                                            />
-                                        ) : (
-                                            <IconUser
-                                                size={14}
-                                                strokeWidth={2}
-                                                className="text-background"
-                                            />
-                                        )}
+                                        <IconUser size={14} strokeWidth={2} className="text-background" />
                                     </div>
 
                                     {isSidebarOpen && (
                                         <p className="line-clamp-1 flex-1 !text-sm font-medium">
-                                            {user?.fullName}
+                                            {user?.email}
                                         </p>
                                     )}
                                     {isSidebarOpen && (
@@ -403,14 +389,9 @@ export const Sidebar = () => {
                                     <IconSettings size={16} strokeWidth={2} />
                                     {t('actions.settings')}
                                 </DropdownMenuItem>
+
                                 {isSignedIn && (
-                                    <DropdownMenuItem onClick={() => openUserProfile()}>
-                                        <IconUser size={16} strokeWidth={2} />
-                                        {t('actions.profile')}
-                                    </DropdownMenuItem>
-                                )}
-                                {isSignedIn && (
-                                    <DropdownMenuItem onClick={() => signOut()}>
+                                    <DropdownMenuItem onClick={() => fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.reload())}>
                                         <IconLogout size={16} strokeWidth={2} />
                                         {t('actions.signOut')}
                                     </DropdownMenuItem>
