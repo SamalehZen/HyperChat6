@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
+  if ((user as any).deletedAt) return NextResponse.json({ error: 'Compte supprimé' }, { status: 410 });
+  if ((user as any).isLocked) return NextResponse.json({ error: 'Compte verrouillé' }, { status: 423 });
   if (user.isSuspended) return NextResponse.json({ error: 'Compte suspendu' }, { status: 403 });
 
   const ok = await bcrypt.compare(password, user.passwordHash);

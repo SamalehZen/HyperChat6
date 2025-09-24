@@ -8,6 +8,8 @@ type UserRow = {
   email: string;
   role: 'admin' | 'user';
   isSuspended: boolean;
+  isLocked?: boolean;
+  deletedAt?: string | null;
   createdAt: string;
   lastSeen?: string | null;
   lastIp?: string | null;
@@ -47,8 +49,10 @@ export default function AdminPage() {
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
       <h1 className="mb-4 text-2xl font-semibold">Administration</h1>
+      <KPIHeader />
       <CreateUser onCreated={reload} />
       <OnlinePanel />
+      <RecentEventsPanel />
 
       <div className="mt-6 flex items-end gap-3">
         <div className="flex-1">
@@ -66,6 +70,8 @@ export default function AdminPage() {
             <option value="online">En ligne</option>
             <option value="offline">Hors ligne</option>
             <option value="suspended">Suspendu</option>
+            <option value="locked">Bloqué</option>
+            <option value="deleted">Supprimé</option>
           </select>
         </div>
         <Button onClick={() => { setPage(1); reload(); }}>Appliquer</Button>
@@ -90,7 +96,17 @@ export default function AdminPage() {
               <tr key={u.id} className="border-t">
                 <td className="px-3 py-2">{u.email}</td>
                 <td className="px-3 py-2">{u.role}</td>
-                <td className="px-3 py-2">{u.isSuspended ? 'Suspendu' : 'Actif'}</td>
+                <td className="px-3 py-2">
+                  <div className="flex flex-wrap gap-1">
+                    {u.deletedAt ? (<span className="inline-flex items-center rounded bg-red-500/10 px-2 py-0.5 text-xs text-red-600">Supprimé</span>) : (
+                      <>
+                        {u.isSuspended && (<span className="inline-flex items-center rounded bg-amber-500/10 px-2 py-0.5 text-xs text-amber-600">Suspendu</span>)}
+                        {u.isLocked && (<span className="inline-flex items-center rounded bg-purple-500/10 px-2 py-0.5 text-xs text-purple-600">Bloqué</span>)}
+                        {!u.isSuspended && !u.isLocked && (<span className="inline-flex items-center rounded bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-600">Actif</span>)}
+                      </>
+                    )}
+                  </div>
+                </td>
                 <td className="px-3 py-2">{u.online ? 'Oui' : 'Non'}</td>
                 <td className="px-3 py-2">{u.lastIp ?? '-'}</td>
                 <td className="px-3 py-2">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
@@ -302,6 +318,125 @@ function OnlinePanel() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function KPIHeader() {
+  const [data, setData] = useState<any | null>(null);
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch('/api/admin/metrics', { cache: 'no-store' });
+      if (res.ok) setData(await res.json());
+    };
+    load();
+  }, []);
+  return (
+    <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+      <KpiCard title="Utilisateurs en ligne (1 min)" value={data?.onlineCount ?? '-'} series={data?.series?.onlineCount ?? []} dates={data?.series?.dates ?? []} color="emerald" />
+      <KpiCard title="Comptes suspendus" value={data?.suspendedCount ?? '-'} series={data?.series?.suspendedCount ?? []} dates={data?.series?.dates ?? []} color="amber" />
+      <KpiCard title="Comptes supprimés" value={data?.deletedCount ?? '-'} series={data?.series?.deletedCount ?? []} dates={data?.series?.dates ?? []} color="red" />
+      <KpiCard title="Réactivations après lockout (24h)" value={data?.reactivatedAfterLockoutCount ?? '-'} series={data?.series?.reactivatedAfterLockoutCount ?? []} dates={data?.series?.dates ?? []} color="sky" />
+    </div>
+  );
+}
+
+function KpiCard({ title, value, series, dates, color }: { title: string; value: number | string; series: number[]; dates: string[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
+  return (
+    <div className="rounded-md border p-3">
+      <div className="text-sm text-muted-foreground">{title}</div>
+      <div className="mt-1 flex items-end justify-between gap-2">
+        <div className="text-2xl font-semibold">{value}</div>
+        <MiniSpark series={series} color={color} />
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground">{dates?.[0]} → {dates?.[dates.length-1]}</div>
+    </div>
+  );
+}
+
+function MiniSpark({ series, color }: { series: number[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
+  const max = Math.max(1, ...series);
+  const heights = series.map(v => Math.max(2, Math.round((v / max) * 24)));
+  const colors: Record<string, string> = {
+    emerald: 'bg-emerald-500/70',
+    amber: 'bg-amber-500/70',
+    red: 'bg-red-500/70',
+    sky: 'bg-sky-500/70',
+  };
+  return (
+    <div className="flex h-16 w-28 items-end gap-1">
+      {heights.map((h, i) => (
+        <div key={i} className={`${colors[color]} w-2 rounded`} style={{ height: `${h}px` }} />
+      ))}
+    </div>
+  );
+}
+
+function RecentEventsPanel() {
+  const [items, setItems] = useState<any[]>([]);
+  const [limit, setLimit] = useState(25);
+  const [types, setTypes] = useState<string[]>([]);
+
+  const load = async (currentLimit = limit, currentTypes = types) => {
+    const params = new URLSearchParams();
+    params.set('limit', String(currentLimit));
+    if (currentTypes.length) params.set('types', currentTypes.join(','));
+    const res = await fetch(`/api/admin/events/recent?${params.toString()}`, { cache: 'no-store' });
+    if (res.ok) setItems((await res.json()).items);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const toggleType = (t: string) => {
+    setTypes(prev => {
+      const next = prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t];
+      load(limit, next);
+      return next;
+    });
+  };
+
+  const allTypes = ['login_failed','lockout','unlock','suspend','unsuspend','delete','account_created','account_updated'];
+
+  return (
+    <div className="mt-4 rounded-md border p-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">Événements récents (24h)</h2>
+        <div className="flex flex-wrap gap-2">
+          {allTypes.map(t => (
+            <label key={t} className={`text-xs ${types.includes(t) ? 'font-semibold' : ''}`}>
+              <input type="checkbox" className="mr-1 align-middle" checked={types.includes(t)} onChange={() => toggleType(t)} />
+              {t}
+            </label>
+          ))}
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-md border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium">Date</th>
+              <th className="px-3 py-2 text-left font-medium">Type</th>
+              <th className="px-3 py-2 text-left font-medium">IP</th>
+              <th className="px-3 py-2 text-left font-medium">Géo</th>
+              <th className="px-3 py-2 text-left font-medium">Détails</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it) => (
+              <tr key={it.id} className="border-t">
+                <td className="px-3 py-2">{new Date(it.createdAt).toLocaleString()}</td>
+                <td className="px-3 py-2">{it.action}</td>
+                <td className="px-3 py-2">{it.ip || '-'}</td>
+                <td className="px-3 py-2">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
+                <td className="px-3 py-2 max-w-[260px] truncate">{it.details ? JSON.stringify(it.details) : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-2 text-right">
+        <Button size="sm" variant="secondary" onClick={() => { const nl = limit + 25; setLimit(nl); load(nl); }}>Charger plus</Button>
+      </div>
     </div>
   );
 }

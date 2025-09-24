@@ -38,15 +38,31 @@ type Actions = {
     dismissSideDrawer: () => void;
 };
 
+const SIDEBAR_PERSIST_KEY = 'admin.sidebar.open';
+
 export const useAppStore = create(
     immer<State & Actions>((set, get) => ({
-        isSidebarOpen: true,
+        isSidebarOpen:
+            typeof window !== 'undefined'
+                ? (() => {
+                      try {
+                          const v = window.localStorage.getItem(SIDEBAR_PERSIST_KEY);
+                          return v ? JSON.parse(v) : false;
+                      } catch {
+                          return false;
+                      }
+                  })()
+                : false,
         isSourcesOpen: false,
         isSettingsOpen: false,
         settingTab: 'api-keys',
         showSignInModal: false,
         setIsSidebarOpen: (prev: (prev: boolean) => boolean) =>
-            set({ isSidebarOpen: prev(get().isSidebarOpen) }),
+            set(state => {
+                const next = prev(state.isSidebarOpen);
+                try { if (typeof window !== 'undefined') window.localStorage.setItem(SIDEBAR_PERSIST_KEY, JSON.stringify(next)); } catch {}
+                return { isSidebarOpen: next };
+            }),
         setIsSourcesOpen: (prev: (prev: boolean) => boolean) =>
             set({ isSourcesOpen: prev(get().isSourcesOpen) }),
         setIsSettingsOpen: (open: boolean) => set({ isSettingsOpen: open }),

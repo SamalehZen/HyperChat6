@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
 import { requireAdmin } from '@/app/api/_lib/auth';
+import { ONLINE_THRESHOLD_MS, ONLINE_FUDGE_MS } from '@/app/api/_lib/constants';
 
 export async function GET(request: NextRequest) {
   await requireAdmin(request);
-  const threshold = new Date(Date.now() - 120_000);
+  const threshold = new Date(Date.now() - (ONLINE_THRESHOLD_MS + ONLINE_FUDGE_MS));
 
   const sessions = await prisma.session.findMany({
     where: { lastSeen: { gte: threshold } },
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const byUser = new Map<string, typeof sessions[number]>();
   for (const s of sessions) {
-    if (!s.user || s.user.isSuspended) continue;
+    if (!s.user || s.user.isSuspended || (s.user as any).deletedAt) continue;
     if (!byUser.has(s.userId)) byUser.set(s.userId, s);
   }
 
