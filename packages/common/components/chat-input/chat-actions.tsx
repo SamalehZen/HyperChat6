@@ -1,5 +1,5 @@
 'use client';
-import { useAuth } from '@repo/common/context/auth';
+import { useAuth } from '@repo/common/context';
 import { DotSpinner } from '@repo/common/components';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';

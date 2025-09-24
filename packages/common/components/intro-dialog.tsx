@@ -1,4 +1,4 @@
-import { useAuth } from '@repo/common/context/auth';
+import { useAuth } from '@repo/common/context';
 import { cn, Dialog, DialogContent } from '@repo/ui';
 import { IconCircleCheckFilled } from './icons';
 import { useEffect, useState } from 'react';

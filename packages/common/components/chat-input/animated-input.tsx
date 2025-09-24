@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth, useUser } from '@repo/common/context/auth';
+import { useAuth, useUser } from '@repo/common/context';
 import {
     ImageAttachment,
     ImageDropzoneRoot,

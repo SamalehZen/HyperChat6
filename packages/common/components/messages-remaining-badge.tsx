@@ -1,4 +1,4 @@
-import { useAuth } from '@repo/common/context/auth';
+import { useAuth } from '@repo/common/context';
 import { useApiKeysStore, useAppStore, useChatStore } from '@repo/common/store';
 import { motion } from 'framer-motion';
 import { useI18n } from '@repo/common/i18n';

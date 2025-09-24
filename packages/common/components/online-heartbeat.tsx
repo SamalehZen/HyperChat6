@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth } from '@repo/common/context/auth';
+import { useAuth } from '@repo/common/context';
 
 export function OnlineHeartbeat({ intervalMs = 60_000 }: { intervalMs?: number }) {
   const { isSignedIn } = useAuth();

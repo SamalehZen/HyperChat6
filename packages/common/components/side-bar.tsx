@@ -1,5 +1,5 @@
 'use client';
-import { useAuth, useUser } from '@repo/common/context/auth';
+import { useAuth, useUser } from '@repo/common/context';
 import { FullPageLoader, HistoryItem, Logo } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { useAppStore, useChatStore } from '@repo/common/store';

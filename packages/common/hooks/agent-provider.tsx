@@ -1,4 +1,4 @@
-import { useAuth, useUser } from '@repo/common/context/auth';
+import { useAuth, useUser } from '@repo/common/context';
 import { useWorkflowWorker } from '@repo/ai/worker';
 import { ChatMode, ChatModeConfig } from '@repo/shared/config';
 import { ThreadItem } from '@repo/shared/types';

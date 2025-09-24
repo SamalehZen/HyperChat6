@@ -1,4 +1,4 @@
-import { AuthProvider } from '@repo/common/context/auth';
+import { AuthProvider } from '@repo/common/context';
 import { RootLayout } from '@repo/common/components';
 import { ReactQueryProvider, RootProvider } from '@repo/common/context';
 import { TooltipProvider, cn } from '@repo/ui';
@@ -16,7 +16,7 @@ const bricolage = Bricolage_Grotesque({
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { I18nProvider } from '@repo/common/i18n';
-import { OnlineHeartbeat } from '@repo/common/components/online-heartbeat';
+import { OnlineHeartbeat } from '@repo/common/components';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
