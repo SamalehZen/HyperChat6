@@ -25,7 +25,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         lockReason: null,
       },
     }),
-    prisma.activityLog.create({
+  ]);
+
+  try {
+    await prisma.activityLog.create({
       data: {
         userId: id,
         actorId: admin.userId,
@@ -36,8 +39,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         region: gl?.region ?? undefined,
         city: gl?.city ?? undefined,
       },
-    }),
-  ]);
+    });
+  } catch (_) {
+    // ignore logging errors
+  }
 
   return NextResponse.json({ ok: true });
 }

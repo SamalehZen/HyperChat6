@@ -8,6 +8,14 @@ import { geolocation } from '@vercel/functions';
 const LOCK_MESSAGE = 'Votre compte a été désactivé après 3 tentatives incorrectes. Pour le réactiver, contactez l’administrateur.';
 const RATE_LIMIT_MESSAGE = 'Trop de tentatives, réessayez dans une minute.';
 
+async function safeLog(data: { userId?: string; actorId?: string; action: ActivityAction; details?: any; ip?: string | null; country?: string | null; region?: string | null; city?: string | null; }) {
+  try {
+    await prisma.activityLog.create({ data: { ...data, ip: data.ip ?? undefined, country: data.country ?? undefined, region: data.region ?? undefined, city: data.city ?? undefined } });
+  } catch (_) {
+    // Swallow logging errors (e.g., enum values not yet migrated) to avoid breaking auth
+  }
+}
+
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json().catch(() => ({}));
   if (!email || !password) {
@@ -17,42 +25,42 @@ export async function POST(request: NextRequest) {
   const gl = geolocation(request);
   const ip = getIp(request);
 
-  await prisma.activityLog.create({
-    data: {
-      action: ActivityAction.login_attempt,
-      ip: ip ?? undefined,
-      country: gl?.country ?? undefined,
-      region: gl?.region ?? undefined,
-      city: gl?.city ?? undefined,
-      details: { email }
-    },
+  await safeLog({
+    action: ActivityAction.login_attempt,
+    ip,
+    country: gl?.country ?? null,
+    region: gl?.region ?? null,
+    city: gl?.city ?? null,
+    details: { email },
   });
 
   if (ip) {
     const since = new Date(Date.now() - 60_000);
-    const attempts = await prisma.activityLog.count({
-      where: {
-        action: ActivityAction.login_attempt,
-        ip,
-        createdAt: { gte: since },
-      },
-    });
-    if (attempts > 5) {
-      return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    try {
+      const attempts = await prisma.activityLog.count({
+        where: {
+          action: ActivityAction.login_attempt,
+          ip,
+          createdAt: { gte: since },
+        },
+      });
+      if (attempts > 5) {
+        return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+      }
+    } catch (_) {
+      // If enum not migrated yet, skip rate limiting rather than break auth
     }
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    await prisma.activityLog.create({
-      data: {
-        action: ActivityAction.login_failed,
-        details: { email },
-        ip: ip ?? undefined,
-        country: gl?.country ?? undefined,
-        region: gl?.region ?? undefined,
-        city: gl?.city ?? undefined,
-      },
+    await safeLog({
+      action: ActivityAction.login_failed,
+      details: { email },
+      ip,
+      country: gl?.country ?? null,
+      region: gl?.region ?? null,
+      city: gl?.city ?? null,
     });
     return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
   }
@@ -74,17 +82,20 @@ export async function POST(request: NextRequest) {
         select: { failedLoginAttempts: true, isLocked: true },
       });
 
-      await tx.activityLog.create({
-        data: {
-          userId: user.id,
-          actorId: user.id,
-          action: ActivityAction.login_failed,
-          ip: ip ?? undefined,
-          country: gl?.country ?? undefined,
-          region: gl?.region ?? undefined,
-          city: gl?.city ?? undefined,
-        },
-      });
+      // Best-effort logging inside transaction. If this fails due to enum, ignore.
+      try {
+        await tx.activityLog.create({
+          data: {
+            userId: user.id,
+            actorId: user.id,
+            action: ActivityAction.login_failed,
+            ip: ip ?? undefined,
+            country: gl?.country ?? undefined,
+            region: gl?.region ?? undefined,
+            city: gl?.city ?? undefined,
+          },
+        });
+      } catch (_) {}
 
       let lockedNow = false;
       if (updated.failedLoginAttempts >= 3 && !updated.isLocked) {
@@ -92,18 +103,20 @@ export async function POST(request: NextRequest) {
           where: { id: user.id },
           data: { isLocked: true, lockedAt: new Date(), lockReason: 'lockout_3_attempts' },
         });
-        await tx.activityLog.create({
-          data: {
-            userId: user.id,
-            actorId: user.id,
-            action: ActivityAction.lockout,
-            details: { reason: 'lockout_3_attempts' },
-            ip: ip ?? undefined,
-            country: gl?.country ?? undefined,
-            region: gl?.region ?? undefined,
-            city: gl?.city ?? undefined,
-          },
-        });
+        try {
+          await tx.activityLog.create({
+            data: {
+              userId: user.id,
+              actorId: user.id,
+              action: ActivityAction.lockout,
+              details: { reason: 'lockout_3_attempts' },
+              ip: ip ?? undefined,
+              country: gl?.country ?? undefined,
+              region: gl?.region ?? undefined,
+              city: gl?.city ?? undefined,
+            },
+          });
+        } catch (_) {}
         lockedNow = true;
       }
 
@@ -121,16 +134,14 @@ export async function POST(request: NextRequest) {
 
   await createSessionForUser(user.id, request);
 
-  await prisma.activityLog.create({
-    data: {
-      userId: user.id,
-      actorId: user.id,
-      action: ActivityAction.login,
-      ip: ip ?? undefined,
-      country: gl?.country ?? undefined,
-      region: gl?.region ?? undefined,
-      city: gl?.city ?? undefined,
-    },
+  await safeLog({
+    userId: user.id,
+    actorId: user.id,
+    action: ActivityAction.login,
+    ip,
+    country: gl?.country ?? null,
+    region: gl?.region ?? null,
+    city: gl?.city ?? null,
   });
 
   return NextResponse.json({ ok: true });
