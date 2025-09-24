@@ -19,6 +19,7 @@
             "@/services/*": ["./lib/services/*"],
             "@/*": ["./*"]
         },
-        "baseUrl": "."
+        "baseUrl": ".",
+        "types": ["node"]
     }
 }
