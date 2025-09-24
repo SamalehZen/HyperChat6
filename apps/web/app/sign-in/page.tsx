@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Input, Label, cn } from '@repo/ui';
+import { Button, Input } from '@repo/ui';
 
 export default function LocalSignIn() {
   const router = useRouter();
@@ -40,11 +40,11 @@ export default function LocalSignIn() {
         <h1 className="mb-4 text-lg font-semibold">Connexion</h1>
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
         <div className="mb-3">
-          <Label htmlFor="email">Email</Label>
+          <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
           <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
         </div>
         <div className="mb-4">
-          <Label htmlFor="password">Mot de passe</Label>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium">Mot de passe</label>
           <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
         </div>
         <Button type="submit" disabled={loading} className="w-full">{loading ? 'Connexion…' : 'Se connecter'}</Button>
