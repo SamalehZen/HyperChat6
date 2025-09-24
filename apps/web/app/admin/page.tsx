@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Card, Dialog, DialogContent } from '@repo/ui';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Button, Input, Dialog, DialogContent } from '@repo/ui';
 
 type UserRow = {
   id: string;
@@ -53,55 +52,56 @@ export default function AdminPage() {
 
       <div className="mt-6 flex items-end gap-3">
         <div className="flex-1">
-          <Label htmlFor="q">Recherche (email)</Label>
+          <label htmlFor="q" className="mb-1 block text-sm font-medium">Recherche (email)</label>
           <Input id="q" value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…"/>
         </div>
         <div>
-          <Label>Statut</Label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-48"><SelectValue placeholder="Tous"/></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Tous</SelectItem>
-              <SelectItem value="online">En ligne</SelectItem>
-              <SelectItem value="offline">Hors ligne</SelectItem>
-              <SelectItem value="suspended">Suspendu</SelectItem>
-            </SelectContent>
-          </Select>
+          <label className="mb-1 block text-sm font-medium">Statut</label>
+          <select
+            className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">Tous</option>
+            <option value="online">En ligne</option>
+            <option value="offline">Hors ligne</option>
+            <option value="suspended">Suspendu</option>
+          </select>
         </div>
         <Button onClick={() => { setPage(1); reload(); }}>Appliquer</Button>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead>État</TableHead>
-              <TableHead>En ligne</TableHead>
-              <TableHead>IP</TableHead>
-              <TableHead>Géo</TableHead>
-              <TableHead>Dernière activité</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium">Email</th>
+              <th className="px-3 py-2 text-left font-medium">Rôle</th>
+              <th className="px-3 py-2 text-left font-medium">État</th>
+              <th className="px-3 py-2 text-left font-medium">En ligne</th>
+              <th className="px-3 py-2 text-left font-medium">IP</th>
+              <th className="px-3 py-2 text-left font-medium">Géo</th>
+              <th className="px-3 py-2 text-left font-medium">Dernière activité</th>
+              <th className="px-3 py-2 text-left font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
             {users.map(u => (
-              <TableRow key={u.id}>
-                <TableCell>{u.email}</TableCell>
-                <TableCell>{u.role}</TableCell>
-                <TableCell>{u.isSuspended ? 'Suspendu' : 'Actif'}</TableCell>
-                <TableCell>{u.online ? 'Oui' : 'Non'}</TableCell>
-                <TableCell>{u.lastIp ?? '-'}</TableCell>
-                <TableCell>{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</TableCell>
-                <TableCell>{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</TableCell>
-                <TableCell>
+              <tr key={u.id} className="border-t">
+                <td className="px-3 py-2">{u.email}</td>
+                <td className="px-3 py-2">{u.role}</td>
+                <td className="px-3 py-2">{u.isSuspended ? 'Suspendu' : 'Actif'}</td>
+                <td className="px-3 py-2">{u.online ? 'Oui' : 'Non'}</td>
+                <td className="px-3 py-2">{u.lastIp ?? '-'}</td>
+                <td className="px-3 py-2">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
+                <td className="px-3 py-2">{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
+                <td className="px-3 py-2">
                   <RowActions user={u} onChanged={reload} onShowActivity={() => setSelectedUser(u)} />
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       <ActivityDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
@@ -122,30 +122,31 @@ function CreateUser({ onCreated }: { onCreated: () => void }) {
     if (res.ok) { setEmail(''); setPassword(''); setRole('user'); onCreated(); }
   };
   return (
-    <Card className="p-4">
+    <div className="border rounded-md p-4">
       <h2 className="mb-2 text-lg font-semibold">Créer un utilisateur</h2>
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
         <div>
-          <Label htmlFor="email">Email</Label>
+          <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
           <Input id="email" value={email} onChange={e => setEmail(e.target.value)} required />
         </div>
         <div>
-          <Label htmlFor="password">Mot de passe</Label>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium">Mot de passe</label>
           <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
         </div>
         <div>
-          <Label>Rôle</Label>
-          <Select value={role} onValueChange={v => setRole(v as any)}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="user">user</SelectItem>
-              <SelectItem value="admin">admin</SelectItem>
-            </SelectContent>
-          </Select>
+          <label className="mb-1 block text-sm font-medium">Rôle</label>
+          <select
+            className="border-input bg-background text-foreground h-9 w-40 rounded-md border px-2 text-sm"
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
+          >
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </select>
         </div>
         <Button type="submit" disabled={loading}>{loading ? 'Création…' : 'Créer'}</Button>
       </form>
-    </Card>
+    </div>
   );
 }
 
@@ -225,39 +226,40 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
             <p className="text-sm text-muted-foreground">{user?.email}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Label>Tri</Label>
-            <Select value={order} onValueChange={(v) => setOrder(v as any)}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Récent → Ancien</SelectItem>
-                <SelectItem value="asc">Ancien → Récent</SelectItem>
-              </SelectContent>
-            </Select>
+            <label className="text-sm">Tri</label>
+            <select
+              className="border-input bg-background text-foreground h-9 w-40 rounded-md border px-2 text-sm"
+              value={order}
+              onChange={(e) => setOrder(e.target.value as 'asc' | 'desc')}
+            >
+              <option value="desc">Récent → Ancien</option>
+              <option value="asc">Ancien → Récent</option>
+            </select>
           </div>
         </div>
         <div className="mt-3 overflow-hidden rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>IP</TableHead>
-                <TableHead>Géo</TableHead>
-                <TableHead>Détails</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40">
+              <tr>
+                <th className="px-3 py-2 text-left font-medium">Date</th>
+                <th className="px-3 py-2 text-left font-medium">Action</th>
+                <th className="px-3 py-2 text-left font-medium">IP</th>
+                <th className="px-3 py-2 text-left font-medium">Géo</th>
+                <th className="px-3 py-2 text-left font-medium">Détails</th>
+              </tr>
+            </thead>
+            <tbody>
               {items.map((it) => (
-                <TableRow key={it.id}>
-                  <TableCell>{new Date(it.createdAt).toLocaleString()}</TableCell>
-                  <TableCell>{it.action}</TableCell>
-                  <TableCell>{it.ip || '-'}</TableCell>
-                  <TableCell>{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</TableCell>
-                  <TableCell className="max-w-[260px] truncate">{it.details ? JSON.stringify(it.details) : '-'}</TableCell>
-                </TableRow>
+                <tr key={it.id} className="border-t">
+                  <td className="px-3 py-2">{new Date(it.createdAt).toLocaleString()}</td>
+                  <td className="px-3 py-2">{it.action}</td>
+                  <td className="px-3 py-2">{it.ip || '-'}</td>
+                  <td className="px-3 py-2">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
+                  <td className="px-3 py-2 max-w-[260px] truncate">{it.details ? JSON.stringify(it.details) : '-'}</td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
         <div className="mt-3 flex items-center justify-between">
           <div className="text-sm text-muted-foreground">Page {page} / {totalPages} • {total} entrées</div>
@@ -288,7 +290,7 @@ function OnlinePanel() {
   }, []);
 
   return (
-    <Card className="mt-4 p-4">
+    <div className="mt-4 rounded-md border p-4">
       <h2 className="mb-2 text-lg font-semibold">Utilisateurs en ligne</h2>
       {items.length === 0 ? <p className="text-sm text-muted-foreground">Aucun utilisateur en ligne</p> : (
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -300,6 +302,6 @@ function OnlinePanel() {
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
