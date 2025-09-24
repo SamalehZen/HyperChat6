@@ -18,6 +18,7 @@ export * from './logo';
 export * from './mdx';
 export * from './messages-remaining-badge';
 export * from './online-heartbeat';
+export * from './account-status-gate';
 export * from './motion-skeleton';
 export * from './popover-confirm';
 export * from './recent-threads';

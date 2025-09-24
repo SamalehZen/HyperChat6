@@ -15,6 +15,7 @@ import { IconMoodSadDizzy, IconX } from '../icons';
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@repo/common/i18n';
+import { useUser } from '@repo/common/context';
 import { FC, useEffect } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { Drawer } from 'vaul';
@@ -26,6 +27,7 @@ export type TRootLayout = {
 export const RootLayout: FC<TRootLayout> = ({ children }) => {
     const { isSidebarOpen, isMobileSidebarOpen, setIsMobileSidebarOpen } = useRootContext();
     const { t } = useI18n();
+    const { user } = useUser();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
 
     const containerClass =
@@ -89,7 +91,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                         </div>
                     </AgentProvider>
                 </motion.div>
-                <SettingsModal />
+                {user?.role === 'admin' && <SettingsModal />}
                 <CommandSearch />
             </Flex>
 

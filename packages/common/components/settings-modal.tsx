@@ -9,6 +9,7 @@ import { Badge, Dialog, DialogContent, Input } from '@repo/ui';
 import { useChatEditor } from '@repo/common/hooks';
 import moment from 'moment';
 import { useI18n } from '@repo/common/i18n';
+import { useUser } from '@repo/common/context';
 import { useState } from 'react';
 import { ApiKeys, useApiKeysStore } from '../store/api-keys.store';
 import { SETTING_TABS, useAppStore } from '../store/app.store';
@@ -19,6 +20,7 @@ import { SHINE_PRESETS } from '@repo/shared/config';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
+    const { user } = useUser();
     const { t } = useI18n();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
     const settingTab = useAppStore(state => state.settingTab);
@@ -51,7 +53,7 @@ export const SettingsModal = () => {
     ];
 
     return (
-        <Dialog open={isSettingOpen} onOpenChange={() => setIsSettingOpen(false)}>
+        <Dialog open={isSettingOpen && user?.role === 'admin'} onOpenChange={() => setIsSettingOpen(false)}>
             <DialogContent
                 ariaTitle="Paramètres"
                 className="h-full max-h-[600px] !max-w-[760px] overflow-x-hidden rounded-xl p-0"

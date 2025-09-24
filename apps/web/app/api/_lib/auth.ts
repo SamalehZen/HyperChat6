@@ -26,7 +26,7 @@ export async function getSession(request: NextRequest): Promise<SessionInfo | nu
 
   if (!existing) return null;
   if (existing.expiresAt < new Date()) return null;
-  if (!existing.user || existing.user.isSuspended) return null;
+  if (!existing.user) return null;
 
   return {
     userId: existing.user.id,

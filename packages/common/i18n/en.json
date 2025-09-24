@@ -95,5 +95,11 @@
   "history.item.rename": "Rename",
   "history.item.deleteChat": "Delete Chat",
   "history.item.pin": "Pin",
-  "history.item.unpin": "Unpin"
+  "history.item.unpin": "Unpin",
+
+  "account.suspended.title": "Account suspended",
+  "account.suspended.message": "Your account has been suspended for violating the rules. Please contact the administrator.",
+  "account.deleted.title": "Account deleted",
+  "account.deleted.message": "You did not follow the rules. Your account has been deleted. Please contact the administrator.",
+  "account.deleted.logoutIn": "Logging out in {seconds}s…"
 }
