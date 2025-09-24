@@ -1,5 +1,5 @@
 'use client';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@repo/common/context/auth';
 import {
     ImageAttachment,
     ImageDropzoneRoot,

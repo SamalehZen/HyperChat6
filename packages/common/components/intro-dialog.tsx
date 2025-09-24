@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@repo/common/context/auth';
 import { cn, Dialog, DialogContent } from '@repo/ui';
 import { IconCircleCheckFilled } from './icons';
 import { useEffect, useState } from 'react';
@@ -8,7 +8,7 @@ import { useI18n } from '@repo/common/i18n';
 export const IntroDialog = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useI18n();
-    const { isSignedIn } = useUser();
+    const { isSignedIn } = useAuth();
 
     useEffect(() => {
         const hasSeenIntro = localStorage.getItem('hasSeenIntro');

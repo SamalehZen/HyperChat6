@@ -1,4 +1,4 @@
-import { SignInButton, useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@repo/common/context/auth';
 import { FullPageLoader, HistoryItem } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { Thread, useAppStore, useChatStore } from '@repo/common/store';
@@ -171,23 +171,13 @@ export const Sidebar = () => {
                     )}
                     <div className="sticky right-0 top-0 z-50 flex items-center gap-1 px-4 py-2">
                         {isSignedIn ? (
-                            <UserButton
-                                showName
-                                appearance={{
-                                    elements: {
-                                        avatarBox:
-                                            'size-6 bg-muted-foreground border border-border',
-                                        userButtonAvatarBox: 'bg-muted-foreground',
-                                        userPreviewAvatarIcon: 'bg-muted-foreground',
-                                    },
-                                }}
-                            />
+                            <Button variant="default" size="sm" rounded="full" onClick={() => { fetch('/api/auth/logout', { method: 'POST' }).then(() => { window.location.href = '/'; }); }}>
+                                Log out
+                            </Button>
                         ) : (
-                            <SignInButton mode="modal">
-                                <Button variant="default" size="sm" rounded="full">
-                                    Log in
-                                </Button>
-                            </SignInButton>
+                            <Button variant="default" size="sm" rounded="full" onClick={() => { window.location.href = '/sign-in'; }}>
+                                Log in
+                            </Button>
                         )}
                     </div>
                 </Flex>

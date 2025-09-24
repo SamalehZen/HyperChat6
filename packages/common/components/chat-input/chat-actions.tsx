@@ -1,5 +1,5 @@
 'use client';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@repo/common/context/auth';
 import { DotSpinner } from '@repo/common/components';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
@@ -250,7 +250,7 @@ export const ChatModeOptions = ({
     setChatMode: (chatMode: ChatMode) => void;
     isRetry?: boolean;
 }) => {
-    const { isSignedIn } = useUser();
+    const { isSignedIn } = useAuth();
     const isChatPage = usePathname().startsWith('/chat');
     const { push } = useRouter();
     return (

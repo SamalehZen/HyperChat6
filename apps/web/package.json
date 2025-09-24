@@ -7,10 +7,10 @@
         "build": "cd ../../packages/prisma && bun prisma generate && cd ../../apps/web && next build",
         "start": "next start",
         "prepare": "husky",
+        "purge:activity-logs": "bun tsx scripts/purge-activity-logs.ts",
         "generate": "bunx drizzle-kit generate"
     },
     "dependencies": {
-        "@clerk/nextjs": "^6.12.3",
         "@electric-sql/pglite": "0.2.13",
         "@electric-sql/pglite-repl": "^0.2.15",
         "@hotjar/browser": "^1.0.9",
@@ -23,7 +23,6 @@
         "@langchain/openai": "^0.0.28",
         "@mdx-js/mdx": "^3.1.0",
         "@mozilla/readability": "^0.5.0",
-
         "@radix-ui/react-accordion": "^1.2.0",
         "@radix-ui/react-alert-dialog": "^1.0.5",
         "@radix-ui/react-dialog": "^1.1.1",
@@ -46,7 +45,6 @@
         "@sentry/node": "^9.11.0",
         "@supabase/ssr": "^0.4.0",
         "@supabase/supabase-js": "^2.44.4",
-
         "@tanstack/react-query": "^5.40.0",
         "@tiptap/extension-document": "^2.5.5",
         "@tiptap/extension-hard-break": "^2.4.0",
@@ -63,6 +61,7 @@
         "@vercel/kv": "^2.0.0",
         "avvvatars-react": "^0.4.2",
         "axios": "^1.7.2",
+        "bcryptjs": "^2.4.3",
         "boring-avatars": "^1.10.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
@@ -106,7 +105,6 @@
         "react-dom": "^18",
         "react-dropzone": "^14.2.3",
         "react-github-btn": "^1.4.0",
-
         "react-intersection-observer": "^9.13.0",
         "react-markdown": "^9.0.3",
         "recharts": "^2.12.7",

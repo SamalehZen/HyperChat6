@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server';
+import { getSession } from '../../_lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import {
     DAILY_CREDITS_AUTH,
@@ -8,7 +8,7 @@ import {
 import { getIp } from '../../completion/utils';
 
 export async function GET(request: NextRequest) {
-    const session = await auth();
+    const session = await getSession(request);
     const userId = session?.userId ?? undefined;
     const ip = getIp(request);
 

@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/nextjs';
+import { AuthProvider } from '@repo/common/context/auth';
 import { RootLayout } from '@repo/common/components';
 import { ReactQueryProvider, RootProvider } from '@repo/common/context';
 import { TooltipProvider, cn } from '@repo/ui';
@@ -16,6 +16,7 @@ const bricolage = Bricolage_Grotesque({
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { I18nProvider } from '@repo/common/i18n';
+import { OnlineHeartbeat } from '@repo/common/components/online-heartbeat';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
@@ -104,28 +105,20 @@ export default function ParentLayout({
                 ></script> */}
             </head>
             <body>
-                {/* <PostHogProvider> */}
-                <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" afterSignInUrl="/chat" afterSignUpUrl="/chat">
+                <AuthProvider>
                     <RootProvider>
-                        {/* <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          > */}
                         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
                             <TooltipProvider>
                                 <I18nProvider>
                                     <ReactQueryProvider>
                                         <RootLayout>{children}</RootLayout>
+                                        <OnlineHeartbeat />
                                     </ReactQueryProvider>
                                 </I18nProvider>
                             </TooltipProvider>
                         </ThemeProvider>
-                        {/* </ThemeProvider> */}
                     </RootProvider>
-                </ClerkProvider>
-                {/* </PostHogProvider> */}
+                </AuthProvider>
             </body>
         </html>
     );
