@@ -18,30 +18,31 @@ enum Role {
 enum ActivityAction {
   login
   logout
+  login_attempt
+  login_failed
+  lockout
+  unlock
   password_reset
   suspend
   unsuspend
   delete
   account_created
   account_updated
-  login_attempt
-  login_failed
-  lockout
-  unlock
 }
 
 model User {
-  id                   String   @id @default(cuid())
-  email                String   @unique
+  id                   String    @id @default(cuid())
+  email                String    @unique
   passwordHash         String
-  role                 Role     @default(user)
-  isSuspended          Boolean  @default(false)
-  failedLoginAttempts  Int      @default(0)
-  isLocked             Boolean  @default(false)
+  role                 Role      @default(user)
+  isSuspended          Boolean   @default(false)
+  failedLoginAttempts  Int       @default(0)
+  isLocked             Boolean   @default(false)
   lockedAt             DateTime?
   lockReason           String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   sessions     Session[]
   activityLogs ActivityLog[] @relation("ActivityOnUser")

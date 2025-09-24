@@ -102,6 +102,13 @@
   "account.deleted.title": "Compte supprimé",
   "account.deleted.message": "Vous n’avez pas respecté le règlement. Votre compte a été supprimé. Contactez l’administrateur.",
   "account.deleted.logoutIn": "Déconnexion dans {seconds}s…",
+
   "auth.locked.message": "Votre compte a été désactivé après 3 tentatives incorrectes. Pour le réactiver, contactez l’administrateur.",
-  "auth.rateLimited.message": "Trop de tentatives, réessayez dans une minute."
+  "auth.rateLimited.message": "Trop de tentatives, réessayez dans une minute.",
+
+  "admin.kpi.online": "Utilisateurs en ligne (1 min)",
+  "admin.kpi.suspended": "Comptes suspendus",
+  "admin.kpi.deleted": "Comptes supprimés",
+  "admin.kpi.reactivatedAfterLockout": "Réactivations après lockout (24h)",
+  "admin.events.recent": "Événements récents (24h)"
 }

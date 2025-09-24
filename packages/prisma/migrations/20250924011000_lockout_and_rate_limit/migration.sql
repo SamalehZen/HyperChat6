@@ -6,10 +6,10 @@ ALTER TYPE "ActivityAction" ADD VALUE IF NOT EXISTS 'unlock';
 
 -- AlterTable: extend User with lockout fields
 ALTER TABLE "User"
-  ADD COLUMN "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN "isLocked" BOOLEAN NOT NULL DEFAULT false,
-  ADD COLUMN "lockedAt" TIMESTAMP(3),
-  ADD COLUMN "lockReason" TEXT;
+  ADD COLUMN IF NOT EXISTS "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS "isLocked" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "lockedAt" TIMESTAMP(3),
+  ADD COLUMN IF NOT EXISTS "lockReason" TEXT;
 
 -- Indexes to improve rate limiting and audit queries
 CREATE INDEX IF NOT EXISTS "ActivityLog_ip_idx" ON "ActivityLog"("ip");

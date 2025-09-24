@@ -3,19 +3,24 @@ import { prisma } from '@repo/prisma';
 import { requireAdmin } from '@/app/api/_lib/auth';
 import bcrypt from 'bcryptjs';
 import { ActivityAction } from '@prisma/client';
+import { ONLINE_THRESHOLD_MS, ONLINE_FUDGE_MS } from '@/app/api/_lib/constants';
 
 export async function GET(request: NextRequest) {
   await requireAdmin(request);
   const { searchParams } = new URL(request.url);
   const q = searchParams.get('q')?.trim() ?? undefined;
-  const status = searchParams.get('status') ?? undefined; // online | offline | suspended
+  const status = searchParams.get('status') ?? undefined; // online | offline | suspended | locked | deleted
   const page = parseInt(searchParams.get('page') || '1');
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
   const skip = (page - 1) * limit;
 
   const where: any = {};
   if (q) where.email = { contains: q, mode: 'insensitive' };
+  // exclude soft-deleted by default
+  if (!status || (status !== 'deleted')) where.deletedAt = null;
   if (status === 'suspended') where.isSuspended = true;
+  if (status === 'locked') where.isLocked = true;
+  if (status === 'deleted') where.deletedAt = { not: null };
   if (status === 'offline') where.isSuspended = false; // filter online separately later
   if (status === 'online') where.isSuspended = false;
 
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
   ]);
 
   const now = Date.now();
-  const onlineThreshold = now - 120_000;
+  const onlineThreshold = now - (ONLINE_THRESHOLD_MS + ONLINE_FUDGE_MS);
 
   const items = users
     .map(u => {
@@ -43,6 +48,7 @@ export async function GET(request: NextRequest) {
         role: u.role,
         isSuspended: u.isSuspended,
         isLocked: (u as any).isLocked ?? false,
+        deletedAt: (u as any).deletedAt ?? null,
         createdAt: u.createdAt,
         lastSeen: s?.lastSeen ?? null,
         lastIp: s?.lastIp ?? null,
@@ -50,13 +56,15 @@ export async function GET(request: NextRequest) {
         lastRegion: s?.lastRegion ?? null,
         lastCity: s?.lastCity ?? null,
         online: isOnline,
-      };
+      } as any;
     })
     .filter(row => {
       if (!status) return true;
       if (status === 'online') return row.online;
       if (status === 'offline') return !row.online;
       if (status === 'suspended') return true; // already filtered by query above
+      if (status === 'locked') return true; // already filtered by query above
+      if (status === 'deleted') return true; // already filtered by query above
       return true;
     });
 

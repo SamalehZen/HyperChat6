@@ -70,9 +70,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   const gl = geolocation(request);
   const ip = getIp(request);
 
-  await prisma.activityLog.create({ data: { userId: id, actorId: admin.userId, action: ActivityAction.delete, ip: ip ?? undefined, country: gl?.country ?? undefined, region: gl?.region ?? undefined, city: gl?.city ?? undefined } });
-
-  await prisma.user.delete({ where: { id } });
+  await prisma.$transaction([
+    prisma.activityLog.create({ data: { userId: id, actorId: admin.userId, action: ActivityAction.delete, details: { soft: true }, ip: ip ?? undefined, country: gl?.country ?? undefined, region: gl?.region ?? undefined, city: gl?.city ?? undefined } }),
+    prisma.user.update({ where: { id }, data: { deletedAt: new Date() } }),
+    prisma.session.deleteMany({ where: { userId: id } }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

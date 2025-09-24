@@ -54,24 +54,12 @@ export async function POST(request: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    await safeLog({
-      action: ActivityAction.login_failed,
-      details: { email },
-      ip,
-      country: gl?.country ?? null,
-      region: gl?.region ?? null,
-      city: gl?.city ?? null,
-    });
+    await safeLog({ action: ActivityAction.login_failed, details: { email }, ip, country: gl?.country ?? null, region: gl?.region ?? null, city: gl?.city ?? null });
     return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
   }
-
-  if (user.isSuspended) {
-    return NextResponse.json({ error: 'Compte suspendu' }, { status: 403 });
-  }
-
-  if (user.isLocked) {
-    return NextResponse.json({ errorCode: 'LOCKED', error: LOCK_MESSAGE }, { status: 403 });
-  }
+  if ((user as any).deletedAt) return NextResponse.json({ error: 'Compte supprimé' }, { status: 410 });
+  if (user.isSuspended) return NextResponse.json({ error: 'Compte suspendu' }, { status: 403 });
+  if (user.isLocked) return NextResponse.json({ errorCode: 'LOCKED', error: LOCK_MESSAGE }, { status: 403 });
 
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) {
