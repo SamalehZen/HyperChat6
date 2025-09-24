@@ -92,3 +92,10 @@ model Feedback {
   metadata  Json?
   createdAt DateTime @default(now())
 }
+
+model AppSetting {
+  key       String  @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

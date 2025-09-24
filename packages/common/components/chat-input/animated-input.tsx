@@ -17,7 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
-import { usePreferencesStore } from '@repo/common/store';
+import { useEffectivePreferences } from '@repo/common/hooks';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
     IconAtom,
@@ -40,8 +40,7 @@ export const AnimatedChatInput = ({
     const { isSignedIn } = useAuth();
     const { user } = useUser();
     const { threadId: currentThreadId } = useParams();
-    const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
-    const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
+    const effective = useEffectivePreferences();
     const getThreadItems = useChatStore(state => state.getThreadItems);
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
     const { handleSubmit } = useAgentStream();
@@ -386,7 +385,7 @@ export const AnimatedChatInput = ({
                             showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
                             webSearchEnabled={useWebSearch}
                             onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
-                            shineColors={getShineColors(aiPromptShinePreset)}
+                            shineColors={getShineColors(effective.aiPromptShinePreset)}
                         />
                     </ImageDropzoneRoot>
                 </Flex>
@@ -433,7 +432,7 @@ export const AnimatedChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && <GridGradientBackground side="left" variant={effective.backgroundVariant} />}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',
