@@ -27,7 +27,7 @@ export default function LocalSignIn() {
         setLoading(false);
         return;
       }
-      router.push('/chat');
+      window.location.href = '/chat';
     } catch (e) {
       setError('Erreur réseau');
       setLoading(false);
