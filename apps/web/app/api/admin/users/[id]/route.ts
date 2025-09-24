@@ -42,7 +42,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (action === 'suspend') {
     await prisma.$transaction([
       prisma.user.update({ where: { id }, data: { isSuspended: true } }),
-      prisma.session.deleteMany({ where: { userId: id } }),
       prisma.activityLog.create({ data: { userId: id, actorId: admin.userId, action: ActivityAction.suspend, ip: ip ?? undefined, country: gl?.country ?? undefined, region: gl?.region ?? undefined, city: gl?.city ?? undefined } }),
     ]);
     return NextResponse.json({ ok: true });

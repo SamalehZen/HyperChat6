@@ -95,5 +95,11 @@
   "history.item.rename": "Renommer",
   "history.item.deleteChat": "Supprimer le chat",
   "history.item.pin": "Épingler",
-  "history.item.unpin": "Désépingler"
+  "history.item.unpin": "Désépingler",
+
+  "account.suspended.title": "Compte suspendu",
+  "account.suspended.message": "Votre compte a été suspendu pour non-respect du règlement. Contactez l’administrateur.",
+  "account.deleted.title": "Compte supprimé",
+  "account.deleted.message": "Vous n’avez pas respecté le règlement. Votre compte a été supprimé. Contactez l’administrateur.",
+  "account.deleted.logoutIn": "Déconnexion dans {seconds}s…"
 }

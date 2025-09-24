@@ -16,7 +16,7 @@ const bricolage = Bricolage_Grotesque({
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { I18nProvider } from '@repo/common/i18n';
-import { OnlineHeartbeat } from '@repo/common/components';
+import { OnlineHeartbeat, AccountStatusGate } from '@repo/common/components';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
@@ -113,6 +113,7 @@ export default function ParentLayout({
                                     <ReactQueryProvider>
                                         <RootLayout>{children}</RootLayout>
                                         <OnlineHeartbeat />
+                                        <AccountStatusGate />
                                     </ReactQueryProvider>
                                 </I18nProvider>
                             </TooltipProvider>

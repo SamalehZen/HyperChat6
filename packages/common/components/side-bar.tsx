@@ -385,11 +385,18 @@ export const Sidebar = () => {
                                 </div>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
-                                    <IconSettings size={16} strokeWidth={2} />
-                                    {t('actions.settings')}
-                                </DropdownMenuItem>
-
+                                {user?.role === 'admin' && (
+                                    <DropdownMenuItem onClick={() => push('/admin')}>
+                                        <IconSettings2 size={16} strokeWidth={2} />
+                                        Admin
+                                    </DropdownMenuItem>
+                                )}
+                                {user?.role === 'admin' && (
+                                    <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+                                        <IconSettings size={16} strokeWidth={2} />
+                                        {t('actions.settings')}
+                                    </DropdownMenuItem>
+                                )}
                                 {isSignedIn && (
                                     <DropdownMenuItem onClick={() => fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.reload())}>
                                         <IconLogout size={16} strokeWidth={2} />
@@ -401,17 +408,6 @@ export const Sidebar = () => {
                     )}
                     {isSidebarOpen && !isSignedIn && (
                         <div className="flex w-full flex-col gap-1.5 p-1">
-                            <Button
-                                variant="bordered"
-                                size="sm"
-                                rounded="lg"
-                                onClick={() => {
-                                    setIsSettingsOpen(true);
-                                }}
-                            >
-                                <IconSettings2 size={14} strokeWidth={2} />
-                                {t('actions.settings')}
-                            </Button>
                             <Button size="sm" rounded="lg" onClick={() => push('/sign-in')}>
                                 {t('actions.signIn')}
                             </Button>
