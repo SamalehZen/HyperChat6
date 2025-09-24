@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Input, Dialog, DialogContent } from '@repo/ui';
+import { Button, Input, Dialog, DialogContent, useToast } from '@repo/ui';
 
 type UserRow = {
   id: string;
@@ -168,6 +168,7 @@ function CreateUser({ onCreated }: { onCreated: () => void }) {
 
 function RowActions({ user, onChanged, onShowActivity }: { user: UserRow; onChanged: () => void; onShowActivity: () => void }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const doAction = async (action: string, payload?: any) => {
     setLoading(action);
@@ -184,6 +185,17 @@ function RowActions({ user, onChanged, onShowActivity }: { user: UserRow; onChan
         if (p) doAction('reset_password', { password: p });
       }} disabled={loading !== null}>Reset</Button>
       <Button size="xs" variant="secondary" onClick={() => doAction(user.isSuspended ? 'unsuspend' : 'suspend')} disabled={loading !== null}>{user.isSuspended ? 'Activer' : 'Suspendre'}</Button>
+      {user.isLocked && (
+        <Button size="xs" variant="secondary" onClick={async () => {
+          setLoading('unlock');
+          const res = await fetch(`/api/admin/users/${user.id}/unlock`, { method: 'POST' });
+          setLoading(null);
+          if (res.ok) {
+            toast({ title: 'Compte réactivé' });
+            onChanged();
+          }
+        }} disabled={loading !== null}>Réactiver</Button>
+      )}
       <Button size="xs" variant="secondary" onClick={() => doAction('update_role', { role: user.role === 'admin' ? 'user' : 'admin' })} disabled={loading !== null}>Rôle: {user.role}</Button>
       <Button size="xs" variant="destructive" onClick={() => {
         const c1 = confirm(`Supprimer ${user.email} ?`);
