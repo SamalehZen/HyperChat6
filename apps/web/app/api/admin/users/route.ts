@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         email: u.email,
         role: u.role,
         isSuspended: u.isSuspended,
+        isLocked: (u as any).isLocked ?? false,
         createdAt: u.createdAt,
         lastSeen: s?.lastSeen ?? null,
         lastIp: s?.lastIp ?? null,

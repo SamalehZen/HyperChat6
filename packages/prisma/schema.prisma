@@ -24,16 +24,24 @@ enum ActivityAction {
   delete
   account_created
   account_updated
+  login_attempt
+  login_failed
+  lockout
+  unlock
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(user)
-  isSuspended  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  email                String   @unique
+  passwordHash         String
+  role                 Role     @default(user)
+  isSuspended          Boolean  @default(false)
+  failedLoginAttempts  Int      @default(0)
+  isLocked             Boolean  @default(false)
+  lockedAt             DateTime?
+  lockReason           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   sessions     Session[]
   activityLogs ActivityLog[] @relation("ActivityOnUser")
@@ -57,21 +65,23 @@ model Session {
 }
 
 model ActivityLog {
-  id       String          @id @default(cuid())
-  userId   String?
-  actorId  String?
-  action   ActivityAction
-  details  Json?
-  ip       String?
-  country  String?
-  region   String?
-  city     String?
-  createdAt DateTime       @default(now())
+  id        String          @id @default(cuid())
+  userId    String?
+  actorId   String?
+  action    ActivityAction
+  details   Json?
+  ip        String?
+  country   String?
+  region    String?
+  city      String?
+  createdAt DateTime        @default(now())
 
   user   User? @relation("ActivityOnUser", fields: [userId], references: [id], onDelete: SetNull)
   actor  User? @relation("ActivityByActor", fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
+  @@index([ip])
+  @@index([action])
 }
 
 model Feedback {
