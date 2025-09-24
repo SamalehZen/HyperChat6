@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getSession, updateHeartbeat } from '../../_lib/auth';
+import { getSession, updateHeartbeat } from '@/app/api/_lib/auth';
 
 export async function POST(request: NextRequest) {
   const session = await getSession(request);

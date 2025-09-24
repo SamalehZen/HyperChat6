@@ -1,4 +1,4 @@
-import { getSession } from '../_lib/auth';
+import { getSession } from '@/app/api/_lib/auth';
 import { prisma } from '@repo/prisma';
 import { geolocation } from '@vercel/functions';
 import { NextRequest, NextResponse } from 'next/server';

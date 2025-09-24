@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
-import { clearSessionCookie, getSession } from '../../_lib/auth';
+import { clearSessionCookie, getSession } from '@/app/api/_lib/auth';
 import { ActivityAction } from '@prisma/client';
 import { geolocation } from '@vercel/functions';
-import { getIp } from '../../completion/utils';
+import { getIp } from '@/app/api/completion/utils';
 
 export async function POST(request: NextRequest) {
   const session = await getSession(request);

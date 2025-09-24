@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
-import { createSessionForUser } from '../../_lib/auth';
+import { createSessionForUser } from '@/app/api/_lib/auth';
 import bcrypt from 'bcryptjs';
 import { ActivityAction } from '@prisma/client';
 import { geolocation } from '@vercel/functions';
-import { getIp } from '../../completion/utils';
+import { getIp } from '@/app/api/completion/utils';
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json().catch(() => ({}));

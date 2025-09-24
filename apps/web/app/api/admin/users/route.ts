@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
-import { requireAdmin } from '../../_lib/auth';
+import { requireAdmin } from '@/app/api/_lib/auth';
 import bcrypt from 'bcryptjs';
 import { ActivityAction } from '@prisma/client';
 

@@ -1,4 +1,4 @@
-import { getSession } from '../_lib/auth';
+import { getSession } from '@/app/api/_lib/auth';
 import { CHAT_MODE_CREDIT_COSTS, ChatModeConfig } from '@repo/shared/config';
 import { Geo, geolocation } from '@vercel/functions';
 import { NextRequest } from 'next/server';

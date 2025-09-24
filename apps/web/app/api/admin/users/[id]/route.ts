@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
-import { requireAdmin } from '../../../_lib/auth';
+import { requireAdmin } from '@/app/api/_lib/auth';
 import bcrypt from 'bcryptjs';
 import { ActivityAction, Role } from '@prisma/client';
 import { geolocation } from '@vercel/functions';
-import { getIp } from '../../../completion/utils';
+import { getIp } from '@/app/api/completion/utils';
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await requireAdmin(request);

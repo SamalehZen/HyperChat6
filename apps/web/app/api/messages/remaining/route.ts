@@ -1,4 +1,4 @@
-import { getSession } from '../../_lib/auth';
+import { getSession } from '@/app/api/_lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import {
     DAILY_CREDITS_AUTH,
