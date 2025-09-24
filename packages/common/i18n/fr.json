@@ -101,5 +101,7 @@
   "account.suspended.message": "Votre compte a été suspendu pour non-respect du règlement. Contactez l’administrateur.",
   "account.deleted.title": "Compte supprimé",
   "account.deleted.message": "Vous n’avez pas respecté le règlement. Votre compte a été supprimé. Contactez l’administrateur.",
-  "account.deleted.logoutIn": "Déconnexion dans {seconds}s…"
+  "account.deleted.logoutIn": "Déconnexion dans {seconds}s…",
+  "auth.locked.message": "Votre compte a été désactivé après 3 tentatives incorrectes. Pour le réactiver, contactez l’administrateur.",
+  "auth.rateLimited.message": "Trop de tentatives, réessayez dans une minute."
 }
