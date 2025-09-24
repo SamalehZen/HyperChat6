@@ -1,6 +1,5 @@
 "use client";
-import { useGlobalPreferencesStore } from '@repo/common/store/global-preferences.store';
-import { usePreferencesStore } from '@repo/common/store';
+import { useGlobalPreferencesStore, usePreferencesStore } from '@repo/common/store';
 
 export function useEffectivePreferences() {
   const globalLoaded = useGlobalPreferencesStore(s => s.loaded);
