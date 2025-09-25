@@ -4,7 +4,7 @@ import { useGlobalPreferencesStore } from '@repo/common/store';
 
 async function fetchPreferences() {
   try {
-    const res = await fetch('/api/ui/preferences', { cache: 'no-store' });
+    const res = await fetch(`/api/ui/preferences?_=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
     return json as { backgroundVariant: string; aiPromptShinePreset: string; updatedAt?: string };
@@ -25,8 +25,9 @@ export function GlobalPreferencesProvider() {
       pollRef.current = setInterval(async () => {
         const prefs = await fetchPreferences();
         if (prefs) setFromServer(prefs as any);
-      }, 2000);
+      }, 1000);
       document.addEventListener('visibilitychange', onVisibility);
+      window.addEventListener('focus', onFocus);
     };
     const stopPolling = () => {
       if (pollRef.current) {
@@ -34,12 +35,17 @@ export function GlobalPreferencesProvider() {
         pollRef.current = null;
       }
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
     };
     const onVisibility = async () => {
       if (document.visibilityState === 'visible') {
         const prefs = await fetchPreferences();
         if (prefs) setFromServer(prefs as any);
       }
+    };
+    const onFocus = async () => {
+      const prefs = await fetchPreferences();
+      if (prefs) setFromServer(prefs as any);
     };
 
     const init = async () => {
