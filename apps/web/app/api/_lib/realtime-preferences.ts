@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import Pusher from 'pusher';
 import { setLatestPreferencesEvent, getLatestPreferencesEvent, getPreferencesEmitter } from './preferences-events';
 
 let started = false as boolean;
@@ -12,15 +13,29 @@ function getRedis() {
   return new Redis({ url, token });
 }
 
+function getPusher() {
+  const appId = process.env.PUSHER_APP_ID;
+  const key = process.env.PUSHER_KEY;
+  const secret = process.env.PUSHER_SECRET;
+  const cluster = process.env.PUSHER_CLUSTER;
+  if (!appId || !key || !secret || !cluster) return null;
+  return new Pusher({ appId, key, secret, cluster, useTLS: true });
+}
+
 export async function publishUIPreferences(evt: { backgroundVariant: string; aiPromptShinePreset: string; updatedAt: string }) {
   const redis = getRedis();
-  if (!redis) return;
   try {
-    await redis.set('ui:prefs:latest', evt);
-    await redis.incr('ui:prefs:ver');
-  } catch (e) {
-    // ignore publish failures; client fallback polling will still pick updates
-  }
+    if (redis) {
+      await redis.set('ui:prefs:latest', evt);
+      await redis.incr('ui:prefs:ver');
+    }
+  } catch {}
+  try {
+    const p = getPusher();
+    if (p) {
+      await p.trigger('ui-preferences', 'update', evt);
+    }
+  } catch {}
 }
 
 async function loadInitial(redis: Redis) {
