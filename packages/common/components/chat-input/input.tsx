@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { useI18n } from '@repo/common/i18n';
-import { usePreferencesStore } from '@repo/common/store';
+import { useEffectivePreferences } from '@repo/common/hooks';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
@@ -53,7 +53,7 @@ export const ChatInput = ({
         },
     });
     const size = currentThreadId ? 'base' : 'sm';
-    const backgroundVariant = usePreferencesStore(state => state.backgroundVariant);
+    const effective = useEffectivePreferences();
     const getThreadItems = useChatStore(state => state.getThreadItems);
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
     const { handleSubmit } = useAgentStream();
@@ -253,7 +253,7 @@ export const ChatInput = ({
                     : 'absolute inset-0 flex h-full w-full flex-col items-center justify-center'
             )}
         >
-            {!currentThreadId && <GridGradientBackground side="left" variant={backgroundVariant} />}
+            {!currentThreadId && <GridGradientBackground side="left" variant={effective.backgroundVariant} />}
             <div
                 className={cn(
                     'mx-auto flex w-full max-w-3xl flex-col items-start',

@@ -17,6 +17,7 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { I18nProvider } from '@repo/common/i18n';
 import { OnlineHeartbeat, AccountStatusGate } from '@repo/common/components';
+import { GlobalPreferencesProvider } from '@repo/common/context';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
@@ -114,6 +115,7 @@ export default function ParentLayout({
                                         <RootLayout>{children}</RootLayout>
                                         <OnlineHeartbeat />
                                         <AccountStatusGate />
+                                        <GlobalPreferencesProvider />
                                     </ReactQueryProvider>
                                 </I18nProvider>
                             </TooltipProvider>

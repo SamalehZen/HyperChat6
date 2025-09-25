@@ -1,6 +1,6 @@
 'use client';
-import { useMcpToolsStore, usePreferencesStore } from '@repo/common/store';
-import { Alert, AlertDescription, DialogFooter, ShineBorder, RadioGroup, RadioGroupItem } from '@repo/ui';
+import { useMcpToolsStore, usePreferencesStore, useGlobalPreferencesStore } from '@repo/common/store';
+import { Alert, AlertDescription, DialogFooter, ShineBorder, RadioGroup, RadioGroupItem, useToast } from '@repo/ui';
 import { Button } from '@repo/ui/src/components/button';
 import { IconBolt, IconBoltFilled, IconKey, IconSettings2, IconTrash } from './icons';
 
@@ -471,6 +471,8 @@ export const PersonalizationSettings = () => {
     const setBackgroundVariant = usePreferencesStore(state => state.setBackgroundVariant);
     const aiPromptShinePreset = usePreferencesStore(state => state.aiPromptShinePreset);
     const setAiPromptShinePreset = usePreferencesStore(state => state.setAiPromptShinePreset);
+    const { toast } = useToast();
+    const setFromServer = useGlobalPreferencesStore(state => state.setFromServer);
     const { editor } = useChatEditor({
         charLimit: MAX_CHAR_LIMIT,
         defaultContent: customInstructions,
@@ -503,7 +505,22 @@ export const PersonalizationSettings = () => {
                     aria-labelledby="shine-select-label"
                     className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-1"
                     value={aiPromptShinePreset}
-                    onValueChange={(v) => setAiPromptShinePreset(v as any)}
+                    onValueChange={async (v) => {
+                        try {
+                            const next = { backgroundVariant, aiPromptShinePreset: v as any } as any;
+                            setAiPromptShinePreset(v as any);
+                            const res = await fetch('/api/admin/ui/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) });
+                            if (res.ok) {
+                                const json = await res.json();
+                                setFromServer(json);
+                                toast({ title: t('settings.saved') || 'Préférences appliquées' });
+                            } else {
+                                toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
+                            }
+                        } catch {
+                            toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
+                        }
+                    }}
                 >
                     {SHINE_PRESETS.map((preset) => {
                         const id = `shine-${preset.key}`;
@@ -531,7 +548,23 @@ export const PersonalizationSettings = () => {
                     id="background-select"
                     className="w-40 rounded-md border bg-background px-2 py-1 text-sm"
                     value={backgroundVariant}
-                    onChange={(e) => setBackgroundVariant(e.target.value as any)}
+                    onChange={async (e) => {
+                        const v = e.target.value as any;
+                        try {
+                            const next = { backgroundVariant: v, aiPromptShinePreset } as any;
+                            setBackgroundVariant(v);
+                            const res = await fetch('/api/admin/ui/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(next) });
+                            if (res.ok) {
+                                const json = await res.json();
+                                setFromServer(json);
+                                toast({ title: t('settings.saved') || 'Préférences appliquées' });
+                            } else {
+                                toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
+                            }
+                        } catch {
+                            toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
+                        }
+                    }}
                     aria-label={t('settings.personalization.background.title')}
                 >
                     <option value="new">{t('settings.personalization.background.new')}</option>
@@ -546,6 +579,7 @@ export const PersonalizationSettings = () => {
                     <p className="text-muted-foreground text-xs">Actif uniquement en mode sombre</p>
                 )}
             </div>
+            <p className="text-muted-foreground text-xs mt-2">Appliqué instantanément à tous les utilisateurs</p>
             <div className=" shadow-subtle-sm border-border mt-4 rounded-lg border p-3">
                 <ChatEditor editor={editor} />
             </div>
