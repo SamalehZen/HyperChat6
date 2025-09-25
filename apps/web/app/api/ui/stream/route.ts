@@ -6,6 +6,7 @@ export const fetchCache = 'force-no-store';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUIPreferences } from '@/app/api/_lib/ui-preferences';
 import { getPreferencesEmitter, getLatestPreferencesEvent } from '@/app/api/_lib/preferences-events';
+import { startPreferencesWatcher } from '@/app/api/_lib/realtime-preferences';
 
 const SSE_HEADERS = {
   'Content-Type': 'text/event-stream',
@@ -15,6 +16,7 @@ const SSE_HEADERS = {
 } as const;
 
 export async function GET(request: NextRequest) {
+  startPreferencesWatcher();
   const { readable, writable } = new TransformStream();
   const encoder = new TextEncoder();
   const writer = writable.getWriter();

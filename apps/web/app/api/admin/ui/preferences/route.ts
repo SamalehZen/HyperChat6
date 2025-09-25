@@ -12,6 +12,7 @@ import { prisma } from '@repo/prisma';
 import { ActivityAction } from '@prisma/client';
 import { geolocation } from '@vercel/functions';
 import { getIp } from '@/app/api/completion/utils';
+import { publishUIPreferences } from '@/app/api/_lib/realtime-preferences';
 
 const schema = z.object({
   backgroundVariant: z.enum(['new','old','mesh','shader','neural','redlines','shaderlines']),
@@ -42,6 +43,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch {}
-  setLatestPreferencesEvent({ backgroundVariant: saved.backgroundVariant, aiPromptShinePreset: saved.aiPromptShinePreset, updatedAt: saved.updatedAt! });
+  const evt = { backgroundVariant: saved.backgroundVariant, aiPromptShinePreset: saved.aiPromptShinePreset, updatedAt: saved.updatedAt! };
+  setLatestPreferencesEvent(evt);
+  // Publish cross-instances (best-effort)
+  await publishUIPreferences(evt);
   return NextResponse.json(saved);
 }
