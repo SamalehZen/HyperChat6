@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from 'react';
-import PusherJS from 'pusher-js';
+import Pusher, { Channel } from 'pusher-js';
 import { useGlobalPreferencesStore } from '@repo/common/store';
 
 async function fetchPreferences() {
@@ -18,8 +18,8 @@ export function GlobalPreferencesProvider() {
   const setFromServer = useGlobalPreferencesStore(s => s.setFromServer);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const esRef = useRef<EventSource | null>(null);
-  const pusherRef = useRef<PusherJS | null>(null);
-  const channelRef = useRef<PusherJS.Channel | null>(null);
+  const pusherRef = useRef<Pusher | null>(null);
+  const channelRef = useRef<Channel | null>(null);
 
   useEffect(() => {
     let stopped = false;
@@ -57,7 +57,7 @@ export function GlobalPreferencesProvider() {
       const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
       const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
       if (key && cluster) {
-        const p = new PusherJS(key, { cluster, forceTLS: true, enabledTransports: ['ws', 'wss'] });
+        const p = new Pusher(key, { cluster, forceTLS: true, enabledTransports: ['ws', 'wss'] });
         pusherRef.current = p;
         const ch = p.subscribe('ui-preferences');
         channelRef.current = ch;
@@ -98,10 +98,10 @@ export function GlobalPreferencesProvider() {
       }
       if (channelRef.current) {
         try { channelRef.current.unbind_all(); } catch {}
-        try { channelRef.current.unsubscribe?.(); } catch {}
         channelRef.current = null;
       }
       if (pusherRef.current) {
+        try { pusherRef.current.unsubscribe('ui-preferences'); } catch {}
         try { pusherRef.current.disconnect(); } catch {}
         pusherRef.current = null;
       }
