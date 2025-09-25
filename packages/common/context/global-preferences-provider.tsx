@@ -25,7 +25,7 @@ export function GlobalPreferencesProvider() {
       pollRef.current = setInterval(async () => {
         const prefs = await fetchPreferences();
         if (prefs) setFromServer(prefs as any);
-      }, 15000);
+      }, 2000);
       document.addEventListener('visibilitychange', onVisibility);
     };
     const stopPolling = () => {
@@ -60,7 +60,8 @@ export function GlobalPreferencesProvider() {
           startPolling();
         };
         es.onopen = () => {
-          stopPolling();
+          // Keep polling in parallel to catch cross-instance updates
+          startPolling();
         };
       } catch {
         startPolling();
