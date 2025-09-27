@@ -25,10 +25,10 @@ export function BorderTrail({
   onAnimationComplete,
   style,
 }: BorderTrailProps) {
-  const BASE_TRANSITION = {
-    repeat: Infinity as const,
+  const BASE_TRANSITION: Transition = {
+    repeat: Infinity,
     duration: 6,
-    ease: 'linear' as const,
+    ease: 'linear',
   };
 
   return (
