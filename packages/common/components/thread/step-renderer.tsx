@@ -1,9 +1,10 @@
-import { SearchResultsList, StepStatus, TextShimmer } from '@repo/common/components';
+import { SearchResultsList, StepStatus, TextShimmer, SearchLoadingState, getModelThemeByChatMode } from '@repo/common/components';
 import { Step } from '@repo/shared/types';
 import { Badge } from '@repo/ui';
 import { IconSearch } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import React from 'react';
+import { useChatStore } from '@repo/common/store';
 
 export type StepRendererType = {
     step: Step;
@@ -252,6 +253,10 @@ export const StepRenderer = ({ step }: StepRendererType) => {
         return null;
     };
 
+    const isGenerating = useChatStore(state => state.isGenerating);
+    const chatMode = useChatStore(state => state.chatMode);
+    const showBanner = isGenerating && step.status === 'PENDING';
+
     return (
         <div className="flex w-full flex-row items-stretch justify-start gap-2">
             <div className="flex min-h-full shrink-0 flex-col items-center justify-start px-2">
@@ -272,6 +277,22 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
             >
+                {showBanner && (
+                    <div className="overflow-hidden rounded-2xl">
+                        {(() => {
+                            const theme = getModelThemeByChatMode(chatMode);
+                            return (
+                                <SearchLoadingState
+                                    className="h-[72px] my-0 py-2 rounded-3xl"
+                                    icon={theme.icon}
+                                    text="Préparation de la réponse…"
+                                    gradientClass={theme.gradientClass}
+                                    iconBgClass={theme.iconBgClass}
+                                />
+                            );
+                        })()}
+                    </div>
+                )}
                 {renderWrapupStep()}
                 {renderTextStep()}
                 {renderPrepareStep()}

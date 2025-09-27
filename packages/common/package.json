@@ -20,7 +20,8 @@
     "@repo/actions": "*",
     "@tiptap/extension-character-count": "^2.11.7",
     "react-intl": "^6.6.3",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "motion": "^11.18.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

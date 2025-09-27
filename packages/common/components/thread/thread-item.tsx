@@ -4,10 +4,11 @@ import {
     MarkdownContent,
     Message,
     MessageActions,
-    MotionSkeleton,
     QuestionPrompt,
     SourceGrid,
     Steps,
+    SearchLoadingState,
+    getModelThemeByChatMode,
 } from '@repo/common/components';
 import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
@@ -95,11 +96,19 @@ export const ThreadItem = memo(
                         )}
 
                         {!hasResponse && (
-                            <div className="flex w-full flex-col items-start gap-2 opacity-10">
-                                <MotionSkeleton className="bg-muted-foreground/40 mb-2 h-4 !w-[100px] rounded-sm" />
-                                <MotionSkeleton className="w-full bg-gradient-to-r" />
-                                <MotionSkeleton className="w-[70%] bg-gradient-to-r" />
-                                <MotionSkeleton className="w-[50%] bg-gradient-to-r" />
+                            <div className="flex w-full flex-col items-start gap-2">
+                                {(() => {
+                                    const theme = getModelThemeByChatMode(useChatStore.getState().chatMode);
+                                    return (
+                                        <SearchLoadingState
+                                            icon={theme.icon}
+                                            text="Préparation de la réponse…"
+                                            className="rounded-3xl w-full"
+                                            gradientClass={theme.gradientClass}
+                                            iconBgClass={theme.iconBgClass}
+                                        />
+                                    );
+                                })()}
                             </div>
                         )}
 
