@@ -236,9 +236,9 @@ export const NewLineIndicator = () => {
 export const GeneratingStatus = () => {
     const chatMode = useChatStore(state => state.chatMode);
     return (
-        <div className="max-h-[72px] overflow-hidden rounded-2xl">
+        <div className="overflow-hidden rounded-2xl">
             <SearchLoadingState
-                className="scale-[.85] origin-left rounded-3xl"
+                className="h-[72px] my-0 py-2 rounded-3xl"
                 icon={getModelIconByChatMode(chatMode)}
                 text="Préparation de la réponse…"
                 color="orange"

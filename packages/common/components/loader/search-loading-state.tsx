@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, type JSX } from 'react';
 import { motion, type Transition } from 'framer-motion';
 import { cn } from '@repo/ui';
 
@@ -86,7 +86,7 @@ interface LocalTextShimmerProps {
 }
 
 export function LocalTextShimmer({ children, as: Component = 'p', className, duration = 2, spread = 2 }: LocalTextShimmerProps) {
-  const MotionComponent = motion.create(Component as keyof React.JSX.IntrinsicElements);
+  const MotionComponent = motion(Component as keyof JSX.IntrinsicElements);
 
   const dynamicSpread = useMemo(() => children.length * spread, [children, spread]);
 
