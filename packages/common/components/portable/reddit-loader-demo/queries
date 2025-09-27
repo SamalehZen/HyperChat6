@@ -1,0 +1,23 @@
+import { useQuery } from '@tanstack/react-query'
+
+export type DemoPost = { id: string; title: string; excerpt: string }
+
+function sleep(ms: number) {
+  return new Promise((res) => setTimeout(res, ms))
+}
+
+export function useDemoRedditQuery() {
+  return useQuery({
+    queryKey: ['demo', 'reddit'],
+    queryFn: async () => {
+      const delay = Math.floor(1200 + Math.random() * 800)
+      await sleep(delay)
+      const items: DemoPost[] = Array.from({ length: 5 }).map((_, i) => ({
+        id: String(i + 1),
+        title: `Example Reddit post #${i + 1}`,
+        excerpt: 'This is a simulated excerpt of a Reddit result.',
+      }))
+      return items
+    },
+  })
+}
