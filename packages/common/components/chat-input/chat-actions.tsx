@@ -1,6 +1,6 @@
 'use client';
 import { useAuth } from '@repo/common/context';
-import { DotSpinner } from '@repo/common/components';
+import { SearchLoadingState, getModelIconByChatMode } from '@repo/common/components';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
 import {
@@ -234,9 +234,15 @@ export const NewLineIndicator = () => {
 };
 
 export const GeneratingStatus = () => {
+    const chatMode = useChatStore(state => state.chatMode);
     return (
-        <div className="text-muted-foreground flex flex-row items-center gap-1 px-2 text-xs">
-            <DotSpinner /> Generating...
+        <div className="max-h-[72px] overflow-hidden rounded-2xl">
+            <SearchLoadingState
+                className="scale-[.85] origin-left rounded-3xl"
+                icon={getModelIconByChatMode(chatMode)}
+                text="Préparation de la réponse…"
+                color="orange"
+            />
         </div>
     );
 };

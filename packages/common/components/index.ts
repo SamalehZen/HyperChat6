@@ -31,3 +31,5 @@ export * from './table-of-messages';
 export * from './text-shimmer';
 export * from './thread';
 export * from './tools-menu';
+export * from './loader/search-loading-state';
+export * from './loader/model-icons';
