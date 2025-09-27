@@ -1,0 +1,180 @@
+# Reddit Loader Kit (Portable)
+
+A portable, copy-paste friendly loader kit inspired by Reddit search loading UX. It includes:
+
+- Animated border trail that runs around a container
+- Compact search loading card with badge, skeletons and spinner
+- Minimal, dependency-free skeletons
+- Two spinners (ring and icon)
+- CSS-only border animation alternative (no animation library needed)
+
+Works out of the box in Next.js 14+ / React 18+ TypeScript with Tailwind v3.x or v4. No shadcn/ui. Uses only Radix primitives, framer-motion, lucide-react optionally.
+
+## Contents
+
+```
+portable/reddit-loader-kit/
+├─ src/
+│  ├─ BorderTrail.tsx
+│  ├─ Spinner.tsx
+│  ├─ Skeleton.tsx
+│  └─ SearchLoadingCard.tsx
+├─ styles.css          # CSS-only variant for the border trail
+└─ README.md
+```
+
+## Prerequisites
+
+- React 18+
+- TypeScript
+- Tailwind CSS v3.x or v4
+- Optional (for full experience):
+  - framer-motion (BorderTrail motion version)
+  - @radix-ui/react-accordion (SearchLoadingCard accordion mode)
+  - lucide-react (Spinner icon variant)
+  - @tanstack/react-query + axios (demo integration example)
+
+Install the optional libs when needed:
+
+```
+npm i framer-motion lucide-react @radix-ui/react-accordion
+```
+
+If you don’t want to add framer-motion, use the CSS-only variant by importing `styles.css` and using the `border-trail-css` class.
+
+## Usage
+
+Copy the `portable/reddit-loader-kit` folder into your target project. Then import components from `src`.
+
+### BorderTrail (motion version)
+
+```tsx
+'use client'
+import React from 'react'
+import { BorderTrail } from './portable/reddit-loader-kit/src'
+
+export default function Example() {
+  return (
+    <div className="relative rounded-xl border border-neutral-200 dark:border-neutral-800 p-6 bg-white dark:bg-neutral-900">
+      <BorderTrail color="#f97316" thickness={2} duration={1200} rounded={12} inset={0} />
+      <div className="text-sm text-neutral-600 dark:text-neutral-300">Content</div>
+    </div>
+  )
+}
+```
+
+Props:
+
+- color: string (default `#f97316`)
+- thickness: number (px, default `2`)
+- duration: number (ms, default `1200`)
+- rounded: number (px, default `12`)
+- inset: number (px, default `0`)
+- className?: string
+- style?: React.CSSProperties
+
+The component respects `prefers-reduced-motion` and falls back to a lightweight 4-segment animation when `offset-path` isn’t supported.
+
+### Spinner
+
+```tsx
+import { Spinner } from './portable/reddit-loader-kit/src'
+
+// Ring variant
+<Spinner type="ring" size={16} color="#f97316" />
+
+// Icon variant (uses lucide-react)
+<Spinner type="icon" size={18} color="#f97316" />
+```
+
+Props:
+
+- type: 'ring' | 'icon' (default `ring`)
+- size: number (px)
+- color: string
+- className?: string
+
+### Skeletons
+
+```tsx
+import { Skeleton, SkeletonLine, SkeletonBlock } from './portable/reddit-loader-kit/src'
+
+<SkeletonLine width="70%" height={12} />
+<Skeleton className="h-8 w-full rounded-md" />
+<SkeletonBlock className="h-24 w-48" />
+```
+
+- `Skeleton`: minimal wrapper `div` using `bg-neutral-200 dark:bg-neutral-800 animate-pulse`
+- `SkeletonLine` and `SkeletonBlock` are convenience helpers built on top of `Skeleton`.
+
+### SearchLoadingCard
+
+A ready-to-use compact card for search loading states. Includes Reddit logo, badge, moving border, a spinner and three horizontal skeleton cards by default.
+
+```tsx
+'use client'
+import React from 'react'
+import { SearchLoadingCard } from './portable/reddit-loader-kit/src'
+
+export default function LoadingExample() {
+  return (
+    <SearchLoadingCard color="#f97316" duration={1200} thickness={2} skeletonCount={3} useAccordion={true} />
+  )
+}
+```
+
+Props:
+
+- text?: string (default `"Searching Reddit..."`)
+- color?: string (default `#f97316`)
+- duration?: number (ms, default `1200`)
+- thickness?: number (px, default `2`)
+- skeletonCount?: number (default `3`)
+- useAccordion?: boolean (default `true`)
+- className?: string
+
+When `useAccordion` is true, it relies on `@radix-ui/react-accordion`. If you don’t use Radix, set `useAccordion={false}` and the card will render as a simple `div`.
+
+### CSS-only Border Trail
+
+Import the stylesheet once (for example inside `app/globals.css`):
+
+```css
+@import './portable/reddit-loader-kit/styles.css';
+```
+
+Apply the class to any rounded container:
+
+```tsx
+<div
+  className="relative rounded-xl border border-neutral-200 dark:border-neutral-800 p-6 bg-white dark:bg-neutral-900 border-trail-css"
+  style={{
+    // Optional custom properties
+    // @ts-ignore
+    '--trail-color': '#f97316',
+    '--trail-thickness': '2px',
+    '--trail-duration': '1200ms',
+    '--trail-rounded': '12px',
+    '--trail-inset': '0px',
+  }}
+/>
+```
+
+## Demo integration (React Query + axios)
+
+See `portable/reddit-loader-demo` for a non-intrusive example that simulates a request with a 1200–2000ms delay and displays `SearchLoadingCard` while `status === 'pending'`.
+
+## Accessibility & Performance
+
+- Spinner elements expose `role="status"` and `aria-busy`
+- Honors `prefers-reduced-motion` where relevant
+- Uses `pointer-events: none` for the animated border overlay to avoid blocking interactions
+- Minimal DOM and GPU-friendly animations (linear, transform/offset-distance based)
+
+## Notes for integration
+
+- Copy `portable/reddit-loader-kit` into your project and import from its `src` folder
+- With motion version: `npm i framer-motion`
+- With CSS-only version: `@import` the provided `styles.css` in your global CSS
+- Radix Accordion is optional; set `useAccordion={false}` if not installed
+- Works with Tailwind v3.x and v4 (only utility classes used)
