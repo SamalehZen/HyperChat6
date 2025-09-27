@@ -31,3 +31,4 @@ export * from './table-of-messages';
 export * from './text-shimmer';
 export * from './thread';
 export * from './tools-menu';
+export * from './portable/reddit-loader-kit/src';

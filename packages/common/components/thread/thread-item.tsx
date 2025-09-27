@@ -4,10 +4,11 @@ import {
     MarkdownContent,
     Message,
     MessageActions,
-    MotionSkeleton,
     QuestionPrompt,
     SourceGrid,
     Steps,
+    BorderTrail,
+    Skeleton,
 } from '@repo/common/components';
 import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
@@ -95,11 +96,18 @@ export const ThreadItem = memo(
                         )}
 
                         {!hasResponse && (
-                            <div className="flex w-full flex-col items-start gap-2 opacity-10">
-                                <MotionSkeleton className="bg-muted-foreground/40 mb-2 h-4 !w-[100px] rounded-sm" />
-                                <MotionSkeleton className="w-full bg-gradient-to-r" />
-                                <MotionSkeleton className="w-[70%] bg-gradient-to-r" />
-                                <MotionSkeleton className="w-[50%] bg-gradient-to-r" />
+                            <div
+                                className="relative w-full rounded-xl border border-neutral-200 dark:border-neutral-800"
+                                role="status"
+                                aria-busy="true"
+                            >
+                                <BorderTrail color="#f97316" duration={1200} thickness={2} rounded={12} inset={0} />
+                                <div className="flex w-full flex-col items-start gap-2 p-4">
+                                    <Skeleton className="mb-2 h-4 w-[100px] rounded-sm" />
+                                    <Skeleton className="h-4 w-full rounded" />
+                                    <Skeleton className="h-4 w-[70%] rounded" />
+                                    <Skeleton className="h-4 w-[50%] rounded" />
+                                </div>
                             </div>
                         )}
 
