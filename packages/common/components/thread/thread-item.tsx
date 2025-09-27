@@ -8,7 +8,7 @@ import {
     SourceGrid,
     Steps,
     SearchLoadingState,
-    getModelIconByChatMode,
+    getModelThemeByChatMode,
 } from '@repo/common/components';
 import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
@@ -97,12 +97,18 @@ export const ThreadItem = memo(
 
                         {!hasResponse && (
                             <div className="flex w-full flex-col items-start gap-2">
-                                <SearchLoadingState
-                                    icon={getModelIconByChatMode(useChatStore.getState().chatMode)}
-                                    text="Préparation de la réponse…"
-                                    color="orange"
-                                    className="rounded-3xl w-full"
-                                />
+                                {(() => {
+                                    const theme = getModelThemeByChatMode(useChatStore.getState().chatMode);
+                                    return (
+                                        <SearchLoadingState
+                                            icon={theme.icon}
+                                            text="Préparation de la réponse…"
+                                            className="rounded-3xl w-full"
+                                            gradientClass={theme.gradientClass}
+                                            iconBgClass={theme.iconBgClass}
+                                        />
+                                    );
+                                })()}
                             </div>
                         )}
 

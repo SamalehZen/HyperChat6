@@ -1,6 +1,6 @@
 'use client';
 import { useAuth } from '@repo/common/context';
-import { SearchLoadingState, getModelIconByChatMode } from '@repo/common/components';
+import { SearchLoadingState, getModelThemeByChatMode } from '@repo/common/components';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
 import {
@@ -235,13 +235,15 @@ export const NewLineIndicator = () => {
 
 export const GeneratingStatus = () => {
     const chatMode = useChatStore(state => state.chatMode);
+    const theme = getModelThemeByChatMode(chatMode);
     return (
         <div className="overflow-hidden rounded-2xl">
             <SearchLoadingState
                 className="h-[72px] my-0 py-2 rounded-3xl"
-                icon={getModelIconByChatMode(chatMode)}
+                icon={theme.icon}
                 text="Préparation de la réponse…"
-                color="orange"
+                gradientClass={theme.gradientClass}
+                iconBgClass={theme.iconBgClass}
             />
         </div>
     );

@@ -1,4 +1,4 @@
-import { SearchResultsList, StepStatus, TextShimmer, SearchLoadingState, getModelIconByChatMode } from '@repo/common/components';
+import { SearchResultsList, StepStatus, TextShimmer, SearchLoadingState, getModelThemeByChatMode } from '@repo/common/components';
 import { Step } from '@repo/shared/types';
 import { Badge } from '@repo/ui';
 import { IconSearch } from '@tabler/icons-react';
@@ -279,12 +279,18 @@ export const StepRenderer = ({ step }: StepRendererType) => {
             >
                 {showBanner && (
                     <div className="overflow-hidden rounded-2xl">
-                        <SearchLoadingState
-                            className="h-[72px] my-0 py-2 rounded-3xl"
-                            icon={getModelIconByChatMode(chatMode)}
-                            text="Préparation de la réponse…"
-                            color="orange"
-                        />
+                        {(() => {
+                            const theme = getModelThemeByChatMode(chatMode);
+                            return (
+                                <SearchLoadingState
+                                    className="h-[72px] my-0 py-2 rounded-3xl"
+                                    icon={theme.icon}
+                                    text="Préparation de la réponse…"
+                                    gradientClass={theme.gradientClass}
+                                    iconBgClass={theme.iconBgClass}
+                                />
+                            );
+                        })()}
                     </div>
                 )}
                 {renderWrapupStep()}

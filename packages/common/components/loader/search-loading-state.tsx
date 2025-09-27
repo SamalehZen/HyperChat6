@@ -121,15 +121,19 @@ export function LocalTextShimmer({ children, as: Component = 'p', className, dur
 export type SearchLoadingStateProps = {
   icon: React.ReactNode;
   text: string;
-  color: 'red' | 'green' | 'orange' | 'violet' | 'gray' | 'blue';
+  color?: 'red' | 'green' | 'orange' | 'violet' | 'gray' | 'blue';
   className?: string;
+  gradientClass?: string;
+  iconBgClass?: string;
 };
 
 export const SearchLoadingState = ({
   icon,
   text,
-  color,
+  color = 'gray',
   className,
+  gradientClass,
+  iconBgClass,
 }: SearchLoadingStateProps) => {
   const colorVariants = {
     red: { background: 'bg-red-50 dark:bg-red-950' },
@@ -145,13 +149,13 @@ export const SearchLoadingState = ({
   return (
     <Card className={cn('w-full h-[100px] my-4 shadow-none', className)}>
       {/* Large BorderTrail autour du Card */}
-      <BorderTrail size={80} />
+      <BorderTrail size={80} className={cn('bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
 
       <CardContent>
         <div className="relative flex items-center gap-3">
           {/* Mini loader autour de l'icône */}
-          <div className={cn('relative h-10 w-10 rounded-full flex items-center justify-center', variant.background)}>
-            <BorderTrail size={30} className="opacity-80" />
+          <div className={cn('relative h-10 w-10 rounded-full flex items-center justify-center', iconBgClass ?? variant.background)}>
+            <BorderTrail size={30} className={cn('opacity-80','bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
             <div className="h-5 w-5 flex items-center justify-center text-white">
               {icon}
             </div>
