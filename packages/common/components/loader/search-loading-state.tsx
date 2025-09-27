@@ -94,9 +94,9 @@ export function LocalTextShimmer({ children, as: Component = 'p', className, dur
     <MotionComponent
       className={cn(
         'relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent',
-        '[--base-color:#a1a1aa] [--base-gradient-color:#000]',
+        '[--base-color:hsl(var(--muted-foreground)/50)] [--base-gradient-color:hsl(var(--foreground))]',
         '[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))] [background-repeat:no-repeat,padding-box]',
-        'dark:[--base-color:#71717a] dark:[--base-gradient-color:#ffffff] dark:[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))]',
+        'dark:[--base-color:hsl(var(--muted-foreground)/50)] dark:[--base-gradient-color:hsl(var(--foreground))]',
         className
       )}
       initial={{ backgroundPosition: '100% center' }}
