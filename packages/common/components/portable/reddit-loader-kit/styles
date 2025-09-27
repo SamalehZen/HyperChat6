@@ -1,0 +1,36 @@
+:root {
+  --trail-color: #f97316;
+  --trail-thickness: 2px;
+  --trail-duration: 1200ms;
+  --trail-rounded: 12px;
+  --trail-inset: 0px;
+}
+
+.border-trail-css {
+  position: relative;
+}
+
+.border-trail-css::after {
+  content: "";
+  position: absolute;
+  inset: var(--trail-inset);
+  padding: var(--trail-thickness);
+  border-radius: var(--trail-rounded);
+  background: conic-gradient(from 0deg, var(--trail-color) 0 12%, transparent 12% 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: border-trail-rotate var(--trail-duration) linear infinite;
+  pointer-events: none;
+}
+
+@keyframes border-trail-rotate {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.border-trail-css[data-reduced-motion="true"]::after {
+  animation: none;
+}
