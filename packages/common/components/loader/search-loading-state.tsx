@@ -1,8 +1,120 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useMemo } from 'react';
+import { motion, type Transition } from 'framer-motion';
 import { cn } from '@repo/ui';
+
+/* ------------------------------ */
+/* Utils                          */
+/* ------------------------------ */
+
+type BorderTrailProps = {
+  className?: string;
+  size?: number;
+  transition?: Transition;
+  delay?: number;
+  onAnimationComplete?: () => void;
+  style?: React.CSSProperties;
+};
+
+export function BorderTrail({
+  className,
+  size = 60,
+  transition,
+  delay,
+  onAnimationComplete,
+  style,
+}: BorderTrailProps) {
+  const BASE_TRANSITION = {
+    repeat: Infinity as const,
+    duration: 6,
+    ease: 'linear' as const,
+  };
+
+  return (
+    <div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]">
+      <motion.div
+        className={cn(
+          'absolute aspect-square rounded-full',
+          'bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500',
+          className
+        )}
+        style={{
+          width: size,
+          offsetPath: `rect(0 auto auto 0 round ${size}px)`,
+          ...style,
+        }}
+        animate={{ offsetDistance: ['0%', '100%'] }}
+        transition={{ ...(transition ?? BASE_TRANSITION), delay }}
+        onAnimationComplete={onAnimationComplete}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------ */
+/* Card components                */
+/* ------------------------------ */
+
+function Card({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        'bg-card text-card-foreground flex flex-col gap-6 rounded-3xl border py-6 shadow-sm relative overflow-hidden',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="card-content" className={cn('px-6', className)} {...props} />;
+}
+
+/* ------------------------------ */
+/* Text shimmer                   */
+/* ------------------------------ */
+
+interface LocalTextShimmerProps {
+  children: string;
+  as?: React.ElementType;
+  className?: string;
+  duration?: number;
+  spread?: number;
+}
+
+export function LocalTextShimmer({ children, as: Component = 'p', className, duration = 2, spread = 2 }: LocalTextShimmerProps) {
+  const MotionComponent = motion.create(Component as keyof React.JSX.IntrinsicElements);
+
+  const dynamicSpread = useMemo(() => children.length * spread, [children, spread]);
+
+  return (
+    <MotionComponent
+      className={cn(
+        'relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent',
+        '[--base-color:#a1a1aa] [--base-gradient-color:#000]',
+        '[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))] [background-repeat:no-repeat,padding-box]',
+        'dark:[--base-color:#71717a] dark:[--base-gradient-color:#ffffff] dark:[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))]',
+        className
+      )}
+      initial={{ backgroundPosition: '100% center' }}
+      animate={{ backgroundPosition: '0% center' }}
+      transition={{ repeat: Infinity, duration, ease: 'linear' }}
+      style={{
+        '--spread': `${dynamicSpread}px`,
+        backgroundImage: `var(--bg), linear-gradient(var(--base-color), var(--base-color))`,
+      } as React.CSSProperties}
+    >
+      {children}
+    </MotionComponent>
+  );
+}
+
+/* ------------------------------ */
+/* Search Loading State            */
+/* ------------------------------ */
 
 export type SearchLoadingStateProps = {
   icon: React.ReactNode;
@@ -11,105 +123,58 @@ export type SearchLoadingStateProps = {
   className?: string;
 };
 
-const colorStops: Record<SearchLoadingStateProps['color'], string[]> = {
-  red: ['#ef4444', '#f87171', '#dc2626'],
-  green: ['#22c55e', '#86efac', '#16a34a'],
-  orange: ['#f97316', '#fb923c', '#f59e0b'],
-  violet: ['#8b5cf6', '#a78bfa', '#7c3aed'],
-  gray: ['#6b7280', '#9ca3af', '#4b5563'],
-  blue: ['#3b82f6', '#60a5fa', '#1d4ed8'],
-};
-
-function getConicGradient(color: SearchLoadingStateProps['color']) {
-  const [c1, c2, c3] = colorStops[color];
-  return `conic-gradient(from 0deg, ${c1} 0deg, ${c2} 120deg, ${c3} 240deg, ${c1} 360deg)`;
-}
-
-const BorderTrail = ({
+export const SearchLoadingState = ({
+  icon,
+  text,
   color,
-  radiusClass = 'rounded-3xl',
-  children,
-}: {
-  color: SearchLoadingStateProps['color'];
-  radiusClass?: string;
-  children: React.ReactNode;
-}) => {
-  const gradient = getConicGradient(color);
-  return (
-    <div className={cn('relative', radiusClass)}>
-      <motion.div
-        aria-hidden
-        className={cn('pointer-events-none absolute inset-0', radiusClass)}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-        style={{
-          background: gradient,
-          padding: '1px',
-          borderRadius: 'inherit',
-          WebkitMask:
-            'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
-          WebkitMaskComposite: 'xor' as any,
-          maskComposite: 'exclude',
-          mask:
-            'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)'
-        }}
-      />
-      <div className={cn('relative', radiusClass)}>{children}</div>
-    </div>
-  );
-};
-
-const LocalTextShimmer = ({
-  children,
   className,
-  duration = 1.0,
-}: {
-  children: string;
-  className?: string;
-  duration?: number;
-}) => {
-  return (
-    <motion.span
-      className={cn(
-        'relative inline-block bg-[length:250%_100%,auto] bg-clip-text text-transparent',
-        '[--base-color:hsl(var(--muted-foreground)/50)] [--base-gradient-color:hsl(var(--foreground))]',
-        '[--bg:linear-gradient(90deg,#0000_calc(50%-24px),var(--base-gradient-color),#0000_calc(50%+24px))] [background-repeat:no-repeat,padding-box]',
-        'dark:[--base-color:hsl(var(--muted-foreground)/50)] dark:[--base-gradient-color:hsl(var(--foreground))]',
-        className
-      )}
-      initial={{ backgroundPosition: '100% center' }}
-      animate={{ backgroundPosition: '0% center' }}
-      transition={{ repeat: Infinity, duration, ease: 'linear' }}
-      style={{ backgroundImage: `var(--bg), linear-gradient(var(--base-color), var(--base-color))` }}
-    >
-      {children}
-    </motion.span>
-  );
-};
+}: SearchLoadingStateProps) => {
+  const colorVariants = {
+    red: { background: 'bg-red-50 dark:bg-red-950' },
+    green: { background: 'bg-green-50 dark:bg-green-950' },
+    orange: { background: 'bg-orange-50 dark:bg-orange-950' },
+    violet: { background: 'bg-violet-50 dark:bg-violet-950' },
+    gray: { background: 'bg-neutral-50 dark:bg-neutral-950' },
+    blue: { background: 'bg-blue-50 dark:bg-blue-950' },
+  } as const;
 
-export const SearchLoadingState = ({ icon, text, color, className }: SearchLoadingStateProps) => {
+  const variant = colorVariants[color];
+
   return (
-    <BorderTrail color={color} radiusClass={cn('rounded-3xl', className)}>
-      <div
-        role="status"
-        aria-busy="true"
-        className={cn(
-          'bg-background/95 text-foreground',
-          'border border-border',
-          'rounded-3xl',
-          'px-3 py-2'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 flex items-center justify-center">
-            {icon}
+    <Card className={cn('w-full h-[100px] my-4 shadow-none', className)}>
+      {/* Large BorderTrail autour du Card */}
+      <BorderTrail size={80} />
+
+      <CardContent>
+        <div className="relative flex items-center gap-3">
+          {/* Mini loader autour de l'icône */}
+          <div className={cn('relative h-10 w-10 rounded-full flex items-center justify-center', variant.background)}>
+            <BorderTrail size={30} className="opacity-80" />
+            <div className="h-5 w-5 flex items-center justify-center text-white">
+              {icon}
+            </div>
           </div>
-          <div className="text-sm font-medium">
-            <LocalTextShimmer duration={1.1}>{text}</LocalTextShimmer>
+
+          <div className="space-y-2 flex-1">
+            <LocalTextShimmer className="text-base font-medium" duration={2}>
+              {text}
+            </LocalTextShimmer>
+            <div className="flex gap-2">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                  style={{
+                    width: `${Math.random() * 40 + 20}px`,
+                    animationDelay: `${i * 0.2}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </BorderTrail>
+      </CardContent>
+    </Card>
   );
 };
 
