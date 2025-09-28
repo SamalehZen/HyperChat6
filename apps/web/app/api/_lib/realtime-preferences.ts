@@ -1,6 +1,7 @@
 import { Redis } from '@upstash/redis';
 import Pusher from 'pusher';
 import { setLatestPreferencesEvent, getLatestPreferencesEvent, getPreferencesEmitter } from './preferences-events';
+import { getAccessEmitter } from './access-events';
 
 let started = false as boolean;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -77,4 +78,16 @@ export function startPreferencesWatcher() {
       // ignore
     }
   }, 500);
+}
+
+export async function publishUserAccessChanged(userId: string) {
+  try {
+    const p = getPusher();
+    if (p) {
+      await p.trigger('ui-preferences', 'user-access-changed', { userId });
+    }
+  } catch {}
+  try {
+    getAccessEmitter().emit('user-access-changed', { userId });
+  } catch {}
 }

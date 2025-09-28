@@ -17,7 +17,7 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { I18nProvider } from '@repo/common/i18n';
 import { OnlineHeartbeat, AccountStatusGate } from '@repo/common/components';
-import { GlobalPreferencesProvider } from '@repo/common/context';
+import { GlobalPreferencesProvider, AllowedChatModesProvider } from '@repo/common/context';
 
 export const metadata: Metadata = {
     title: 'HyperFix - développé pour L\'Hyper',
@@ -116,6 +116,7 @@ export default function ParentLayout({
                                         <OnlineHeartbeat />
                                         <AccountStatusGate />
                                         <GlobalPreferencesProvider />
+                                        <AllowedChatModesProvider />
                                     </ReactQueryProvider>
                                 </I18nProvider>
                             </TooltipProvider>

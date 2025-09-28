@@ -17,7 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
-import { useEffectivePreferences } from '@repo/common/hooks';
+import { useEffectivePreferences, useAllowedChatModes } from '@repo/common/hooks';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
     IconAtom,
@@ -252,8 +252,9 @@ export const AnimatedChatInput = ({
         // },
     ];
 
-    // Filter to only active models
-    const activeModels = AI_MODELS.filter(model => !model.id.includes('//'));
+    const { isModeAllowed } = useAllowedChatModes();
+    // Filter to only active models and allowed for user
+    const activeModels = AI_MODELS.filter(model => !model.id.includes('//')).filter(m => isModeAllowed(m.id));
 
     // Add credit cost and auth badge to model names
     const modelsWithBadges = activeModels.map(model => {
