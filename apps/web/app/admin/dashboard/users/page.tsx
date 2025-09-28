@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Select } from '@repo/ui';
+import { Button, Input } from '@repo/ui';
 
 type Row = { id: string; email: string; role: 'admin' | 'user'; status: 'Actif' | 'Suspendu'; createdAt: string };
 const DATA: Row[] = Array.from({ length: 12 }).map((_, i) => ({
@@ -22,7 +22,7 @@ export default function UsersPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Rôle</label>
-          <Select className="w-48"><option>Tous</option><option>admin</option><option>user</option></Select>
+          <select className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm"><option>Tous</option><option>admin</option><option>user</option></select>
         </div>
         <Button>Appliquer</Button>
       </div>
@@ -55,7 +55,7 @@ export default function UsersPage() {
         <Button variant="secondary" size="sm">Précédent</Button>
         <Button variant="secondary" size="sm">Suivant</Button>
         <div className="flex-1" />
-        <Select className="w-24"><option>10</option><option>20</option><option>50</option></Select>
+        <select className="border-input bg-background text-foreground h-9 w-24 rounded-md border px-2 text-sm"><option>10</option><option>20</option><option>50</option></select>
       </div>
     </div>
   );

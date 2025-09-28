@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Select } from '@repo/ui';
+import { Button, Input } from '@repo/ui';
 
 type Row = { ts: string; type: string; message: string };
 const DATA: Row[] = Array.from({ length: 15 }).map((_, i) => ({
@@ -20,7 +20,7 @@ export default function LogsPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Type</label>
-          <Select className="w-48"><option>Tous</option><option>info</option><option>warn</option><option>error</option></Select>
+          <select className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm"><option>Tous</option><option>info</option><option>warn</option><option>error</option></select>
         </div>
         <Button>Appliquer</Button>
       </div>

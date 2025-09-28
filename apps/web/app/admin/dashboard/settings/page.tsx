@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Switch, Select } from '@repo/ui';
+import { Button, Input, Switch } from '@repo/ui';
 
 export default function SettingsPage() {
   return (
@@ -21,11 +21,11 @@ export default function SettingsPage() {
         </div>
         <div className="mb-4">
           <label className="mb-1 block text-sm font-medium">Thème</label>
-          <Select className="w-48" disabled>
+          <select className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm" disabled>
             <option>Clair</option>
             <option>Sombre</option>
             <option>Système</option>
-          </Select>
+          </select>
         </div>
         <Button disabled>Enregistrer</Button>
       </div>

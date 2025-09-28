@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Select } from '@repo/ui';
+import { Button, Input } from '@repo/ui';
 
 type Row = { name: string; type: string; version: string; status: 'Actif' | 'Déprécié' };
 const DATA: Row[] = [
@@ -20,7 +20,7 @@ export default function ModelsPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Type</label>
-          <Select className="w-48"><option>Tous</option><option>chat</option><option>embed</option></Select>
+          <select className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm"><option>Tous</option><option>chat</option><option>embed</option></select>
         </div>
         <Button>Appliquer</Button>
       </div>
