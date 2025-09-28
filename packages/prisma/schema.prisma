@@ -47,6 +47,7 @@ model User {
   sessions     Session[]
   activityLogs ActivityLog[] @relation("ActivityOnUser")
   actorLogs    ActivityLog[] @relation("ActivityByActor")
+  allowedChatModes Json?
 }
 
 model Session {
