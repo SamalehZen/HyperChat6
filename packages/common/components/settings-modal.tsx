@@ -53,7 +53,7 @@ export const SettingsModal = () => {
     ];
 
     return (
-        <Dialog open={isSettingOpen && user?.role === 'admin'} onOpenChange={() => setIsSettingOpen(false)}>
+        <Dialog open={isSettingOpen && user?.role === 'admin'} onOpenChange={setIsSettingOpen}>
             <DialogContent
                 ariaTitle="Paramètres"
                 className="h-full max-h-[600px] !max-w-[760px] overflow-x-hidden rounded-xl p-0"

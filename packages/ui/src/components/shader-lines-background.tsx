@@ -84,6 +84,8 @@ export function ShaderLinesBackground() {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio || 1);
     container.appendChild(renderer.domElement);
+    renderer.domElement.style.pointerEvents = "none";
+    container.style.pointerEvents = "none";
 
     const onResize = () => {
       const rect = container.getBoundingClientRect();

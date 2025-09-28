@@ -72,6 +72,8 @@ export function ShaderAnimationBackground() {
     renderer.setPixelRatio(window.devicePixelRatio);
 
     container.appendChild(renderer.domElement);
+    renderer.domElement.style.pointerEvents = "none";
+    container.style.pointerEvents = "none";
 
     const onWindowResize = () => {
       const width = container.clientWidth;
