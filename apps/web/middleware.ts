@@ -1,39 +1,47 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
+function getAllowedOrigins(): string[] {
+  const raw = process.env.ADMIN_ALLOWED_ORIGINS || '';
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
 
-export default function middleware(req: NextRequest) {
-  const url = new URL(req.url);
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (!pathname.startsWith('/api/')) return NextResponse.next();
 
-  // Allow public routes and assets
-  const pathname = url.pathname;
-  if (
-    pathname.startsWith('/api/auth') ||
-    pathname === '/sign-in' ||
-    pathname.startsWith('/_next/static') ||
-    pathname.startsWith('/_next/image') ||
-    pathname === '/favicon.ico' ||
-    pathname === '/robots.txt' ||
-    pathname === '/sitemap.xml' ||
-    pathname === '/manifest.json'
-  ) {
-    return NextResponse.next();
+  const origin = request.headers.get('origin') || '';
+  const allowed = getAllowedOrigins();
+  const isAllowed = allowed.includes(origin);
+
+  if (request.method === 'OPTIONS') {
+    const res = new NextResponse(null, { status: 204 });
+    if (isAllowed) {
+      res.headers.set('Access-Control-Allow-Origin', origin);
+      res.headers.set('Vary', 'Origin');
+      res.headers.set('Access-Control-Allow-Credentials', 'true');
+      res.headers.set('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+      res.headers.set('Access-Control-Allow-Headers', request.headers.get('access-control-request-headers') || 'content-type');
+      res.headers.set('Access-Control-Max-Age', '600');
+    }
+    return res;
   }
 
-  // Require session cookie for everything else
-  const hasSession = !!req.cookies.get('session')?.value;
-  if (!hasSession) {
-    url.pathname = '/sign-in';
-    url.search = '';
-    return NextResponse.redirect(url);
+  // For state-changing requests, enforce Origin if allowed origins configured
+  if (['POST','PATCH','PUT','DELETE'].includes(request.method)) {
+    if (allowed.length > 0 && !isAllowed) {
+      return NextResponse.json({ error: 'CORS origin not allowed' }, { status: 403 });
+    }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (isAllowed) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Vary', 'Origin');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+  }
+  return response;
 }
 
 export const config = {
-  matcher: [
-    '/((?!api/auth|sign-in|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json).*)',
-  ],
+  matcher: ['/api/:path*'],
 };

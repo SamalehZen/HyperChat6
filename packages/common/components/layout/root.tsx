@@ -52,25 +52,29 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                     </span>
                 </div>
             </div>
-            <Flex className="hidden lg:flex">
-                <AnimatePresence>{isSidebarOpen && <Sidebar />}</AnimatePresence>
-            </Flex>
+            {isChat && (
+                <Flex className="hidden lg:flex">
+                    <AnimatePresence>{isSidebarOpen && <Sidebar />}</AnimatePresence>
+                </Flex>
+            )}
 
-            <Drawer.Root
-                open={isMobileSidebarOpen}
-                direction="left"
-                shouldScaleBackground
-                onOpenChange={setIsMobileSidebarOpen}
-            >
-                <Drawer.Portal>
-                    <Drawer.Overlay className="fixed inset-0 z-30 backdrop-blur-sm" />
-                    <Drawer.Content className="fixed bottom-0 left-0 top-0 z-[50]">
-                        <Flex className="pr-2">
-                            <Sidebar />
-                        </Flex>
-                    </Drawer.Content>
-                </Drawer.Portal>
-            </Drawer.Root>
+            {isChat && (
+                <Drawer.Root
+                    open={isMobileSidebarOpen}
+                    direction="left"
+                    shouldScaleBackground
+                    onOpenChange={setIsMobileSidebarOpen}
+                >
+                    <Drawer.Portal>
+                        <Drawer.Overlay className="fixed inset-0 z-30 backdrop-blur-sm" />
+                        <Drawer.Content className="fixed bottom-0 left-0 top-0 z-[50]">
+                            <Flex className="pr-2">
+                                <Sidebar />
+                            </Flex>
+                        </Drawer.Content>
+                    </Drawer.Portal>
+                </Drawer.Root>
+            )}
 
             {/* Main Content */}
             <Flex className="flex-1 overflow-hidden">

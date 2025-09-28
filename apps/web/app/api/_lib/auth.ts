@@ -80,10 +80,11 @@ export async function createSessionForUser(userId: string, request: NextRequest)
 
 export function setSessionCookie(token: string, expiresAt: Date) {
   const isProd = process.env.NODE_ENV === 'production';
+  const cross = process.env.CROSS_ORIGIN_AUTH === 'true';
   cookies().set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isProd,
-    sameSite: 'lax',
+    secure: isProd || cross,
+    sameSite: cross ? 'none' : 'lax',
     path: '/',
     expires: expiresAt,
   });
@@ -91,10 +92,11 @@ export function setSessionCookie(token: string, expiresAt: Date) {
 
 export function clearSessionCookie() {
   const isProd = process.env.NODE_ENV === 'production';
+  const cross = process.env.CROSS_ORIGIN_AUTH === 'true';
   cookies().set(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
-    secure: isProd,
-    sameSite: 'lax',
+    secure: isProd || cross,
+    sameSite: cross ? 'none' : 'lax',
     path: '/',
     maxAge: 0,
   });

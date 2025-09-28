@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
   const skip = (page - 1) * limit;
 
+  const sortKey = searchParams.get('sortKey') || undefined; // email | role | etat | createdAt | lastSeen | online
+  const sortOrder = (searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc';
+
   const where: any = {};
   if (q) where.email = { contains: q, mode: 'insensitive' };
   // exclude soft-deleted by default
@@ -24,11 +27,26 @@ export async function GET(request: NextRequest) {
   if (status === 'offline') where.isSuspended = false; // filter online separately later
   if (status === 'online') where.isSuspended = false;
 
+  // Build orderBy based on sortKey
+  let orderBy: any = { createdAt: 'desc' };
+  if (sortKey === 'email') orderBy = { email: sortOrder };
+  else if (sortKey === 'role') orderBy = { role: sortOrder };
+  else if (sortKey === 'createdAt') orderBy = { createdAt: sortOrder };
+  else if (sortKey === 'etat') {
+    orderBy = [
+      { deletedAt: sortOrder },
+      { isSuspended: sortOrder },
+      { isLocked: sortOrder },
+    ];
+  } else if (sortKey === 'lastSeen' || sortKey === 'online') {
+    orderBy = { sessions: { _max: { lastSeen: sortOrder } } } as any;
+  }
+
   const [total, users] = await Promise.all([
     prisma.user.count({ where }),
     prisma.user.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip,
       take: limit,
       include: { sessions: { orderBy: { lastSeen: 'desc' }, take: 1 } },
