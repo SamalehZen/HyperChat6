@@ -6,7 +6,6 @@ import type { ShinePreset } from '@repo/shared/config';
 export type GlobalPreferences = {
   backgroundVariant: BackgroundVariant;
   aiPromptShinePreset: ShinePreset;
-  allowedChatModes?: string[];
   updatedAt?: string;
 };
 
@@ -30,6 +29,6 @@ export const useGlobalPreferencesStore = create<GlobalPreferencesState & GlobalP
       set({ loaded: true });
       return;
     }
-    set({ loaded: true, prefs: { backgroundVariant: incoming.backgroundVariant as any, aiPromptShinePreset: incoming.aiPromptShinePreset as any, allowedChatModes: (incoming as any).allowedChatModes, updatedAt: incoming.updatedAt } });
+    set({ loaded: true, prefs: { backgroundVariant: incoming.backgroundVariant, aiPromptShinePreset: incoming.aiPromptShinePreset, updatedAt: incoming.updatedAt } });
   },
 }));

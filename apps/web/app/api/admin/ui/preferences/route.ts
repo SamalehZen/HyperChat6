@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/app/api/_lib/auth';
 import { z } from 'zod';
 import { upsertUIPreferences } from '@/app/api/_lib/ui-preferences';
-import { ChatMode } from '@repo/shared/config';
 import { setLatestPreferencesEvent } from '@/app/api/_lib/preferences-events';
 import { prisma } from '@repo/prisma';
 import { ActivityAction } from '@prisma/client';
@@ -16,9 +15,8 @@ import { getIp } from '@/app/api/completion/utils';
 import { publishUIPreferences } from '@/app/api/_lib/realtime-preferences';
 
 const schema = z.object({
-  backgroundVariant: z.enum(['new','old','mesh','shader','neural','redlines','shaderlines']).optional(),
-  aiPromptShinePreset: z.string().optional(),
-  allowedChatModes: z.array(z.nativeEnum(ChatMode)).optional(),
+  backgroundVariant: z.enum(['new','old','mesh','shader','neural','redlines','shaderlines']),
+  aiPromptShinePreset: z.string(),
 });
 
 export async function POST(request: NextRequest) {
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
   }
-  const saved = await upsertUIPreferences(parsed.data as any);
+  const saved = await upsertUIPreferences(parsed.data);
   const gl = geolocation(request);
   const ip = getIp(request);
   try {
@@ -45,7 +43,8 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch {}
-  const evt = { backgroundVariant: saved.backgroundVariant, aiPromptShinePreset: saved.aiPromptShinePreset, allowedChatModes: saved.allowedChatModes, updatedAt: saved.updatedAt! } as any;  setLatestPreferencesEvent(evt);
+  const evt = { backgroundVariant: saved.backgroundVariant, aiPromptShinePreset: saved.aiPromptShinePreset, updatedAt: saved.updatedAt! };
+  setLatestPreferencesEvent(evt);
   // Publish cross-instances (best-effort)
   await publishUIPreferences(evt);
   return NextResponse.json(saved);

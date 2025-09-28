@@ -16,7 +16,7 @@ import { SETTING_TABS, useAppStore } from '../store/app.store';
 import { useChatStore } from '../store/chat.store';
 import { ChatEditor } from './chat-input';
 import { BYOKIcon, ToolIcon } from './icons';
-import { SHINE_PRESETS, ChatMode } from '@repo/shared/config';
+import { SHINE_PRESETS } from '@repo/shared/config';
 
 export const SettingsModal = () => {
     const isSettingOpen = useAppStore(state => state.isSettingsOpen);
@@ -482,29 +482,6 @@ export const PersonalizationSettings = () => {
             setCustomInstructions(props.editor.getText());
         },
     });
-    // Admin: allowed models UI (simple demo checkboxes)
-    const [savingAllowed, setSavingAllowed] = useState(false);
-    const globalPrefs = useGlobalPreferencesStore(state => state.prefs);
-    const allowed = (globalPrefs?.allowedChatModes || []) as string[];
-    const toggleAllowed = async (mode: ChatMode) => {
-        try {
-            setSavingAllowed(true);
-            const next = allowed.includes(mode) ? allowed.filter(m => m !== mode) : [...allowed, mode];
-            const res = await fetch('/api/admin/ui/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ allowedChatModes: next }) });
-            if (res.ok) {
-                const json = await res.json();
-                setFromServer(json);
-                toast({ title: t('settings.saved') || 'Préférences appliquées' });
-            } else {
-                toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
-            }
-        } catch {
-            toast({ title: 'Erreur de sauvegarde', variant: 'destructive' });
-        } finally {
-            setSavingAllowed(false);
-        }
-    };
-
     return (
         <div className="flex flex-col gap-1 pb-3">
             <h3 className="text-base font-semibold">{t('settings.personalization.title')}</h3>
@@ -521,19 +498,6 @@ export const PersonalizationSettings = () => {
                     <option value="en">{t('settings.language.en')}</option>
                 </select>
             </div>
-            <div className="mt-2 flex flex-col gap-2">
-                <label className="text-sm font-medium">Accès modèles (admin)</label>
-                <p className="text-muted-foreground text-xs">Cochez les modèles visibles par les utilisateurs. Laissez vide pour autoriser tous.</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {[ChatMode.CORRECTION, ChatMode.CLASSIFICATION, ChatMode.NOMENCLATURE_DOUANIERE, ChatMode.SMART_PDF_TO_EXCEL, ChatMode.GEMINI_2_5_FLASH, ChatMode.Deep, ChatMode.Pro].map((mode) => (
-                        <label key={mode} className="flex items-center gap-2 text-xs">
-                            <input type="checkbox" checked={allowed?.includes(mode)} onChange={() => toggleAllowed(mode)} disabled={savingAllowed} />
-                            <span>{mode}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-
             <div className="mt-2 flex flex-col gap-2">
                 <label className="text-sm font-medium" id="shine-select-label">{t('settings.personalization.shine.title')}</label>
                 <p className="text-muted-foreground text-xs">{t('settings.personalization.shine.description')}</p>

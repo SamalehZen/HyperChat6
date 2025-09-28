@@ -8,7 +8,7 @@ async function fetchPreferences() {
     const res = await fetch(`/api/ui/preferences?_=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
-    return json as { backgroundVariant: string; aiPromptShinePreset: string; allowedChatModes?: string[]; updatedAt?: string };
+    return json as { backgroundVariant: string; aiPromptShinePreset: string; updatedAt?: string };
   } catch {
     return null;
   }

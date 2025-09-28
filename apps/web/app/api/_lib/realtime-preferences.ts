@@ -22,7 +22,7 @@ function getPusher() {
   return new Pusher({ appId, key, secret, cluster, useTLS: true });
 }
 
-export async function publishUIPreferences(evt: { backgroundVariant: string; aiPromptShinePreset: string; allowedChatModes?: string[]; updatedAt: string }) {
+export async function publishUIPreferences(evt: { backgroundVariant: string; aiPromptShinePreset: string; updatedAt: string }) {
   const redis = getRedis();
   try {
     if (redis) {

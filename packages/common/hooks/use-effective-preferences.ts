@@ -8,7 +8,7 @@ export function useEffectivePreferences() {
   const localShine = usePreferencesStore(s => s.aiPromptShinePreset);
 
   if (globalLoaded && globalPrefs) {
-    return { backgroundVariant: globalPrefs.backgroundVariant, aiPromptShinePreset: globalPrefs.aiPromptShinePreset, allowedChatModes: globalPrefs.allowedChatModes, updatedAt: globalPrefs.updatedAt } as const;
+    return { backgroundVariant: globalPrefs.backgroundVariant, aiPromptShinePreset: globalPrefs.aiPromptShinePreset, updatedAt: globalPrefs.updatedAt } as const;
   }
-  return { backgroundVariant: localBackground, aiPromptShinePreset: localShine, allowedChatModes: undefined } as const;
+  return { backgroundVariant: localBackground, aiPromptShinePreset: localShine } as const;
 }

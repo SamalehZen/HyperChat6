@@ -3,7 +3,6 @@ import { EventEmitter } from 'events';
 export type UIPreferencesEvent = {
   backgroundVariant: string;
   aiPromptShinePreset: string;
-  allowedChatModes?: string[];
   updatedAt: string;
 };
 
