@@ -175,11 +175,15 @@ export const ChatModeButton = () => {
     const [isChatModeOpen, setIsChatModeOpen] = useState(false);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
     const isChatPage = usePathname().startsWith('/chat');
+    const { isModeAllowed } = useAllowedChatModes();
+    const allowedAdvanced = chatOptions.filter(o => isModeAllowed(o.value));
+    const allowedModels = modelOptions.filter(o => isModeAllowed(o.value));
+    const allAllowed = isChatPage ? [...allowedAdvanced, ...allowedModels] : [...allowedModels];
+
+    if (allAllowed.length <= 1) return null;
 
     const selectedOption =
-        (isChatPage
-            ? [...chatOptions, ...modelOptions].find(option => option.value === chatMode)
-            : [...modelOptions].find(option => option.value === chatMode)) ?? modelOptions[0];
+        allAllowed.find(option => option.value === chatMode) ?? allAllowed[0];
 
     return (
         <DropdownMenu open={isChatModeOpen} onOpenChange={setIsChatModeOpen}>

@@ -34,9 +34,16 @@ export function AllowedChatModesProvider() {
       const data = await fetchAllowed();
       if (data && !cancelled) {
         setAllowed(data.allowedChatModes);
-        if (data.allowedChatModes && !data.allowedChatModes.includes(chatMode)) {
-          setChatMode(ChatMode.GEMINI_2_5_FLASH);
-          toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+        if (Array.isArray(data.allowedChatModes)) {
+          if (!data.allowedChatModes.includes(chatMode)) {
+            const fallback = data.allowedChatModes[0];
+            if (fallback) {
+              setChatMode(fallback as ChatMode);
+            } else {
+              setChatMode(ChatMode.GEMINI_2_5_FLASH);
+            }
+            toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+          }
         }
       }
       const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -52,9 +59,16 @@ export function AllowedChatModesProvider() {
               const upd = await fetchAllowed();
               if (upd && !cancelled) {
                 setAllowed(upd.allowedChatModes);
-                if (upd.allowedChatModes && !upd.allowedChatModes.includes(chatMode)) {
-                  setChatMode(ChatMode.GEMINI_2_5_FLASH);
-                  toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+                if (Array.isArray(upd.allowedChatModes)) {
+                  if (!upd.allowedChatModes.includes(chatMode)) {
+                    const fallback = upd.allowedChatModes[0];
+                    if (fallback) {
+                      setChatMode(fallback as ChatMode);
+                    } else {
+                      setChatMode(ChatMode.GEMINI_2_5_FLASH);
+                    }
+                    toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+                  }
                 }
               }
             }
@@ -71,9 +85,16 @@ export function AllowedChatModesProvider() {
                 const upd = await fetchAllowed();
                 if (upd && !cancelled) {
                   setAllowed(upd.allowedChatModes);
-                  if (upd.allowedChatModes && !upd.allowedChatModes.includes(chatMode)) {
-                    setChatMode(ChatMode.GEMINI_2_5_FLASH);
-                    toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+                  if (Array.isArray(upd.allowedChatModes)) {
+                    if (!upd.allowedChatModes.includes(chatMode)) {
+                      const fallback = upd.allowedChatModes[0];
+                      if (fallback) {
+                        setChatMode(fallback as ChatMode);
+                      } else {
+                        setChatMode(ChatMode.GEMINI_2_5_FLASH);
+                      }
+                      toast({ title: 'Ce mode n\u2019est plus autorisé par votre administrateur' });
+                    }
                   }
                 }
               }
