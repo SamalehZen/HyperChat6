@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@repo/ui';
-import { AdminSidebar, AdminSidebarMobile } from '@repo/common/components/admin/AdminSidebar';
+import { AdminSidebar, AdminSidebarMobile } from '@repo/common/components';
 import { ArrowUturnLeftIcon, Bars3Icon } from '@heroicons/react/24/outline';
 
 export default function AdminDashboardShell({ children }: { children: React.ReactNode }) {
