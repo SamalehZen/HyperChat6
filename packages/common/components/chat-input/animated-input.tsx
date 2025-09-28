@@ -252,8 +252,12 @@ export const AnimatedChatInput = ({
         // },
     ];
 
-    // Filter to only active models
-    const activeModels = AI_MODELS.filter(model => !model.id.includes('//'));
+    // Filter to only active models and admin-allowed ones
+    const allowed = (effective as any)?.allowedChatModes as string[] | undefined;
+    const restrict = !!(allowed && allowed.length > 0);
+    const activeModels = AI_MODELS
+        .filter(model => !model.id.includes('//'))
+        .filter(model => !restrict || allowed!.includes(model.id));
 
     // Add credit cost and auth badge to model names
     const modelsWithBadges = activeModels.map(model => {
@@ -333,6 +337,16 @@ export const AnimatedChatInput = ({
             setShowExtractionPrompt(true);
         }
     };
+
+    // Ensure selected chatMode is allowed
+    useEffect(() => {
+        const allowed = (effective as any)?.allowedChatModes as string[] | undefined;
+        const restrict = !!(allowed && allowed.length > 0);
+        if (restrict && !allowed!.includes(chatMode)) {
+            const fallback = activeModels[0]?.id || ChatMode.CORRECTION;
+            setChatMode(fallback as ChatMode);
+        }
+    }, [JSON.stringify((effective as any)?.allowedChatModes), chatMode]);
 
     const handleModelChange = (modelId: string) => {
         if (modelId === ChatMode.REVISION_DE_PRIX) {

@@ -5,17 +5,7 @@ import { Button } from '@repo/ui';
 import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv } from '@tabler/icons-react';
 import { ComponentProps, ReactElement, useContext, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
-
-function tableToAOA(table: HTMLTableElement): string[][] {
-    const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
-    const aoa: string[][] = [];
-    for (const row of rows) {
-        const cells = Array.from(row.querySelectorAll('th,td')) as (HTMLTableCellElement)[];
-        const rowData = cells.map(cell => (cell.textContent || '').trim());
-        if (rowData.length > 0) aoa.push(rowData);
-    }
-    return aoa;
-}
+import { tableElementToAOA } from '../../utils';
 
 function downloadCSV(aoa: string[][], filename = 'extraction.csv') {
     const escape = (s: string) => '"' + s.replace(/"/g, '""') + '"';
@@ -41,7 +31,7 @@ const TableWithExport = ({ children, ...props }: any) => {
     const [justDownloaded, setJustDownloaded] = useState<null | 'csv' | 'xlsx'>(null);
     const handleDownload = (type: 'csv' | 'xlsx') => {
         if (!tableRef.current) return;
-        const aoa = tableToAOA(tableRef.current);
+        const aoa = tableElementToAOA(tableRef.current);
         if (!aoa || aoa.length === 0) return;
         if (type === 'csv') downloadCSV(aoa);
         else downloadXLSX(aoa);

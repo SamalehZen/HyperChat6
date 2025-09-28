@@ -7,7 +7,8 @@
     "./context": "./context/index.ts",
     "./store": "./store/index.ts",
     "./components": "./components/index.ts",
-    "./i18n": "./i18n/index.tsx"
+    "./i18n": "./i18n/index.tsx",
+    "./utils": "./utils/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

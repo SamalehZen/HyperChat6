@@ -3,6 +3,7 @@ import { useAuth } from '@repo/common/context';
 import { SearchLoadingState, getModelThemeByChatMode } from '@repo/common/components';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
+import { useEffectivePreferences } from '@repo/common/hooks';
 import {
     Button,
     cn,
@@ -171,14 +172,21 @@ export const AttachmentButton = () => {
 export const ChatModeButton = () => {
     const chatMode = useChatStore(state => state.chatMode);
     const setChatMode = useChatStore(state => state.setChatMode);
+    const effective = useEffectivePreferences();
+    const allowed = (effective as any)?.allowedChatModes as string[] | undefined;
+    const restrict = !!(allowed && allowed.length > 0);
     const [isChatModeOpen, setIsChatModeOpen] = useState(false);
     const hasApiKeyForChatMode = useApiKeysStore(state => state.hasApiKeyForChatMode);
     const isChatPage = usePathname().startsWith('/chat');
 
-    const selectedOption =
-        (isChatPage
-            ? [...chatOptions, ...modelOptions].find(option => option.value === chatMode)
-            : [...modelOptions].find(option => option.value === chatMode)) ?? modelOptions[0];
+    const allOptions = isChatPage ? [...chatOptions, ...modelOptions] : [...modelOptions];
+    const filteredAll = allOptions.filter(opt => !restrict || allowed!.includes(opt.value));
+    const selectedOption = filteredAll.find(option => option.value === chatMode) ?? filteredAll[0] ?? modelOptions[0];
+
+    // Ensure current chatMode is allowed
+    if (restrict && !allowed!.includes(chatMode) && filteredAll[0]) {
+        setChatMode(filteredAll[0].value);
+    }
 
     return (
         <DropdownMenu open={isChatModeOpen} onOpenChange={setIsChatModeOpen}>
@@ -261,6 +269,9 @@ export const ChatModeOptions = ({
     const { isSignedIn } = useAuth();
     const isChatPage = usePathname().startsWith('/chat');
     const { push } = useRouter();
+    const effective = useEffectivePreferences();
+    const allowed = (effective as any)?.allowedChatModes as string[] | undefined;
+    const restrict = !!(allowed && allowed.length > 0);
     return (
         <DropdownMenuContent
             align="start"
@@ -270,7 +281,7 @@ export const ChatModeOptions = ({
             {isChatPage && (
                 <DropdownMenuGroup>
                     <DropdownMenuLabel>Advanced Mode</DropdownMenuLabel>
-                    {chatOptions.map(option => (
+                    {chatOptions.filter(opt => !restrict || allowed!.includes(opt.value)).map(option => (
                         <DropdownMenuItem
                             key={option.label}
                             onSelect={() => {
@@ -302,7 +313,7 @@ export const ChatModeOptions = ({
             )}
             <DropdownMenuGroup>
                 <DropdownMenuLabel>Models</DropdownMenuLabel>
-                {modelOptions.map(option => (
+                {modelOptions.filter(opt => !restrict || allowed!.includes(opt.value)).map(option => (
                     <DropdownMenuItem
                         key={option.label}
                         onSelect={() => {

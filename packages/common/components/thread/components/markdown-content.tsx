@@ -6,7 +6,7 @@ import {
 } from '@repo/common/components';
 import { useChatStore } from '@repo/common/store';
 import { ChatMode } from '@repo/shared/config';
-import { Button, cn } from '@repo/ui';
+import { Button, cn, toast } from '@repo/ui';
 import { MDXRemote } from 'next-mdx-remote';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote/rsc';
 import { serialize } from 'next-mdx-remote/serialize';
@@ -14,6 +14,7 @@ import { memo, Suspense, useEffect, useRef, useState } from 'react';
 import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv, IconTableExport } from '@tabler/icons-react';
 import remarkGfm from 'remark-gfm';
 import * as XLSX from 'xlsx';
+import { tableElementToAOA, compareHeadersExact, inferColumnTypes, compareTypesWithTolerance } from '../../../utils';
 
 export const markdownStyles = {
     'animate-fade-in prose prose-sm min-w-full': true,
@@ -118,6 +119,8 @@ export const MarkdownContent = memo(
         const [tableCount, setTableCount] = useState<number>(0);
         const [lastDownloaded, setLastDownloaded] = useState<null | 'csv' | 'xlsx' | 'xlsx-multi'>(null);
         const chatMode = useChatStore(state => state.chatMode);
+        const lastUploadedNames = useChatStore(state => state.lastUploadedFileBaseNames);
+        const schemaCacheRef = useRef<{ hash: string; scenario: 'A'|'B'|'C'; names: string[] } | null>(null);
 
         useEffect(() => {
             if (!content) return;
@@ -167,19 +170,61 @@ export const MarkdownContent = memo(
                 return null;
             }
 
-            const hasMultiple = (tableCount > 1) || ((totalAttachments || 0) > 1);
-            const disableMulti = !hasMultiple;
-
-            const tableToAOA = (table: HTMLTableElement): string[][] => {
-                const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
-                const aoa: string[][] = [];
-                for (const row of rows) {
-                    const cells = Array.from(row.querySelectorAll('th,td')) as (HTMLTableCellElement)[];
-                    const rowData = cells.map(cell => (cell.textContent || '').trim());
-                    if (rowData.length > 0) aoa.push(rowData);
+            const getHeadingBefore = (el: Element): string | null => {
+                let prev: Element | null = el.previousElementSibling;
+                while (prev) {
+                    const tag = prev.tagName.toLowerCase();
+                    if (tag === 'h3' || tag === 'h2') {
+                        const txt = (prev.textContent || '').trim();
+                        if (/^table\s*:/i.test(txt)) {
+                            return txt.replace(/^table\s*:\s*/i, '').trim();
+                        }
+                    }
+                    prev = prev.previousElementSibling;
                 }
-                return aoa;
+                return null;
             };
+
+            const analyzeSchemas = () => {
+                if (!containerRef.current) return { scenario: 'A' as const, names: [] as string[] };
+                const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
+                const pdfCountFromHeadings = Array.from(containerRef.current.querySelectorAll('h3'))
+                    .map(h => (h.textContent || '').trim())
+                    .filter(t => /^table\s*:/i.test(t)).length;
+                const pdfCount = pdfCountFromHeadings || (typeof totalAttachments === 'number' ? totalAttachments : tables.length);
+
+                const schemas = tables.map((t, idx) => {
+                    const aoa = tableElementToAOA(t);
+                    const header = aoa[0] || [];
+                    const dataRows = aoa.slice(1, 51);
+                    const types = inferColumnTypes(dataRows);
+                    const headingName = getHeadingBefore(t);
+                    const inferred = headingName ? headingName.replace(/\.[^/.]+$/, '') : null;
+                    return { header, types, name: inferred || lastUploadedNames?.[idx] || `Doc ${idx + 1}` };
+                });
+
+                const hash = JSON.stringify(schemas.map(s => ({ h: s.header, t: s.types }))) + `|${pdfCount}`;
+                if (schemaCacheRef.current && schemaCacheRef.current.hash === hash) {
+                    return { scenario: schemaCacheRef.current.scenario, names: schemaCacheRef.current.names };
+                }
+
+                let scenario: 'A'|'B'|'C' = 'A';
+                if (pdfCount <= 1 || schemas.length <= 1) scenario = 'A';
+                else {
+                    const base = schemas[0];
+                    const allHeadersEqual = schemas.every(s => compareHeadersExact(base.header, s.header));
+                    const allTypesCompat = schemas.every(s => compareTypesWithTolerance(base.types, s.types, 0.85));
+                    scenario = allHeadersEqual && allTypesCompat ? 'B' : 'C';
+                }
+
+                schemaCacheRef.current = { hash, scenario, names: schemas.map(s => s.name) };
+                return { scenario, names: schemas.map(s => s.name) };
+            };
+
+            const { scenario, names } = analyzeSchemas();
+            const disableCSV = scenario === 'C';
+            const disableXLSX = scenario === 'C';
+            const disableMulti = scenario !== 'C';
 
             const exportMultiXLSX = () => {
                 if (!containerRef.current) return;
@@ -187,9 +232,10 @@ export const MarkdownContent = memo(
                 if (tables.length === 0) return;
                 const wb = XLSX.utils.book_new();
                 tables.forEach((t, i) => {
-                    const aoa = tableToAOA(t);
+                    const aoa = tableElementToAOA(t);
                     const ws = XLSX.utils.aoa_to_sheet(aoa);
-                    XLSX.utils.book_append_sheet(wb, ws, `Doc ${i + 1}`);
+                    const base = names?.[i] || `Doc ${i + 1}`;
+                    XLSX.utils.book_append_sheet(wb, ws, `PDF - ${base}`.slice(0, 31));
                 });
                 XLSX.writeFile(wb, 'extraction-multi.xlsx');
                 setLastDownloaded('xlsx-multi');
@@ -198,11 +244,16 @@ export const MarkdownContent = memo(
 
             const exportGlobalXLSX = () => {
                 if (!containerRef.current) return;
+                const { scenario } = analyzeSchemas();
+                if (scenario === 'C') {
+                    toast({ title: 'Export impossible', description: 'Structures de colonnes différentes détectées. Veuillez utiliser l’export multi‑onglets.', variant: 'destructive' });
+                    return;
+                }
                 const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
                 if (tables.length === 0) return;
                 const all: string[][] = [];
                 tables.forEach((t, idx) => {
-                    const aoa = tableToAOA(t);
+                    const aoa = tableElementToAOA(t);
                     if (idx === 0) {
                         all.push(...aoa);
                     } else {
@@ -220,11 +271,16 @@ export const MarkdownContent = memo(
 
             const exportGlobalCSV = () => {
                 if (!containerRef.current) return;
+                const { scenario } = analyzeSchemas();
+                if (scenario === 'C') {
+                    toast({ title: 'Export impossible', description: 'Structures de colonnes différentes détectées. Veuillez utiliser l’export multi‑onglets.', variant: 'destructive' });
+                    return;
+                }
                 const tables = Array.from(containerRef.current.querySelectorAll('table')) as HTMLTableElement[];
                 if (tables.length === 0) return;
                 const all: string[][] = [];
                 tables.forEach((t, idx) => {
-                    const aoa = tableToAOA(t);
+                    const aoa = tableElementToAOA(t);
                     if (idx === 0) all.push(...aoa);
                     else all.push(...(aoa.length > 1 ? aoa.slice(1) : aoa));
                 });
@@ -243,13 +299,13 @@ export const MarkdownContent = memo(
 
             return (
                 <div className="not-prose mb-2 flex items-center justify-end gap-2">
-                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger CSV (global)" onClick={exportGlobalCSV}>
+                    <Button size="icon-sm" variant="ghost" tooltip={disableCSV ? 'Structures de colonnes différentes détectées' : 'Télécharger CSV global'} onClick={exportGlobalCSV} disabled={disableCSV}>
                         {lastDownloaded === 'csv' ? <IconCheck size={14} /> : <IconFileTypeCsv size={14} />}
                     </Button>
-                    <Button size="icon-sm" variant="ghost" tooltip="Télécharger XLSX (global)" onClick={exportGlobalXLSX}>
+                    <Button size="icon-sm" variant="ghost" tooltip={disableXLSX ? 'Structures de colonnes différentes détectées' : 'Télécharger XLSX global'} onClick={exportGlobalXLSX} disabled={disableXLSX}>
                         {lastDownloaded === 'xlsx' ? <IconCheck size={14} /> : <IconFileSpreadsheet size={14} />}
                     </Button>
-                    <Button size="icon-sm" variant="ghost" tooltip={disableMulti ? 'Plusieurs tableaux requis' : 'Télécharger XLSX (multi‑onglets)'} onClick={exportMultiXLSX} disabled={disableMulti}>
+                    <Button size="icon-sm" variant="ghost" tooltip={disableMulti ? (schemaCacheRef.current?.scenario === 'A' ? 'Non pertinent pour un seul document' : 'Schémas identiques – consolidation sur une feuille') : 'Télécharger XLSX multi-onglets'} onClick={exportMultiXLSX} disabled={disableMulti}>
                         {lastDownloaded === 'xlsx-multi' ? <IconCheck size={14} /> : <IconTableExport size={14} />}
                     </Button>
                 </div>
