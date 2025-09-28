@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
-import { getServerSession } from '@/libs/auth-server';
+import { getServerSession } from '@/lib/auth-server';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 
