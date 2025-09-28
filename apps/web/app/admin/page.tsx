@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Input, Dialog, DialogContent, useToast } from '@repo/ui';
+import { Button, Input, Dialog, DialogContent, useToast, Switch, Checkbox } from '@repo/ui';
+import { ChatMode, getChatModeName } from '@repo/shared/config';
 
 type UserRow = {
   id: string;
@@ -27,6 +28,7 @@ export default function AdminPage() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [accessUser, setAccessUser] = useState<UserRow | null>(null);
 
   const reload = async () => {
     setLoading(true);
@@ -112,7 +114,7 @@ export default function AdminPage() {
                 <td className="px-3 py-2">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
                 <td className="px-3 py-2">{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
                 <td className="px-3 py-2">
-                  <RowActions user={u} onChanged={reload} onShowActivity={() => setSelectedUser(u)} />
+                  <RowActions user={u} onChanged={reload} onShowActivity={() => setSelectedUser(u)} onManageAccess={() => setAccessUser(u)} />
                 </td>
               </tr>
             ))}
@@ -121,6 +123,7 @@ export default function AdminPage() {
       </div>
 
       <ActivityDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
+      <ManageAccessDialog user={accessUser} onClose={() => setAccessUser(null)} />
     </div>
   );
 }
@@ -166,7 +169,7 @@ function CreateUser({ onCreated }: { onCreated: () => void }) {
   );
 }
 
-function RowActions({ user, onChanged, onShowActivity }: { user: UserRow; onChanged: () => void; onShowActivity: () => void }) {
+function RowActions({ user, onChanged, onShowActivity, onManageAccess }: { user: UserRow; onChanged: () => void; onShowActivity: () => void; onManageAccess: () => void }) {
   const [loading, setLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -180,6 +183,7 @@ function RowActions({ user, onChanged, onShowActivity }: { user: UserRow; onChan
   return (
     <div className="flex gap-2">
       <Button size="xs" variant="secondary" onClick={onShowActivity} disabled={loading !== null}>Détails</Button>
+      <Button size="xs" variant="secondary" onClick={onManageAccess} disabled={loading !== null}>Gérer l’accès aux modèles</Button>
       <Button size="xs" variant="secondary" onClick={() => {
         const p = prompt('Nouveau mot de passe');
         if (p) doAction('reset_password', { password: p });
@@ -381,6 +385,106 @@ function MiniSpark({ series, color }: { series: number[]; color: 'emerald' | 'am
         <div key={i} className={`${colors[color]} w-2 rounded`} style={{ height: `${h}px` }} />
       ))}
     </div>
+  );
+}
+
+function ManageAccessDialog({ user, onClose }: { user: UserRow | null; onClose: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [allModes, setAllModes] = useState<string[]>([]);
+  const [allowed, setAllowed] = useState<string[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      setOpen(true);
+      (async () => {
+        const res = await fetch(`/api/admin/users/${user.id}/chat-modes`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          setAllModes(data.allModes || []);
+          setAllowed(data.allowedChatModes ?? null);
+        }
+      })();
+    }
+  }, [user]);
+
+  const isAll = allowed === null;
+  const toggleAll = (checked: boolean) => {
+    if (checked) {
+      setAllowed(null);
+    } else {
+      setAllowed(allModes.slice());
+    }
+  };
+
+  const toggleMode = (mode: string, checked: boolean) => {
+    if (allowed === null) {
+      // transitioning out of "all" when unchecking
+      if (!checked) {
+        setAllowed(allModes.filter(m => m !== mode));
+      }
+      return;
+    }
+    setAllowed(prev => {
+      const curr = new Set(prev || []);
+      if (checked) curr.add(mode); else curr.delete(mode);
+      return Array.from(curr);
+    });
+  };
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    const res = await fetch(`/api/admin/users/${user.id}/chat-modes`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ allowedChatModes: allowed }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast({ title: 'Accès mis à jour' });
+      setOpen(false);
+      onClose();
+    } else {
+      toast({ title: 'Erreur lors de la mise à jour' });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) onClose(); }}>
+      <DialogContent ariaTitle={user ? `Gérer l’accès — ${user.email}` : 'Gérer l’accès'} className="max-w-lg">
+        <h3 className="text-lg font-semibold mb-1">Gérer l’accès aux modèles</h3>
+        <p className="text-sm text-muted-foreground mb-3">{user?.email}</p>
+
+        <div className="mb-3 flex items-center justify-between rounded border p-2">
+          <div>
+            <div className="font-medium text-sm">Tout autoriser</div>
+            <div className="text-xs text-muted-foreground">Par défaut, tous les modes sont autorisés</div>
+          </div>
+          <Switch checked={isAll} onCheckedChange={toggleAll} />
+        </div>
+
+        <div className="max-h-80 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 gap-2">
+            {allModes.map((m) => {
+              const checked = allowed === null ? true : (allowed || []).includes(m);
+              return (
+                <label key={m} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={checked} onCheckedChange={(c: any) => toggleMode(m, Boolean(c))} />
+                  <span>{getChatModeName(m as ChatMode)}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => { setOpen(false); onClose(); }}>Annuler</Button>
+          <Button onClick={save} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

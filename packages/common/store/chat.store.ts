@@ -74,6 +74,7 @@ type State = {
     context: string;
     inputValue: string;
     imageAttachments: { base64?: string; file?: File }[];
+    lastUploadedFileBaseNames?: string[];
     abortController: AbortController | null;
     threads: Thread[];
     threadItems: ThreadItem[];
@@ -101,6 +102,7 @@ type Actions = {
     setInputValue: (inputValue: string) => void;
     fetchRemainingCredits: () => Promise<void>;
     setImageAttachments: (imageAttachments: { base64?: string; file?: File }[]) => void;
+    setLastUploadedFileBaseNames: (names: string[]) => void;
     clearImageAttachments: () => void;
     removeImageAttachment: (index: number) => void;
     setIsGenerating: (isGenerating: boolean) => void;
@@ -489,6 +491,11 @@ export const useChatStore = create(
         setImageAttachments: (imageAttachments: { base64?: string; file?: File }[]) => {
             set(state => {
                 state.imageAttachments = imageAttachments;
+                const names = imageAttachments
+                    .map(a => a.file?.name || '')
+                    .filter(Boolean)
+                    .map(n => n.replace(/\.[^/.]+$/, ''));
+                state.lastUploadedFileBaseNames = names.length ? names : state.lastUploadedFileBaseNames;
             });
         },
 
@@ -627,6 +634,11 @@ export const useChatStore = create(
         setContext: context =>
             set(state => {
                 state.context = context;
+            }),
+
+        setLastUploadedFileBaseNames: (names: string[]) =>
+            set(state => {
+                state.lastUploadedFileBaseNames = names;
             }),
 
         setInputValue: inputValue =>

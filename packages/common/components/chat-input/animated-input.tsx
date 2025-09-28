@@ -17,7 +17,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
-import { useEffectivePreferences } from '@repo/common/hooks';
+import { useEffectivePreferences, useAllowedChatModes } from '@repo/common/hooks';
 import { NewIcon, ComingSoonIcon } from '../icons';
 import {
     IconAtom,
@@ -146,7 +146,7 @@ export const AnimatedChatInput = ({
         },
         {
             id: ChatMode.SMART_PDF_TO_EXCEL,
-            name: 'Smart Image to Excel',
+            name: 'Smart PDF to Excel',
             icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
             creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.SMART_PDF_TO_EXCEL],
             isAuthRequired: ChatModeConfig[ChatMode.SMART_PDF_TO_EXCEL].isAuthRequired,
@@ -252,8 +252,9 @@ export const AnimatedChatInput = ({
         // },
     ];
 
-    // Filter to only active models
-    const activeModels = AI_MODELS.filter(model => !model.id.includes('//'));
+    const { isModeAllowed } = useAllowedChatModes();
+    // Filter to only active models and allowed for user
+    const activeModels = AI_MODELS.filter(model => !model.id.includes('//')).filter(m => isModeAllowed(m.id));
 
     // Add credit cost and auth badge to model names
     const modelsWithBadges = activeModels.map(model => {
