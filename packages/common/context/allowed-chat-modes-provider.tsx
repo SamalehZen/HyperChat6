@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import Pusher, { Channel } from 'pusher-js';
 import { useAllowedChatModesStore, useChatStore } from '@repo/common/store';
 import { useAuth } from './auth';
-import { ChatMode } from '@repo/shared/config/chat-mode';
+import { ChatMode } from '@repo/shared/config';
 import { useToast } from '@repo/ui';
 
 async function fetchAllowed() {

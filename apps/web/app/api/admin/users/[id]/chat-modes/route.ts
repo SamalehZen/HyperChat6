@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@repo/prisma';
 import { requireAdmin } from '@/app/api/_lib/auth';
-import { ChatMode } from '@repo/shared/config/chat-mode';
+import { ChatMode } from '@repo/shared/config';
 import { ActivityAction } from '@prisma/client';
 import { geolocation } from '@vercel/functions';
 import { getIp } from '@/app/api/completion/utils';
