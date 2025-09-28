@@ -1,0 +1,17 @@
+$ turbo run dev
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turbo.build/repo/docs/telemetry
+
+turbo 2.4.4
+
+ WARNING  Issues occurred when constructing package graph. Turbo will function, but some features may not be available:
+   x Could not resolve workspaces.
+  `-> Lockfile not found at /app/yarn.lock
+
+• Packages in scope: @repo/actions, @repo/ai, @repo/common, @repo/orchestrator, @repo/prisma, @repo/shared, @repo/tailwind-config, @repo/typescript-config, @repo/ui, hyper-fix-web
+• Running dev in 10 packages
+• Remote caching disabled

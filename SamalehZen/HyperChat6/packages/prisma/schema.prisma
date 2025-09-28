@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum ActivityAction {
+  login
+  logout
+  login_attempt
+  login_failed
+  lockout
+  unlock
+  password_reset
+  suspend
+  unsuspend
+  delete
+  account_created
+  account_updated
+}
+
+model User {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  passwordHash         String
+  role                 Role      @default(user)
+  isSuspended          Boolean   @default(false)
+  failedLoginAttempts  Int       @default(0)
+  isLocked             Boolean   @default(false)
+  lockedAt             DateTime?
+  lockReason           String?
+  deletedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  sessions     Session[]
+  activityLogs ActivityLog[] @relation("ActivityOnUser")
+  actorLogs    ActivityLog[] @relation("ActivityByActor")
+  allowedChatModes Json?
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  lastSeen    DateTime @default(now())
+  lastIp      String?
+  lastCountry String?
+  lastRegion  String?
+  lastCity    String?
+
+  @@index([lastSeen])
+}
+
+model ActivityLog {
+  id        String          @id @default(cuid())
+  userId    String?
+  actorId   String?
+  action    ActivityAction
+  details   Json?
+  ip        String?
+  country   String?
+  region    String?
+  city      String?
+  createdAt DateTime        @default(now())
+
+  user   User? @relation("ActivityOnUser", fields: [userId], references: [id], onDelete: SetNull)
+  actor  User? @relation("ActivityByActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([ip])
+  @@index([action])
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  feedback  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model AppSetting {
+  key       String  @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
