@@ -102,16 +102,19 @@ model AppSetting {
 }
 
 model MessageLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  mode       String
-  provider   String
-  model      String
-  creditCost Int
-  latencyMs  Int
-  status     String
-  errorCode  String?
-  createdAt  DateTime @default(now())
+  id               String   @id @default(cuid())
+  userId           String?
+  mode             String
+  provider         String
+  model            String
+  creditCost       Int
+  latencyMs        Int
+  status           String
+  errorCode        String?
+  promptTokens     Int?
+  completionTokens Int?
+  costUsdCents     Int      @default(0)
+  createdAt        DateTime @default(now())
 
   @@index([createdAt])
   @@index([mode])

@@ -84,6 +84,13 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
   const prevErrRate = health?.previousOverall?.errorRatePct ?? 0;
   const errRateDelta = deltaPct(errRate, prevErrRate);
 
+  const top3Cost = useMemo(() => {
+    const totals = (metrics as any)?.costByMode?.totals as Record<string, number> | undefined;
+    if (!totals) return [];
+    return Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  }, [metrics]);
+  const formatUsd = (v: number) => `$${(v ?? 0).toFixed(2)}`;
+
   return (
     <div className="mb-4">
       <div className="mb-2 flex items-center justify-between">
@@ -101,6 +108,18 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
         <KpiCard title={`Taux d’erreur (${windowSel})`} value={`${errRate}%`} delta={errRateDelta} series={[]} dates={metrics?.series?.dates ?? []} color="red" />
         <KpiCard title={`Suspensions (${windowSel})`} value={susp} delta={suspDelta} series={metrics?.series?.suspendedCount ?? []} dates={metrics?.series?.dates ?? []} color="amber" />
         <KpiCard title={`Suppressions (${windowSel})`} value={del} delta={delDelta} series={metrics?.series?.deletedCount ?? []} dates={metrics?.series?.dates ?? []} color="red" />
+        <div className="rounded-md border p-3">
+          <div className="text-sm text-muted-foreground">Top 3 modes par coût ({windowSel})</div>
+          <ul className="mt-2 space-y-1 text-sm">
+            {top3Cost.length === 0 && <li className="text-muted-foreground">Aucune donnée</li>}
+            {top3Cost.map(([mode, usd]) => (
+              <li key={mode} className="flex items-center justify-between">
+                <a className="underline-offset-2 hover:underline" href={`/admin/metrics/mode/${encodeURIComponent(mode)}?window=${windowSel}`} aria-label={`Détails ${mode}`}>{mode}</a>
+                <span className="tabular-nums">{formatUsd(usd as number)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

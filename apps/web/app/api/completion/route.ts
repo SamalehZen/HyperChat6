@@ -12,7 +12,7 @@ import { executeStream, sendMessage } from './stream-handlers';
 import { completionRequestSchema, SSE_HEADERS } from './types';
 import { getIp } from './utils';
 import { prisma } from '@repo/prisma';
-import { getModelFromChatMode, models } from '@repo/ai/models';
+import { getModelFromChatMode, models, estimateTokensForMessages } from '@repo/ai/models';
 
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
@@ -148,6 +148,13 @@ function createCompletionStream({
 
             const logMessage = async (status: 'COMPLETED' | 'ERROR' | 'ABORTED', errorCode?: string) => {
                 const latencyMs = Date.now() - startTs;
+                const costUsdCents = status === 'COMPLETED' ? creditCost * 5 : 0; // 0.05 $ / crédit
+                let promptTokens: number | null = null;
+                try {
+                    if (Array.isArray(data?.messages)) {
+                        promptTokens = estimateTokensForMessages(data.messages as any);
+                    }
+                } catch {}
                 try {
                     await prisma.messageLog.create({
                         data: {
@@ -159,6 +166,9 @@ function createCompletionStream({
                             latencyMs,
                             status,
                             errorCode: errorCode || null,
+                            promptTokens: promptTokens ?? null,
+                            completionTokens: null,
+                            costUsdCents,
                         },
                     });
                 } catch (e) {

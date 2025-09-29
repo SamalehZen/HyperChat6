@@ -131,6 +131,40 @@ export async function GET(request: NextRequest) {
     allModes.forEach(m => usageSeriesModes[m].push(map[m] || 0));
   }
 
+  // Cost by mode (USD) — consider only COMPLETED where credits deducted
+  const costTotalsRows = await prisma.messageLog.groupBy({
+    by: ['mode'],
+    where: { createdAt: currentRange, status: 'COMPLETED' },
+    _sum: { costUsdCents: true },
+  } as any);
+  const prevCostTotalsRows = await prisma.messageLog.groupBy({
+    by: ['mode'],
+    where: { createdAt: prevRange, status: 'COMPLETED' },
+    _sum: { costUsdCents: true },
+  } as any);
+  const allModesCost = Array.from(new Set([...(costTotalsRows as any[]).map(r => r.mode), ...(prevCostTotalsRows as any[]).map(r => r.mode)]));
+  const costTotals: Record<string, number> = {};
+  const costPrevTotals: Record<string, number> = {};
+  (costTotalsRows as any[]).forEach(r => { costTotals[r.mode] = ((r._sum?.costUsdCents || 0) / 100); });
+  (prevCostTotalsRows as any[]).forEach(r => { costPrevTotals[r.mode] = ((r._sum?.costUsdCents || 0) / 100); });
+
+  const costSeriesModes: Record<string, number[]> = {};
+  allModes.forEach(m => { if (!(m in costSeriesModes)) costSeriesModes[m] = []; });
+  for (const b of bins) {
+    const rows = await prisma.messageLog.groupBy({
+      by: ['mode'],
+      where: { createdAt: { gte: b.start, lte: b.end }, status: 'COMPLETED' },
+      _sum: { costUsdCents: true },
+    } as any);
+    const map: Record<string, number> = {};
+    (rows as any[]).forEach(r => { map[r.mode] = ((r._sum?.costUsdCents || 0) / 100); });
+    const modesSet = new Set([...allModes, ...Object.keys(map)]);
+    modesSet.forEach(m => {
+      if (!(m in costSeriesModes)) costSeriesModes[m] = [];
+      costSeriesModes[m].push(map[m] || 0);
+    });
+  }
+
   const dates = bins.map(b => b.label);
 
   return NextResponse.json({
@@ -166,6 +200,11 @@ export async function GET(request: NextRequest) {
       totals: usageTotals,
       previousTotals: usagePrevTotals,
       series: { dates, modes: usageSeriesModes },
+    },
+    costByMode: {
+      totals: costTotals,
+      previousTotals: costPrevTotals,
+      series: { dates, modes: costSeriesModes },
     },
   });
 }

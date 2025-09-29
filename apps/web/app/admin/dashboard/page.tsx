@@ -5,6 +5,7 @@ import { OnlinePanel } from "../_components/online-panel";
 import { RecentEventsPanel } from "../_components/recent-events-panel";
 import { SystemHealthPanel } from "../_components/system-health";
 import { UsageCharts } from "../_components/usage-charts";
+import { CostCharts } from "../_components/cost-charts";
 
 export default function AdminDashboardPage() {
   const [windowSel, setWindowSel] = useState<WindowSel>('7j');
@@ -13,6 +14,7 @@ export default function AdminDashboardPage() {
       <h1 className="mb-4 text-2xl font-semibold">Tableau de bord</h1>
       <KPIHeader windowSel={windowSel} onWindowChange={setWindowSel} />
       <UsageCharts windowSel={windowSel} />
+      <CostCharts windowSel={windowSel} />
       <SystemHealthPanel windowSel={windowSel} />
       <OnlinePanel />
       <RecentEventsPanel defaultLimit={10} showFilters={false} />
