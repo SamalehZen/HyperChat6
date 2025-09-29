@@ -1,16 +1,32 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Flex } from '@repo/ui';
 import { ApiKeySettings, CreditsSettings, PersonalizationSettings } from '@repo/common/components/settings-modal';
 
 const SECTIONS = [
-  { key: 'personalization', label: 'Personnalisation' },
-  { key: 'usage', label: 'Utilisation' },
-  { key: 'api', label: 'Clés API' },
+  { key: 'personalization', label: 'Personnalisation', hash: 'personalisation' },
+  { key: 'usage', label: 'Utilisation', hash: 'utilisation' },
+  { key: 'api', label: 'Clés API', hash: 'cles-api' },
 ] as const;
 
 export default function AdminSettingsPage() {
   const [active, setActive] = useState<(typeof SECTIONS)[number]['key']>('personalization');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const h = window.location.hash?.replace('#', '');
+    const byHash = SECTIONS.find(s => s.hash === h);
+    if (byHash) setActive(byHash.key);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = SECTIONS.find(s => s.key === active)?.hash;
+    if (!hash) return;
+    if (window.location.hash !== `#${hash}`) {
+      history.replaceState(null, '', `#${hash}`);
+    }
+  }, [active]);
 
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
@@ -24,7 +40,11 @@ export default function AdminSettingsPage() {
                 key={s.key}
                 variant={active === s.key ? 'secondary' : 'ghost'}
                 className="justify-start"
-                onClick={() => setActive(s.key)}
+                onClick={() => {
+                  setActive(s.key);
+                  const el = document.getElementById(`section-${s.hash}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 rounded="lg"
               >
                 {s.label}
@@ -34,17 +54,17 @@ export default function AdminSettingsPage() {
         </nav>
 
         <div className="flex-1">
-          <div className={active === 'personalization' ? 'block' : 'hidden'}>
+          <div id="section-personalisation" className={active === 'personalization' ? 'block scroll-mt-20' : 'hidden scroll-mt-20'}>
             <SectionCard title="Personnalisation">
               <PersonalizationSettings />
             </SectionCard>
           </div>
-          <div className={active === 'usage' ? 'block' : 'hidden'}>
+          <div id="section-utilisation" className={active === 'usage' ? 'block scroll-mt-20' : 'hidden scroll-mt-20'}>
             <SectionCard title="Utilisation">
               <CreditsSettings />
             </SectionCard>
           </div>
-          <div className={active === 'api' ? 'block' : 'hidden'}>
+          <div id="section-cles-api" className={active === 'api' ? 'block scroll-mt-20' : 'hidden scroll-mt-20'}>
             <SectionCard title="Clés API (BYOK)">
               <ApiKeySettings />
             </SectionCard>
