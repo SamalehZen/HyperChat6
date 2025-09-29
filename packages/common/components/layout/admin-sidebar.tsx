@@ -43,7 +43,7 @@ export const AdminSidebar = () => {
       )}
     >
       <Flex direction="col" className="w-full flex-1 overflow-hidden">
-        <Flex direction="col" className={cn("w-full px-2", !isSidebarOpen && "items-center px-0")} gap="sm">
+        <Flex direction="row" className={cn("w-full px-2 items-center", !isSidebarOpen && "justify-center px-0")} gap="sm" justify="between">
           <Button
             size={isSidebarOpen ? "sm" : "icon-sm"}
             variant="default"
@@ -52,14 +52,28 @@ export const AdminSidebar = () => {
             aria-label="Retour au chat"
             tooltip={isSidebarOpen ? undefined : "Retour au chat"}
             tooltipSide="right"
-            className={cn("relative w-full justify-center")}
+            className={cn("relative justify-center", isSidebarOpen ? "w-[calc(100%-36px)]" : "")}
           >
             <IconArrowLeft size={16} strokeWidth={2} className={cn(isSidebarOpen && "absolute left-2") as string} />
             {isSidebarOpen && "Retour au chat"}
           </Button>
+          <Button
+            variant="ghost"
+            size={isSidebarOpen ? "icon-sm" : "icon-sm"}
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+            aria-label={isSidebarOpen ? "Réduire le panneau" : "Étendre le panneau"}
+            tooltip={isSidebarOpen ? "Réduire" : "Étendre"}
+            tooltipSide="left"
+          >
+            {isSidebarOpen ? (
+              <IconArrowBarLeft size={16} strokeWidth={2} />
+            ) : (
+              <IconArrowBarRight size={16} strokeWidth={2} />
+            )}
+          </Button>
         </Flex>
 
-        <nav className={cn("mt-3 w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-2" : "px-1")}
+        <nav className={cn("mt-2 w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-2" : "px-1")}
           aria-label="Navigation administrateur"
         >
           <ul className="flex flex-col gap-1">
@@ -88,31 +102,7 @@ export const AdminSidebar = () => {
           </ul>
         </nav>
 
-        <Flex className="mt-auto w-full p-2" justify={isSidebarOpen ? "between" : "center"}>
-          {isSidebarOpen ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              aria-label="Fermer le panneau latéral"
-              tooltip="Fermer le panneau"
-              tooltipSide="right"
-            >
-              <IconArrowBarLeft size={16} strokeWidth={2} /> Fermer
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              aria-label="Ouvrir le panneau latéral"
-              tooltip="Ouvrir le panneau"
-              tooltipSide="right"
-            >
-              <IconArrowBarRight size={16} strokeWidth={2} />
-            </Button>
-          )}
-        </Flex>
+
       </Flex>
     </div>
   );
