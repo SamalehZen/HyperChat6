@@ -166,16 +166,22 @@ export const SearchLoadingState = ({
               {text}
             </LocalTextShimmer>
             <div className="flex gap-2">
-              {[...Array(3)].map((_, i) => (
+              {([56, 40, 64] as const).map((w, i) => (
                 <div
                   key={i}
                   className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
                   style={{
-                    width: `${Math.random() * 40 + 20}px`,
+                    width: `${w}px`,
                     animationDelay: `${i * 0.2}s`,
                   }}
                 />
               ))}
+            </div>
+            <div className="flex mt-1.5">
+              <div
+                className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                style={{ width: '120px', animationDelay: '0.4s' }}
+              />
             </div>
           </div>
         </div>
