@@ -100,3 +100,22 @@ model AppSetting {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
+
+model MessageLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  mode       String
+  provider   String
+  model      String
+  creditCost Int
+  latencyMs  Int
+  status     String
+  errorCode  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([mode])
+  @@index([provider])
+  @@index([userId])
+  @@index([status])
+}

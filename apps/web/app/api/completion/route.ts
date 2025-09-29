@@ -11,6 +11,8 @@ import {
 import { executeStream, sendMessage } from './stream-handlers';
 import { completionRequestSchema, SSE_HEADERS } from './types';
 import { getIp } from './utils';
+import { prisma } from '@repo/prisma';
+import { getModelFromChatMode, models } from '@repo/ai/models';
 
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
@@ -129,6 +131,41 @@ function createCompletionStream({
                 controller.enqueue(encoder.encode(': heartbeat\n\n'));
             }, 15000);
 
+            const startTs = Date.now();
+            const creditCost = CHAT_MODE_CREDIT_COSTS[
+                data.mode as keyof typeof CHAT_MODE_CREDIT_COSTS
+            ];
+            let provider = 'openai';
+            let modelId = 'gpt-4o-mini';
+            try {
+                const mEnum = getModelFromChatMode(data.mode);
+                const mObj = models.find(m => m.id === mEnum);
+                if (mObj) {
+                    provider = mObj.provider as string;
+                    modelId = mObj.id as unknown as string;
+                }
+            } catch {}
+
+            const logMessage = async (status: 'COMPLETED' | 'ERROR' | 'ABORTED', errorCode?: string) => {
+                const latencyMs = Date.now() - startTs;
+                try {
+                    await prisma.messageLog.create({
+                        data: {
+                            userId: userId ?? null,
+                            mode: data.mode,
+                            provider,
+                            model: modelId,
+                            creditCost,
+                            latencyMs,
+                            status,
+                            errorCode: errorCode || null,
+                        },
+                    });
+                } catch (e) {
+                    console.error('Failed to insert MessageLog', e);
+                }
+            };
+
             try {
                 await executeStream({
                     controller,
@@ -138,13 +175,6 @@ function createCompletionStream({
                     gl,
                     userId: userId ?? undefined,
                     onFinish: async () => {
-                        // if (process.env.NODE_ENV === 'development') {
-                        //     return;
-                        // }
-                        const creditCost =
-                            CHAT_MODE_CREDIT_COSTS[
-                                data.mode as keyof typeof CHAT_MODE_CREDIT_COSTS
-                            ];
                         await deductCredits(
                             {
                                 userId: userId ?? undefined,
@@ -154,9 +184,11 @@ function createCompletionStream({
                         );
                     },
                 });
+                await logMessage('COMPLETED');
             } catch (error) {
                 if (abortController.signal.aborted) {
                     console.log('abortController.signal.aborted');
+                    await logMessage('ABORTED');
                     sendMessage(controller, encoder, {
                         type: 'done',
                         status: 'aborted',
@@ -166,10 +198,12 @@ function createCompletionStream({
                     });
                 } else {
                     console.log('sending error message');
+                    const errMsg = error instanceof Error ? error.message : String(error);
+                    await logMessage('ERROR', errMsg);
                     sendMessage(controller, encoder, {
                         type: 'done',
                         status: 'error',
-                        error: error instanceof Error ? error.message : String(error),
+                        error: errMsg,
                         threadId: data.threadId,
                         threadItemId: data.threadItemId,
                         parentThreadItemId: data.parentThreadItemId,
