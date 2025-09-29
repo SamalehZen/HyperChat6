@@ -177,11 +177,14 @@ export const SearchLoadingState = ({
                 />
               ))}
             </div>
-            <div className="flex mt-1.5">
-              <div
-                className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
-                style={{ width: '120px', animationDelay: '0.4s' }}
-              />
+            <div className="flex gap-2 mt-1.5">
+              {([96, 120, 104] as const).map((w, i) => (
+                <div
+                  key={`row2-${i}`}
+                  className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                  style={{ width: `${w}px`, animationDelay: `${0.4 + i * 0.2}s` }}
+                />
+              ))}
             </div>
           </div>
         </div>
