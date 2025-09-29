@@ -152,7 +152,7 @@ export const SearchLoadingState = ({
       <BorderTrail size={80} className={cn('bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
 
       <CardContent>
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-start gap-3">
           {/* Mini loader autour de l'icône */}
           <div className={cn('relative h-10 w-10 rounded-full flex items-center justify-center', iconBgClass ?? variant.background)}>
             <BorderTrail size={30} className={cn('opacity-80','bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
