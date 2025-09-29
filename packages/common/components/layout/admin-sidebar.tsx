@@ -1,12 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Button, Flex, cn } from "@repo/ui";
 import { useAppStore } from "@repo/common/store";
 import {
   IconArrowBarLeft,
   IconArrowBarRight,
-  IconArrowLeft,
   IconLayoutDashboard,
   IconUsers,
   IconFileText,
@@ -17,7 +16,7 @@ import {
 
 export const AdminSidebar = () => {
   const pathname = usePathname();
-  const router = useRouter();
+
   const isSidebarOpen = useAppStore((s) => s.isSidebarOpen);
   const setIsSidebarOpen = useAppStore((s) => s.setIsSidebarOpen);
 
@@ -43,27 +42,14 @@ export const AdminSidebar = () => {
       )}
     >
       <Flex direction="col" className="w-full flex-1 overflow-hidden">
-        <Flex direction="row" className={cn("w-full px-2 items-center", !isSidebarOpen && "justify-center px-0")} gap="sm" justify="between">
-          <Button
-            size={isSidebarOpen ? "sm" : "icon-sm"}
-            variant="default"
-            rounded="lg"
-            onClick={() => router.push("/chat")}
-            aria-label="Retour au chat"
-            tooltip={isSidebarOpen ? undefined : "Retour au chat"}
-            tooltipSide="right"
-            className={cn("relative justify-center", isSidebarOpen ? "w-[calc(100%-36px)]" : "")}
-          >
-            <IconArrowLeft size={16} strokeWidth={2} className={cn(isSidebarOpen && "absolute left-2") as string} />
-            {isSidebarOpen && "Retour au chat"}
-          </Button>
+        <Flex direction="row" className={cn("w-full px-2 items-center", !isSidebarOpen && "justify-center px-0")} gap="sm" justify="start">
           <Button
             variant="ghost"
-            size={isSidebarOpen ? "icon-sm" : "icon-sm"}
+            size="icon-sm"
             onClick={() => setIsSidebarOpen(prev => !prev)}
             aria-label={isSidebarOpen ? "Réduire le panneau" : "Étendre le panneau"}
             tooltip={isSidebarOpen ? "Réduire" : "Étendre"}
-            tooltipSide="left"
+            tooltipSide="right"
           >
             {isSidebarOpen ? (
               <IconArrowBarLeft size={16} strokeWidth={2} />
