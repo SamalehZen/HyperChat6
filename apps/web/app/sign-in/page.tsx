@@ -6,7 +6,7 @@ import { Button, Input } from '@repo/ui';
 
 export default function LocalSignIn() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function LocalSignIn() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -40,8 +40,8 @@ export default function LocalSignIn() {
         <h1 className="mb-4 text-lg font-semibold">Connexion</h1>
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
         <div className="mb-3">
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
-          <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+          <label htmlFor="identifier" className="mb-1 block text-sm font-medium">Nom d’utilisateur ou email</label>
+          <Input id="identifier" type="text" value={identifier} onChange={e => setIdentifier(e.target.value)} required />
         </div>
         <div className="mb-4">
           <label htmlFor="password" className="mb-1 block text-sm font-medium">Mot de passe</label>

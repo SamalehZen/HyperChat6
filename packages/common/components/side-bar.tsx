@@ -23,7 +23,6 @@ import {
     IconPlus,
     IconSearch,
     IconSelector,
-    IconSettings,
     IconSettings2,
     IconUser,
 } from './icons';
@@ -50,7 +49,7 @@ export const Sidebar = () => {
     const { user } = useUser();
     const setIsSidebarOpen = useAppStore(state => state.setIsSidebarOpen);
     const isSidebarOpen = useAppStore(state => state.isSidebarOpen);
-    const setIsSettingsOpen = useAppStore(state => state.setIsSettingsOpen);
+
     const { push } = useRouter();
 
     const pageSize = 30;
@@ -391,12 +390,7 @@ export const Sidebar = () => {
                                         Admin
                                     </DropdownMenuItem>
                                 )}
-                                {user?.role === 'admin' && (
-                                    <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
-                                        <IconSettings size={16} strokeWidth={2} />
-                                        {t('actions.settings')}
-                                    </DropdownMenuItem>
-                                )}
+
                                 {isSignedIn && (
                                     <DropdownMenuItem onClick={() => fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.reload())}>
                                         <IconLogout size={16} strokeWidth={2} />

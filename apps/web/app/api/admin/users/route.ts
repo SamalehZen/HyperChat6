@@ -74,11 +74,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const admin = await requireAdmin(request);
   const body = await request.json().catch(() => ({}));
-  const { email, password, role } = body;
-  if (!email || !password) return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 });
+  const { username, email: emailRaw, password, role } = body;
+  const email = (emailRaw ?? username)?.trim();
+  if (!email || !password) return NextResponse.json({ error: "Identifiant et mot de passe requis" }, { status: 400 });
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return NextResponse.json({ error: 'Email déjà utilisé' }, { status: 409 });
+  if (existing) return NextResponse.json({ error: "Identifiant déjà utilisé" }, { status: 409 });
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await prisma.user.create({ data: { email, passwordHash, role: role === 'admin' ? 'admin' : 'user' } });

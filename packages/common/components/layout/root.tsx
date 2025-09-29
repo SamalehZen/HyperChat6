@@ -5,6 +5,7 @@ import {
     IntroDialog,
     SettingsModal,
     Sidebar,
+    AdminSidebar,
 } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { AgentProvider } from '@repo/common/hooks';
@@ -35,6 +36,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 
     const pathname = usePathname();
     const isChat = pathname.startsWith('/chat');
+    const isAdmin = pathname.startsWith('/admin');
     const isChatHome = pathname === '/chat';
 
     useEffect(() => {
@@ -53,7 +55,9 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                 </div>
             </div>
             <Flex className="hidden lg:flex">
-                <AnimatePresence>{isSidebarOpen && <Sidebar />}</AnimatePresence>
+                <AnimatePresence>
+                    {isSidebarOpen && (isAdmin ? <AdminSidebar /> : <Sidebar />)}
+                </AnimatePresence>
             </Flex>
 
             <Drawer.Root
