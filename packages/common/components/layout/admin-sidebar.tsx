@@ -12,6 +12,7 @@ import {
   IconChartBar,
   IconShieldCheck,
   IconSettings,
+  IconMessageCircleFilled,
 } from "../icons";
 
 export const AdminSidebar = () => {
@@ -58,6 +59,16 @@ export const AdminSidebar = () => {
             )}
           </Button>
         </Flex>
+
+        {!isSidebarOpen && (
+          <div className="px-0 py-1 flex justify-center">
+            <Link href="/chat" aria-label="Aller au chat" className="block">
+              <Button variant="ghost" size="icon-sm" tooltip="Aller au chat" tooltipSide="right">
+                <IconMessageCircleFilled size={16} strokeWidth={2} />
+              </Button>
+            </Link>
+          </div>
+        )}
 
         <nav className={cn("mt-2 w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-2" : "px-1")}
           aria-label="Navigation administrateur"
