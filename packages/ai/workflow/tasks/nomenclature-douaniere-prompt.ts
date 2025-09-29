@@ -14,7 +14,7 @@ P.NET YAOURTS | 100 | 10% | 20 | 20 | 2010
 kg Viandes/Poissons/VOLAILLE | 0 | 10% | 0 | 30 | 1030
 Fil/Riz/Huile tournesol | 0 | 0% | 0 | 0 | 1005
 Sac biodégradable | 300 | 23% | 0 | 0 | 2303
-P.animaux/Gaziniere/Fer à repasser | 0 | 0% | 0 | 0 | 2301
+P.animaux/Gaziniere/Fer à repasser | 0 | 0% | 0 | 0 | 0000
 Produits entretien/Luxe/Bazar | 0 | 0% | 0 | 0 | 2300
 Fromages | 0 | 10% | 20 | 20 | 1020
 kg Crèmes desserts | 0 | 10% | 10 | 10 | 1010
