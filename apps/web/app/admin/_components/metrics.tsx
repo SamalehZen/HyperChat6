@@ -3,9 +3,27 @@ import { useEffect, useMemo, useState } from 'react';
 
 export type WindowSel = '24h' | '7j' | '30j';
 
+type UsageByModeSeries = {
+  dates: string[];
+  modes: Record<string, number[]>;
+};
+
+type MetricsResponse = {
+  window: '24h'|'7j'|'30j';
+  onlineCount: number;
+  totals: { suspended: number; deleted: number; unlock: number; onlineAvg: number };
+  previousTotals: { suspended: number; deleted: number; unlock: number; onlineAvg: number };
+  series: { dates: string[]; onlineCount: number[]; suspendedCount: number[]; deletedCount: number[]; reactivatedAfterLockoutCount: number[] };
+  usageByMode?: { totals: Record<string, number>; previousTotals: Record<string, number>; series: UsageByModeSeries };
+};
+
+type HealthRow = { key: string; provider: string; keyPresent: boolean; latencyAvgMs: number; latencyP95Ms: number; errorRatePct: number; status: 'ok'|'warn'|'down' };
+
+type HealthResponse = { window: '24h'|'7j'|'30j'; providers: HealthRow[]; overall: { latencyAvgMs: number; latencyP95Ms: number; errorRatePct: number; worstStatus: string }; previousOverall?: { latencyAvgMs: number; latencyP95Ms: number; errorRatePct: number; worstStatus: string } };
+
 export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel; onWindowChange: (w: WindowSel) => void }) {
-  const [metrics, setMetrics] = useState<any | null>(null);
-  const [health, setHealth] = useState<any | null>(null);
+  const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -41,19 +59,21 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
   const delDelta = deltaPct(del, delPrev);
 
   const totalAIRequests = useMemo(() => {
-    if (!metrics?.usageByMode?.totals) return 0;
-    return Object.values(metrics.usageByMode.totals).reduce((a: number, b: number) => a + b, 0);
+    const totals = metrics?.usageByMode?.totals as Record<string, number> | undefined;
+    if (!totals) return 0;
+    return Object.values(totals).reduce((a, b) => a + b, 0);
   }, [metrics]);
   const prevTotalAIRequests = useMemo(() => {
-    if (!metrics?.usageByMode?.previousTotals) return 0;
-    return Object.values(metrics.usageByMode.previousTotals).reduce((a: number, b: number) => a + b, 0);
+    const prevTotals = metrics?.usageByMode?.previousTotals as Record<string, number> | undefined;
+    if (!prevTotals) return 0;
+    return Object.values(prevTotals).reduce((a, b) => a + b, 0);
   }, [metrics]);
   const totalAIRequestsDelta = deltaPct(totalAIRequests, prevTotalAIRequests);
   const aiRequestsSeries: number[] = useMemo(() => {
     if (!metrics?.usageByMode?.series) return [];
-    const modes = metrics.usageByMode.series.modes || {};
+    const modes = (metrics.usageByMode.series.modes || {}) as Record<string, number[]>;
     const dates = metrics.usageByMode.series.dates || [];
-    return dates.map((_: string, i: number) => Object.values(modes).reduce((sum: number, arr: any) => sum + (arr?.[i] ?? 0), 0));
+    return dates.map((_, i) => Object.values(modes).reduce((sum, arr) => sum + (arr?.[i] ?? 0), 0));
   }, [metrics]);
 
   const p95 = health?.overall?.latencyP95Ms ?? 0;
