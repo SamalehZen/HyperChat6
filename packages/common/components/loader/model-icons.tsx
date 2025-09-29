@@ -14,7 +14,7 @@ export function getModelIconByChatMode(mode: ChatMode): React.ReactNode {
     case ChatMode.NOMENCLATURE_DOUANIERE:
       return <IconFile size={16} strokeWidth={2} className="text-amber-600 dark:text-amber-400" />;
     case ChatMode.SMART_PDF_TO_EXCEL:
-      return <IconFileSpreadsheet size={16} strokeWidth={2} className="text-emerald-600 dark:text-emerald-400" />;
+      return <IconFileSpreadsheet size={16} strokeWidth={2} className="text-black dark:text-white" />;
 
     case ChatMode.Deep:
       return <IconAtom size={16} strokeWidth={2} className="text-fuchsia-600 dark:text-fuchsia-400" />;
@@ -70,8 +70,8 @@ export function getModelThemeByChatMode(mode: ChatMode): { icon: React.ReactNode
     case ChatMode.SMART_PDF_TO_EXCEL:
       return {
         icon: getModelIconByChatMode(mode),
-        gradientClass: 'from-green-600 via-emerald-500 to-lime-400',
-        iconBgClass: 'bg-emerald-50 dark:bg-emerald-950',
+        gradientClass: 'bg-[linear-gradient(to_right,_#4D4D4D,_#8C8C8C,_#B0B0B0,_#D9D9D9,_#F2F2F2)]',
+        iconBgClass: 'bg-[#F2F2F2] dark:bg-neutral-950',
       };
     case ChatMode.GEMINI_2_5_FLASH:
     case ChatMode.GEMINI_2_5_PRO:
