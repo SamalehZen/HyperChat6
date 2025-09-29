@@ -2,6 +2,7 @@ import { cn } from '@repo/ui';
 import React from 'react';
 import {
   ArrowRight as LucideArrowRight,
+  ArrowLeft as LucideArrowLeft,
   BarChart3 as LucideBarChart,
   Book as LucideBook,
   Bolt as LucideBolt,
@@ -35,6 +36,9 @@ import {
   Terminal as LucideTerminal,
   Trash2 as LucideTrash,
   User as LucideUser,
+  Users as LucideUsers,
+  LayoutDashboard as LucideLayoutDashboard,
+  ShieldCheck as LucideShieldCheck,
   X as LucideX,
   Frown as LucideFrown,
   ExternalLink as LucideExternalLink,
@@ -79,6 +83,7 @@ export const IconBrandJavascript = (props: IconProps) => <LucideCode aria-hidden
 export const IconBrandTypescript = (props: IconProps) => <LucideCode aria-hidden="true" {...props} />;
 export const IconBrandReact = (props: IconProps) => <LucideCode aria-hidden="true" {...props} />;
 export const IconArrowRight = (props: IconProps) => <LucideArrowRight aria-hidden="true" {...props} />;
+export const IconArrowLeft = (props: IconProps) => <LucideArrowLeft aria-hidden="true" {...props} />;
 export const IconSun = (props: IconProps) => <LucideSun aria-hidden="true" {...props} />;
 export const IconMoon = (props: IconProps) => <LucideMoon aria-hidden="true" {...props} />;
 export const IconCopy = (props: IconProps) => <LucideCopy aria-hidden="true" {...props} />;
@@ -88,6 +93,10 @@ export const IconExternalLink = (props: IconProps) => <LucideExternalLink aria-h
 export const IconBook = (props: IconProps) => <LucideBook aria-hidden="true" {...props} />;
 export const IconBulb = (props: IconProps) => <LucideLightbulb aria-hidden="true" {...props} />;
 export const IconChartBar = (props: IconProps) => <LucideBarChart aria-hidden="true" {...props} />;
+export const IconLayoutDashboard = (props: IconProps) => <LucideLayoutDashboard aria-hidden="true" {...props} />;
+export const IconUsers = (props: IconProps) => <LucideUsers aria-hidden="true" {...props} />;
+export const IconFileText = (props: IconProps) => <LucideFileText aria-hidden="true" {...props} />;
+export const IconShieldCheck = (props: IconProps) => <LucideShieldCheck aria-hidden="true" {...props} />;
 export const IconPencil = (props: IconProps) => <LucidePencil aria-hidden="true" {...props} />;
 export const IconQuestionMark = (props: IconProps) => <LucideHelp aria-hidden="true" {...props} />;
 
