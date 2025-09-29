@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { Button, Input, Dialog, DialogContent, useToast, Switch, Checkbox } from '@repo/ui';
+import { Button, Input, Dialog, DialogContent, useToast, Switch, Checkbox, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@repo/ui';
 import { ManageAccessDialog, AdminUserRow } from '../_components/manage-access-dialog';
+import { IconSettings2, IconShieldCheck, IconMarkdown, IconKey, IconTrash, IconUser } from '@repo/common/components';
 
 export type UserRow = {
   id: string;
@@ -80,21 +81,21 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/40">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Email</th>
+              <th className="px-3 py-2 text-left font-medium">Identifiant</th>
               <th className="px-3 py-2 text-left font-medium">Rôle</th>
               <th className="px-3 py-2 text-left font-medium">État</th>
-              <th className="px-3 py-2 text-left font-medium">En ligne</th>
-              <th className="px-3 py-2 text-left font-medium">IP</th>
-              <th className="px-3 py-2 text-left font-medium">Géo</th>
-              <th className="px-3 py-2 text-left font-medium">Dernière activité</th>
-              <th className="px-3 py-2 text-left font-medium">Actions</th>
+              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">En ligne</th>
+              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">IP</th>
+              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">Géo</th>
+              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">Dernière activité</th>
+              <th className="px-3 py-2 text-right font-medium w-0 whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map(u => (
               <tr key={u.id} className="border-t">
-                <td className="px-3 py-2">{u.email}</td>
-                <td className="px-3 py-2">{u.role}</td>
+                <td className="px-3 py-2 max-w-[220px] truncate">{u.email}</td>
+                <td className="px-3 py-2 whitespace-nowrap">{u.role}</td>
                 <td className="px-3 py-2">
                   <div className="flex flex-wrap gap-1">
                     {u.deletedAt ? (<span className="inline-flex items-center rounded bg-red-500/10 px-2 py-0.5 text-xs text-red-600">Supprimé</span>) : (
@@ -106,11 +107,11 @@ export default function AdminUsersPage() {
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2">{u.online ? 'Oui' : 'Non'}</td>
-                <td className="px-3 py-2">{u.lastIp ?? '-'}</td>
-                <td className="px-3 py-2">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
-                <td className="px-3 py-2">{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 hidden lg:table-cell">{u.online ? 'Oui' : 'Non'}</td>
+                <td className="px-3 py-2 hidden lg:table-cell">{u.lastIp ?? '-'}</td>
+                <td className="px-3 py-2 hidden lg:table-cell">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
+                <td className="px-3 py-2 hidden lg:table-cell">{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
+                <td className="px-3 py-2 text-right w-0 whitespace-nowrap">
                   <RowActions user={u} onChanged={reload} onShowActivity={() => setSelectedUser(u)} onManageAccess={() => setAccessUser(u)} />
                 </td>
               </tr>
@@ -190,31 +191,59 @@ function RowActions({ user, onChanged, onShowActivity, onManageAccess }: { user:
   };
 
   return (
-    <div className="flex gap-2">
-      <Button size="xs" variant="secondary" onClick={onShowActivity} disabled={loading !== null}>Détails</Button>
-      <Button size="xs" variant="secondary" onClick={onManageAccess} disabled={loading !== null}>Gérer l’accès aux modèles</Button>
-      <Button size="xs" variant="secondary" onClick={() => {
-        const p = prompt('Nouveau mot de passe');
-        if (p) doAction('reset_password', { password: p });
-      }} disabled={loading !== null}>Reset</Button>
-      <Button size="xs" variant="secondary" onClick={() => doAction(user.isSuspended ? 'unsuspend' : 'suspend')} disabled={loading !== null}>{user.isSuspended ? 'Activer' : 'Suspendre'}</Button>
-      {user.isLocked && (
-        <Button size="xs" variant="secondary" onClick={async () => {
-          setLoading('unlock');
-          const res = await fetch(`/api/admin/users/${user.id}/unlock`, { method: 'POST' });
-          setLoading(null);
-          if (res.ok) {
-            toast({ title: 'Compte réactivé' });
-            onChanged();
-          }
-        }} disabled={loading !== null}>Réactiver</Button>
-      )}
-      <Button size="xs" variant="secondary" onClick={() => doAction('update_role', { role: user.role === 'admin' ? 'user' : 'admin' })} disabled={loading !== null}>Rôle: {user.role}</Button>
-      <Button size="xs" variant="destructive" onClick={() => {
-        const c1 = confirm(`Supprimer ${user.email} ?`);
-        const c2 = c1 && confirm('Action irréversible — confirmer ?');
-        if (c2) doAction('delete');
-      }} disabled={loading !== null}>Supprimer</Button>
+    <div className="flex items-center justify-end gap-1">
+      <div className="hidden md:flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onShowActivity}
+          tooltip="Détails"
+          aria-label="Détails"
+          disabled={loading !== null}
+        >
+          <IconMarkdown size={16} strokeWidth={2} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onManageAccess}
+          tooltip="Accès aux modèles"
+          aria-label="Accès aux modèles"
+          disabled={loading !== null}
+        >
+          <IconShieldCheck size={16} strokeWidth={2} />
+        </Button>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="secondary" size="icon-sm" aria-label="Plus d’actions">
+            <IconSettings2 size={16} strokeWidth={2} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onShowActivity}>Détails</DropdownMenuItem>
+          <DropdownMenuItem onClick={onManageAccess}>Gérer l’accès aux modèles</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => {
+            const p = prompt('Nouveau mot de passe');
+            if (p) doAction('reset_password', { password: p });
+          }}>Réinitialiser le mot de passe</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => doAction(user.isSuspended ? 'unsuspend' : 'suspend')}>{user.isSuspended ? 'Activer le compte' : 'Suspendre le compte'}</DropdownMenuItem>
+          {user.isLocked && (
+            <DropdownMenuItem onClick={async () => {
+              setLoading('unlock');
+              const res = await fetch(`/api/admin/users/${user.id}/unlock`, { method: 'POST' });
+              setLoading(null);
+              if (res.ok) { toast({ title: 'Compte réactivé' }); onChanged(); }
+            }}>Réactiver (débloquer)</DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => doAction('update_role', { role: user.role === 'admin' ? 'user' : 'admin' })}>Basculer rôle → {user.role === 'admin' ? 'user' : 'admin'}</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => {
+            const c1 = confirm(`Supprimer ${user.email} ?`);
+            const c2 = c1 && confirm('Action irréversible — confirmer ?');
+            if (c2) doAction('delete');
+          }} className="text-red-600 focus:text-red-600">Supprimer</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
