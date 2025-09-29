@@ -7,7 +7,7 @@ async function buildStatusResponse(request: NextRequest, doPing: boolean) {
 
   const session = await getSession(request);
   if (!session) {
-    return NextResponse.json({ reason: 'account_deleted' }, { status: 410 });
+    return NextResponse.json({ reason: 'session_revoked' }, { status: 401 });
   }
 
   if (doPing) {
