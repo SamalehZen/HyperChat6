@@ -60,16 +60,6 @@ export const AdminSidebar = () => {
           </Button>
         </Flex>
 
-        {!isSidebarOpen && (
-          <div className="px-0 py-1 flex justify-center">
-            <Link href="/chat" aria-label="Aller au chat" className="block">
-              <Button variant="ghost" size="icon-sm" tooltip="Aller au chat" tooltipSide="right">
-                <IconMessageCircleFilled size={16} strokeWidth={2} />
-              </Button>
-            </Link>
-          </div>
-        )}
-
         <nav className={cn("mt-2 w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-2" : "px-1")}
           aria-label="Navigation administrateur"
         >
@@ -96,6 +86,22 @@ export const AdminSidebar = () => {
                 </li>
               );
             })}
+            <li key="/chat-return">
+              <Link href="/chat" className="block">
+                <div
+                  className={cn(
+                    "hover:bg-quaternary/60 focus-visible:ring-ring/40 flex items-center gap-3 rounded-md px-2 py-1.5 outline-none transition-colors",
+                    "text-muted-foreground",
+                    !isSidebarOpen && "justify-center px-1"
+                  )}
+                  aria-label={isSidebarOpen ? undefined : "Retour au chat"}
+                  title="Retour au chat"
+                >
+                  <IconMessageCircleFilled size={16} strokeWidth={2} className="shrink-0" />
+                  {isSidebarOpen && <span className="text-sm">Retour au chat</span>}
+                </div>
+              </Link>
+            </li>
           </ul>
         </nav>
 
