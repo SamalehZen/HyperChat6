@@ -152,7 +152,7 @@ export const SearchLoadingState = ({
       <BorderTrail size={80} className={cn('bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
 
       <CardContent>
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-start gap-3">
           {/* Mini loader autour de l'icône */}
           <div className={cn('relative h-10 w-10 rounded-full flex items-center justify-center', iconBgClass ?? variant.background)}>
             <BorderTrail size={30} className={cn('opacity-80','bg-gradient-to-r from-violet-500 via-pink-500 to-orange-500', gradientClass)} />
@@ -166,14 +166,24 @@ export const SearchLoadingState = ({
               {text}
             </LocalTextShimmer>
             <div className="flex gap-2">
-              {[...Array(3)].map((_, i) => (
+              {([56, 40, 64] as const).map((w, i) => (
                 <div
                   key={i}
                   className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
                   style={{
-                    width: `${Math.random() * 40 + 20}px`,
-                    animationDelay: `${i * 0.2}s`,
+                    width: `${w}px`,
+                    animationDelay: `${[0, 0.15, 0.3][i]}s`,
+                    animationDuration: '1.2s',
                   }}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2 mt-1.5">
+              {([96, 120, 104] as const).map((w, i) => (
+                <div
+                  key={`row2-${i}`}
+                  className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                  style={{ width: `${w}px`, animationDelay: `${[0.1, 0.25, 0.4][i]}s`, animationDuration: '1.2s' }}
                 />
               ))}
             </div>
