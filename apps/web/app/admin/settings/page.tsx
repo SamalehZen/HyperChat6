@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Flex } from '@repo/ui';
-import { ApiKeySettings, CreditsSettings, PersonalizationSettings } from '@repo/common/components/settings-modal';
+import { ApiKeySettings, CreditsSettings, PersonalizationSettings } from '@repo/common/components';
 
 const SECTIONS = [
   { key: 'personalization', label: 'Personnalisation', hash: 'personalisation' },
