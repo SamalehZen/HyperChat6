@@ -11,6 +11,7 @@ import {
     getModelThemeByChatMode,
 } from '@repo/common/components';
 import { useAnimatedText } from '@repo/common/hooks';
+import { getChatModeName } from '@repo/shared/config';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem as ThreadItemType } from '@repo/shared/types';
 import { Alert, AlertDescription, cn } from '@repo/ui';
@@ -131,6 +132,10 @@ export const ThreadItem = memo(
                                         isLast={isLast}
                                         totalAttachments={Array.isArray(threadItem?.imageAttachment) ? threadItem.imageAttachment.length : (threadItem?.imageAttachment ? 1 : 0)}
                                     />
+
+                                    <div className="text-muted-foreground mt-2 text-xs">
+                                        Généré avec {getChatModeName(threadItem.mode)}
+                                    </div>
                                 </div>
                             )}
                         </div>

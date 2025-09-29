@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   const session = await getSession(request);
   if (!session) {
-    return NextResponse.json({ reason: 'account_deleted' }, { status: 410 });
+    return NextResponse.json({ reason: 'session_revoked' }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });

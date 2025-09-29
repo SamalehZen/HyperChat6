@@ -61,6 +61,8 @@ export async function createSessionForUser(userId: string, request: NextRequest)
   const gl = geolocation(request);
   const ip = getIp(request);
 
+  await prisma.session.deleteMany({ where: { userId } });
+
   await prisma.session.create({
     data: {
       token,

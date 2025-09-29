@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useToast } from '@repo/ui';
 
 export type User = { id: string; email?: string; role: 'admin' | 'user'; isSuspended?: boolean };
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | undefined>(undefined);
   const isSignedIn = !!user?.id;
+  const { toast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -23,6 +25,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const res = await fetch('/api/auth/me', { cache: 'no-store' });
         if (!res.ok) {
+          try {
+            const data = await res.json();
+            if (data?.reason === 'session_revoked') {
+              toast({ title: 'Vous avez été déconnecté', description: 'Votre compte a été ouvert sur un autre appareil.' });
+              try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+            }
+          } catch {}
           if (!cancelled) setUser(undefined);
           return;
         }
@@ -42,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('focus', onFocus);
       clearInterval(interval);
     };
-  }, []);
+  }, [toast]);
 
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
