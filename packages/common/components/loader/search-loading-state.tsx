@@ -172,7 +172,8 @@ export const SearchLoadingState = ({
                   className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
                   style={{
                     width: `${w}px`,
-                    animationDelay: `${i * 0.2}s`,
+                    animationDelay: `${[0, 0.15, 0.3][i]}s`,
+                    animationDuration: '1.2s',
                   }}
                 />
               ))}
@@ -182,7 +183,7 @@ export const SearchLoadingState = ({
                 <div
                   key={`row2-${i}`}
                   className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
-                  style={{ width: `${w}px`, animationDelay: `${0.4 + i * 0.2}s` }}
+                  style={{ width: `${w}px`, animationDelay: `${[0.1, 0.25, 0.4][i]}s`, animationDuration: '1.2s' }}
                 />
               ))}
             </div>
