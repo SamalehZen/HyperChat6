@@ -17,9 +17,10 @@ async function safeLog(data: { userId?: string; actorId?: string; action: Activi
 }
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json().catch(() => ({}));
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Email et mot de passe requis' }, { status: 400 });
+  const { identifier, email, username, password } = await request.json().catch(() => ({}));
+  const id = (identifier ?? email ?? username)?.trim();
+  if (!id || !password) {
+    return NextResponse.json({ error: 'Identifiant et mot de passe requis' }, { status: 400 });
   }
 
   const gl = geolocation(request);
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     country: gl?.country ?? null,
     region: gl?.region ?? null,
     city: gl?.city ?? null,
-    details: { email },
+    details: { identifier: id },
   });
 
   if (ip) {
@@ -52,9 +53,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  // Si l'identifiant contient un '@', on considère que c'est un email; sinon on utilise le champ email comme username stocké
+  const user = await prisma.user.findUnique({ where: { email: id } });
   if (!user) {
-    await safeLog({ action: ActivityAction.login_failed, details: { email }, ip, country: gl?.country ?? null, region: gl?.region ?? null, city: gl?.city ?? null });
+    await safeLog({ action: ActivityAction.login_failed, details: { identifier: id }, ip, country: gl?.country ?? null, region: gl?.region ?? null, city: gl?.city ?? null });
     return NextResponse.json({ error: 'Identifiants invalides' }, { status: 401 });
   }
   if ((user as any).deletedAt) return NextResponse.json({ error: 'Compte supprimé' }, { status: 410 });
