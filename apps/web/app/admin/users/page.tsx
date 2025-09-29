@@ -51,7 +51,9 @@ export default function AdminUsersPage() {
     <div className="mx-auto w-full max-w-6xl p-6">
       <h1 className="mb-4 text-2xl font-semibold">Utilisateurs</h1>
 
-      <div className="mt-0 flex items-end gap-3">
+      <CreateUser onCreated={reload} />
+
+      <div className="mt-4 flex items-end gap-3">
         <div className="flex-1">
           <label htmlFor="q" className="mb-1 block text-sm font-medium">Recherche (email)</label>
           <Input id="q" value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…"/>
@@ -119,6 +121,59 @@ export default function AdminUsersPage() {
 
       <ActivityDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
       <ManageAccessDialog user={accessUser as AdminUserRow | null} onClose={() => setAccessUser(null)} />
+    </div>
+  );
+}
+
+function CreateUser({ onCreated }: { onCreated: () => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'admin'>('user');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    setLoading(true);
+    const res = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, role }) });
+    setLoading(false);
+    if (res.ok) {
+      setEmail(''); setPassword(''); setRole('user');
+      toast({ title: 'Utilisateur créé' });
+      onCreated();
+    } else {
+      let msg = 'Échec de création';
+      try { const d = await res.json(); if (d?.error) msg = d.error; } catch {}
+      toast({ title: msg });
+    }
+  };
+
+  return (
+    <div className="rounded-md border p-4">
+      <h2 className="mb-2 text-lg font-semibold">Créer un utilisateur</h2>
+      <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
+          <Input id="email" value={email} onChange={e => setEmail(e.target.value)} required />
+        </div>
+        <div>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium">Mot de passe</label>
+          <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Rôle</label>
+          <select
+            className="border-input bg-background text-foreground h-9 w-40 rounded-md border px-2 text-sm"
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
+          >
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+        <Button type="submit" disabled={loading}>{loading ? 'Création…' : 'Créer'}</Button>
+      </form>
     </div>
   );
 }
