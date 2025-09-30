@@ -329,7 +329,17 @@ function TechOrbitDisplay({
         {text}
       </span>
       {iconsArray.map((icon, idx) => (
-        <OrbitingCircles key={idx} {...icon} radius={icon.radius ?? 80} />
+        <OrbitingCircles
+          key={idx}
+          className={icon.className}
+          duration={icon.duration}
+          delay={icon.delay}
+          radius={icon.radius ?? 80}
+          reverse={icon.reverse}
+          path={icon.path}
+        >
+          {icon.component()}
+        </OrbitingCircles>
       ))}
     </section>
   );
