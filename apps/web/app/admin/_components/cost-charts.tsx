@@ -39,7 +39,7 @@ export function CostCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
           <AreaChart data={areaData} stackOffset="expand">
             <XAxis dataKey="date" tick={{ fontSize: 10 }} />
             <YAxis tick={{ fontSize: 10 }} hide />
-            <Tooltip formatter={(v: any, name: any) => [formatterUsd(v), name]} labelFormatter={(l) => `Date: ${l}`} />
+            <Tooltip formatter={(v: any, name: any) => [`${(Number(v) * 100).toFixed(1)} %`, name]} labelFormatter={(l) => `Date : ${new Date(l).toLocaleString('fr-FR', { dateStyle: windowSel === '24h' ? 'short' : 'medium', timeStyle: windowSel === '24h' ? 'short' : undefined })}`} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             {Object.keys(metrics?.costByMode?.series?.modes || {}).map((mode, idx) => (
               <Area key={mode} type="monotone" dataKey={mode} stackId="1" stroke={COLORS[idx % COLORS.length]} fill={COLORS[idx % COLORS.length]} name={mode} />

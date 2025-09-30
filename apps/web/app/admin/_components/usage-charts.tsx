@@ -54,7 +54,7 @@ export function UsageCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
             <AreaChart data={areaData} stackOffset="expand">
               <XAxis dataKey="date" hide={false} tick={{ fontSize: 10 }} />
               <YAxis hide tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: any, name: any) => [v, name]} labelFormatter={(l) => `Date: ${l}`} />
+              <Tooltip formatter={(v: any, name: any) => [`${(Number(v) * 100).toFixed(1)} %`, name]} labelFormatter={(l) => `Date : ${new Date(l).toLocaleString('fr-FR', { dateStyle: windowSel === '24h' ? 'short' : 'medium', timeStyle: windowSel === '24h' ? 'short' : undefined })}`} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {Object.keys(metrics?.usageByMode?.series?.modes || {}).map((mode, idx) => (
                 <Area key={mode} type="monotone" dataKey={mode} stackId="1" stroke={COLORS[idx % COLORS.length]} fill={COLORS[idx % COLORS.length]} name={mode} />
@@ -65,7 +65,7 @@ export function UsageCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
         <div className="w-full h-64" aria-label="Répartition actuelle par mode">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Tooltip formatter={(v: any, name: any) => [`${v}`, name]} />
+              <Tooltip formatter={(v: any, name: any) => [Number(v).toLocaleString('fr-FR'), name]} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(p) => `${p.name} (${p.value})`} aria-label="Répartition par mode">
                 {pieData.map((entry: any, idx: number) => (

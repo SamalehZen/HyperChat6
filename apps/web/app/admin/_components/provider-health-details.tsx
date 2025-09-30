@@ -73,7 +73,7 @@ export function ProviderHealthDetails({ providerKey, initialWindow }: { provider
               <BarChart data={bucketData}>
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={0} angle={-15} height={50} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v: any) => [v, 'Requêtes']} labelFormatter={(l) => `Latence: ${l}`} />
+                <Tooltip formatter={(v: any) => [Number(v).toLocaleString('fr-FR'), 'Requêtes']} labelFormatter={(l) => `Latence : ${l}`} />
                 <Bar dataKey="count" name="Requêtes" fill="#0ea5e9" />
               </BarChart>
             </ResponsiveContainer>
@@ -85,7 +85,7 @@ export function ProviderHealthDetails({ providerKey, initialWindow }: { provider
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Tooltip formatter={(v: any, name: any) => [`${v}`, name]} />
+                <Tooltip formatter={(v: any, name: any) => [Number(v).toLocaleString('fr-FR'), name]} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Pie data={statusPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(p) => `${p.name} (${p.value})`}>
                   {statusPie.map((entry: any, idx: number) => (
@@ -123,7 +123,7 @@ export function ProviderHealthDetails({ providerKey, initialWindow }: { provider
             }))}>
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: any, name: any) => [v, name]} />
+              <Tooltip formatter={(v: any, name: any) => [Number(v).toLocaleString('fr-FR'), name]} labelFormatter={(l) => `Date : ${new Date(l).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}`} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Bar dataKey="completed" name="Complétés" fill="#22c55e" />
               <Bar dataKey="errors" name="Erreurs" fill="#ef4444" />

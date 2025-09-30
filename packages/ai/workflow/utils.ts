@@ -9,7 +9,7 @@ import {
 } from 'ai';
 import { format } from 'date-fns';
 import { ZodSchema } from 'zod';
-import { ModelEnum } from '../models';
+import { ModelEnum, estimateTokensByWordCount, estimateTokensForMessages, models } from '../models';
 import { getLanguageModel } from '../providers';
 import { WorkflowEventSchema } from './flow';
 import { generateErrorMessage } from './tasks/utils';
@@ -74,6 +74,7 @@ export const generateText = async ({
     temperature,
     topP,
     maxOutputTokens,
+    onUsage,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -89,6 +90,7 @@ export const generateText = async ({
     temperature?: number;
     topP?: number;
     maxOutputTokens?: number;
+    onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
 }) => {
     try {
         if (signal?.aborted) {
@@ -101,6 +103,8 @@ export const generateText = async ({
         });
 
         const selectedModel = getLanguageModel(model, middleware);
+        const isGemini = !!models.find(m => m.id === model && m.provider === 'google');
+        let aggregatedText = '';
         const { fullStream } = !!messages?.length
             ? streamText({
                   system: prompt,
@@ -135,6 +139,7 @@ export const generateText = async ({
 
             if (chunk.type === 'text-delta') {
                 fullText += chunk.textDelta;
+                aggregatedText += chunk.textDelta;
                 onChunk?.(chunk.textDelta, fullText);
             }
             if (chunk.type === 'reasoning') {
@@ -152,6 +157,17 @@ export const generateText = async ({
                 console.error(chunk.error);
                 return Promise.reject(chunk.error);
             }
+        }
+        if (isGemini && onUsage) {
+            let promptTokens: number | null = null;
+            try {
+                if (messages && messages.length) promptTokens = estimateTokensForMessages(messages);
+            } catch {}
+            let completionTokens: number | null = null;
+            try {
+                completionTokens = estimateTokensByWordCount(aggregatedText || fullText || '');
+            } catch {}
+            onUsage({ promptTokens, completionTokens });
         }
         return Promise.resolve(fullText);
     } catch (error) {

@@ -136,6 +136,10 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             onChunk: (chunk, fullText) => {
                 chunkBuffer.add(chunk);
             },
+            onUsage: (usage) => {
+                const u = context.get('onUsage');
+                if (u) u(usage);
+            },
         });
 
         reasoningBuffer.end();

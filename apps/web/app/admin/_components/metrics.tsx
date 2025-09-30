@@ -128,6 +128,7 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
 function KpiCard({ title, value, delta, series, dates, color }: { title: string; value: number | string; delta?: number | null; series: number[]; dates: string[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
   const trendColor = typeof delta === 'number' ? (delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-muted-foreground') : 'text-muted-foreground';
   const sign = typeof delta === 'number' && delta > 0 ? '+' : '';
+  const fmt = (s?: string) => s ? new Date(s).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
   return (
     <div className="rounded-md border p-3">
       <div className="text-sm text-muted-foreground">{title}</div>
@@ -140,7 +141,7 @@ function KpiCard({ title, value, delta, series, dates, color }: { title: string;
         </div>
         {series?.length ? <MiniSpark series={series} color={color} /> : <div className="h-16 w-28" aria-hidden />}
       </div>
-      <div className="mt-1 text-xs text-muted-foreground">{dates?.[0]} → {dates?.[dates.length-1]}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{fmt(dates?.[0])} → {fmt(dates?.[dates.length-1])}</div>
     </div>
   );
 }
