@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Button, Input, Dialog, DialogContent, useToast, Switch, Checkbox, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@repo/ui';
 import { ManageAccessDialog, AdminUserRow } from '../_components/manage-access-dialog';
 import { IconSettings2, IconShieldCheck, IconMarkdown, IconKey, IconTrash, IconUser } from '@repo/common/components';
+import { TopUsersTokensCost } from '../_components/top-users-tokens-cost';
 
 export type UserRow = {
   id: string;
@@ -51,6 +52,8 @@ export default function AdminUsersPage() {
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
       <h1 className="mb-4 text-2xl font-semibold">Utilisateurs</h1>
+
+      <TopUsersPanel />
 
       <CreateUser onCreated={reload} />
 
@@ -122,6 +125,14 @@ export default function AdminUsersPage() {
 
       <ActivityDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
       <ManageAccessDialog user={accessUser as AdminUserRow | null} onClose={() => setAccessUser(null)} />
+    </div>
+  );
+}
+
+function TopUsersPanel() {
+  return (
+    <div className="rounded-md border p-4">
+      <TopUsersTokensCost windowSel={'7j'} limit={3} />
     </div>
   );
 }

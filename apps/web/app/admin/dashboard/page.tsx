@@ -6,6 +6,7 @@ import { RecentEventsPanel } from "../_components/recent-events-panel";
 import { SystemHealthPanel } from "../_components/system-health";
 import { UsageCharts } from "../_components/usage-charts";
 import { CostCharts } from "../_components/cost-charts";
+import { TopUsersTokensCost } from "../_components/top-users-tokens-cost";
 
 export default function AdminDashboardPage() {
   const [windowSel, setWindowSel] = useState<WindowSel>('7j');
@@ -15,6 +16,7 @@ export default function AdminDashboardPage() {
       <KPIHeader windowSel={windowSel} onWindowChange={setWindowSel} />
       <UsageCharts windowSel={windowSel} />
       <CostCharts windowSel={windowSel} />
+      <TopUsersTokensCost windowSel={windowSel} />
       <SystemHealthPanel windowSel={windowSel} />
       <OnlinePanel />
       <RecentEventsPanel defaultLimit={10} showFilters={false} />
