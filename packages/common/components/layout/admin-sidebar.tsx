@@ -107,7 +107,7 @@ export const AdminSidebar = () => {
         </nav>
 
         <div className={cn("mt-auto border-t border-white/20 dark:border-black/30", isSidebarOpen ? "px-3 pt-3 pb-2" : "px-1 pt-2 pb-2")}> 
-          <div className={cn("flex items-center gap-2", isSidebarOpen ? "justify-between" : "justify-center")}> 
+          <div className={cn(isSidebarOpen ? "flex items-center gap-2 justify-start" : "flex flex-col items-center gap-2")}> 
             <Button
               variant="ghost"
               size="icon-sm"
