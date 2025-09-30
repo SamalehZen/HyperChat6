@@ -326,9 +326,16 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
+  const handleOpenChange = (o: boolean) => {
+    setOpen(o);
+    if (!o) onClose();
+  };
+
+  const dialogTitle = user ? `Historique d'activite - ${user.email}` : 'Historique d\'activite';
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) onClose(); }}>
-      <DialogContent ariaTitle={user ? `Historique d'activité — ${user.email}` : 'Historique d'activité'} className="max-w-3xl glass-panel">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent ariaTitle={dialogTitle} className="max-w-3xl glass-panel">
         <div className="flex items-end justify-between gap-3">
           <div>
             <h3 className="text-xl font-bold text-foreground">Historique d'activité</h3>
