@@ -124,6 +124,7 @@ export const runWorkflow = ({
     webSearch = false,
     showSuggestions = false,
     onFinish,
+    onUsage,
     customInstructions,
     gl,
 }: {
