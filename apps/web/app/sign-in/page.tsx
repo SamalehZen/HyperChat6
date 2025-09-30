@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Input } from '@repo/ui';
 import { motion } from 'framer-motion';
-import { IconBolt, IconShieldCheck, IconUsers, IconChartBar } from '@repo/common/components';
+import { IconBolt } from '@repo/common/components';
+import { AnimatedForm } from '@/sandbox/modern-animated-sign-in';
 
 export default function LocalSignIn() {
   const router = useRouter();
@@ -143,89 +144,20 @@ export default function LocalSignIn() {
                 </h1>
               </motion.div>
             </div>
-            
+
             <div className="glass-card bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-8 md:p-9 lg:p-10 shadow-2xl">
-              <div className="mb-8">
-                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-3">
-                  Bon retour !
-                </h2>
-                <p className="text-slate-700 dark:text-slate-300">
-                  Connectez-vous à votre compte pour accéder à vos outils IA.
-                </p>
-              </div>
-              
-              <form onSubmit={onSubmit} className="space-y-6">
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50"
-                  >
-                    <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
-                  </motion.div>
-                )}
-                
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="identifier" className="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
-                      Nom d'utilisateur ou email
-                    </label>
-                    <Input 
-                      id="identifier" 
-                      type="text" 
-                      value={identifier} 
-                      onChange={e => setIdentifier(e.target.value)} 
-                      required 
-                      className="h-12 bg-white/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                      placeholder="votre@email.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
-                      Mot de passe
-                    </label>
-                    <div className="relative">
-                      <Input 
-                        id="password" 
-                        type={showPassword ? 'text' : 'password'} 
-                        value={password} 
-                        onChange={e => setPassword(e.target.value)} 
-                        required 
-                        className="h-12 bg-white/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 pr-12"
-                        placeholder="••••••••"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                      >
-                        {showPassword ? '🙈' : '👁️'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  disabled={loading || !identifier || !password}
-                  className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                      />
-                      Connexion en cours...
-                    </div>
-                  ) : (
-                    'Se connecter'
-                  )}
-                </Button>
-              </form>
-              
+              <AnimatedForm
+                header="Bon retour !"
+                subHeader="Connectez-vous à votre compte pour accéder à vos outils IA."
+                fields={[
+                  { label: "Identifiant ou email", type: "text", required: true, placeholder: "votre@email.com", onChange: (e) => setIdentifier(e.target.value) },
+                  { label: "Mot de passe", type: "password", required: true, placeholder: "••••••••", onChange: (e) => setPassword(e.target.value) },
+                ]}
+                submitButton={loading ? "Connexion en cours…" : "Se connecter"}
+                errorField={error ?? undefined}
+                onSubmit={onSubmit}
+              />
+
               <div className="mt-6 text-center">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   En vous connectant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
