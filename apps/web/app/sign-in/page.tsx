@@ -67,7 +67,7 @@ export default function LocalSignIn() {
       
       <div className="flex min-h-screen">
         {/* Left Panel - Features & Branding */}
-        <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-12 xl:px-16">
+        <div className="hidden md:flex md:flex-1 md:flex-col md:justify-center md:px-10 lg:px-12 xl:px-16">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -84,7 +84,7 @@ export default function LocalSignIn() {
                 <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <IconBolt size={24} strokeWidth={2} className="text-white" />
                 </div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   HyperFix
                 </h1>
               </motion.div>
@@ -100,7 +100,7 @@ export default function LocalSignIn() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
-                  className="flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 hover:bg-white/70 dark:hover:bg-slate-800/70 transition-all duration-300"
+                  className="flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 hover:bg-white/70 dark:hover:bg-slate-800/70 hover:-translate-y-0.5 hover:shadow-md will-change-transform transition-all duration-300"
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
                     <feature.icon size={18} strokeWidth={2} className="text-white" />
@@ -120,7 +120,7 @@ export default function LocalSignIn() {
         </div>
         
         {/* Right Panel - Login Form */}
-        <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8 lg:flex-none lg:w-96 xl:w-[28rem]">
+        <div className="flex flex-1 flex-col justify-center px-6 py-10 md:px-8 lg:px-10 md:flex-none md:w-[26rem] lg:w-[28rem] xl:w-[30rem]">
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -138,18 +138,18 @@ export default function LocalSignIn() {
                 <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
                   <IconBolt size={20} strokeWidth={2} className="text-white" />
                 </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   HyperFix
                 </h1>
               </motion.div>
             </div>
             
-            <div className="glass-card bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+            <div className="glass-card bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-8 md:p-9 lg:p-10 shadow-2xl">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-3">
                   Bon retour !
                 </h2>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-slate-700 dark:text-slate-300">
                   Connectez-vous à votre compte pour accéder à vos outils IA.
                 </p>
               </div>
@@ -167,7 +167,7 @@ export default function LocalSignIn() {
                 
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="identifier" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    <label htmlFor="identifier" className="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
                       Nom d'utilisateur ou email
                     </label>
                     <Input 
@@ -176,13 +176,13 @@ export default function LocalSignIn() {
                       value={identifier} 
                       onChange={e => setIdentifier(e.target.value)} 
                       required 
-                      className="h-12 bg-white/50 dark:bg-slate-900/50 border-slate-300/50 dark:border-slate-600/50 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 transition-all duration-200"
+                      className="h-12 bg-white/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
                       placeholder="votre@email.com"
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    <label htmlFor="password" className="block text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
                       Mot de passe
                     </label>
                     <div className="relative">
@@ -192,7 +192,7 @@ export default function LocalSignIn() {
                         value={password} 
                         onChange={e => setPassword(e.target.value)} 
                         required 
-                        className="h-12 bg-white/50 dark:bg-slate-900/50 border-slate-300/50 dark:border-slate-600/50 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-indigo-500/20 transition-all duration-200 pr-12"
+                        className="h-12 bg-white/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 pr-12"
                         placeholder="••••••••"
                       />
                       <button
