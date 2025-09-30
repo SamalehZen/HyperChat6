@@ -67,57 +67,20 @@ export default function LocalSignIn() {
       <div className="absolute inset-0 pointer-events-none" aria-hidden />
       
       <div className="flex min-h-screen">
-        {/* Left Panel - Features & Branding */}
+        {/* Left Panel - Animated Orbit/Ripple Branding */}
         <div className="hidden md:flex md:flex-1 md:flex-col md:justify-center md:px-10 lg:px-12 xl:px-16">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="max-w-md"
-          >
-            <div className="mb-8">
-              <motion.div 
-                className="inline-flex items-center gap-3 mb-4"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <IconBolt size={24} strokeWidth={2} className="text-white" />
-                </div>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  HyperFix
-                </h1>
-              </motion.div>
-              <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
-                L'intelligence artificielle polyvalente développée pour maximiser votre productivité professionnelle.
-              </p>
-            </div>
-            
-            <div className="space-y-6">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
-                  className="flex items-start gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 hover:bg-white/70 dark:hover:bg-slate-800/70 hover:-translate-y-0.5 hover:shadow-md will-change-transform transition-all duration-300"
-                >
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <feature.icon size={18} strokeWidth={2} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-1">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {feature.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+          <div className="relative h-[480px] w-full max-w-xl">
+            <Ripple />
+            <TechOrbitDisplay
+              text="HyperFix"
+              iconsArray={[
+                { component: () => <IconBolt className="text-indigo-600" size={18} strokeWidth={2} />, radius: 80, duration: 14 },
+                { component: () => <IconShieldCheck className="text-emerald-600" size={16} strokeWidth={2} />, radius: 120, duration: 18, reverse: true },
+                { component: () => <IconUsers className="text-sky-600" size={16} strokeWidth={2} />, radius: 160, duration: 22 },
+                { component: () => <IconChartBar className="text-amber-600" size={16} strokeWidth={2} />, radius: 200, duration: 26, reverse: true },
+              ]}
+            />
+          </div>
         </div>
         
         {/* Right Panel - Login Form */}

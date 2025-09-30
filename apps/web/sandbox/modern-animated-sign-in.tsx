@@ -278,4 +278,78 @@ const AnimatedForm = memo(function AnimatedForm({
   );
 });
 
-export { Input, BoxReveal, AnimatedForm };
+// Simple orbiting circle using framer-motion (no custom CSS needed)
+interface OrbitingCirclesProps {
+  className?: string;
+  children: ReactNode;
+  reverse?: boolean;
+  duration?: number;
+  delay?: number;
+  radius?: number;
+  path?: boolean;
+}
+
+const OrbitingCircles = memo(function OrbitingCircles({
+  className,
+  children,
+  reverse = false,
+  duration = 20,
+  delay = 0,
+  radius = 80,
+  path = true,
+}: OrbitingCirclesProps) {
+  return (
+    <div className={cn('absolute inset-0 pointer-events-none', className)}>
+      {path && (
+        <svg className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' width={radius * 2} height={radius * 2}>
+          <circle cx={radius} cy={radius} r={radius} fill='none' stroke='currentColor' strokeOpacity={0.1} />
+        </svg>
+      )}
+      <motion.div
+        className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+        style={{ width: radius * 2, height: radius * 2 }}
+        animate={{ rotate: reverse ? -360 : 360 }}
+        transition={{ repeat: Infinity, duration, ease: 'linear', delay }}
+      >
+        <div className='absolute left-1/2 top-0 -translate-x-1/2'>
+          {children}
+        </div>
+      </motion.div>
+    </div>
+  );
+});
+
+function TechOrbitDisplay({
+  iconsArray,
+  text = 'Animated Login',
+}: { iconsArray: Array<{ component: () => React.ReactNode; radius?: number; duration?: number; delay?: number; reverse?: boolean; path?: boolean; className?: string }>; text?: string }) {
+  return (
+    <section className='relative flex h-full w-full items-center justify-center overflow-hidden'>
+      <span className='pointer-events-none bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-5xl md:text-6xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10'>
+        {text}
+      </span>
+      {iconsArray.map((icon, idx) => (
+        <OrbitingCircles key={idx} {...icon} radius={icon.radius ?? 80} />
+      ))}
+    </section>
+  );
+}
+
+function Ripple({ count = 6, base = 120 }: { count?: number; base?: number }) {
+  return (
+    <div className='absolute inset-0 flex items-center justify-center opacity-70'>
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.span
+          key={i}
+          className='absolute rounded-full border border-foreground/10'
+          style={{ width: base + i * 60, height: base + i * 60 }}
+          initial={{ scale: 0.98, opacity: 0.24 }}
+          animate={{ scale: [0.98, 1, 0.98], opacity: [0.24, 0.18, 0.24] }}
+          transition={{ duration: 3 + i * 0.2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export { Input, BoxReveal, AnimatedForm, OrbitingCircles, TechOrbitDisplay, Ripple };
