@@ -92,30 +92,30 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
   const formatUsd = (v: number) => `$${(v ?? 0).toFixed(2)}`;
 
   return (
-    <div className="mb-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-base font-semibold">Indicateurs clés</h2>
-        <div className="flex items-center gap-1 rounded-md border p-0.5" aria-label="Période (Afrique/Djibouti)" title="Période (Afrique/Djibouti)">
+    <div className="mb-8">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-foreground">Indicateurs clés</h2>
+        <div className="glass-card-secondary flex items-center gap-1 rounded-lg p-1 shadow-sm" aria-label="Période (Afrique/Djibouti)" title="Période (Afrique/Djibouti)">
           {(['24h','7j','30j'] as const).map((w) => (
-            <button key={w} onClick={() => onWindowChange(w)} className={`px-2 py-1 text-xs rounded ${windowSel===w ? 'bg-muted font-medium' : 'hover:bg-muted/50'}`}>{w}</button>
+            <button key={w} onClick={() => onWindowChange(w)} className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all duration-200 ${windowSel===w ? 'bg-brand text-white shadow-sm' : 'hover:bg-white/60 dark:hover:bg-black/30 text-muted-foreground'}`}>{w}</button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <KpiCard title={`En ligne (moy. ${windowSel})`} value={onlineAvg} delta={onlineDelta} series={metrics?.series?.onlineCount ?? []} dates={metrics?.series?.dates ?? []} color="emerald" />
         <KpiCard title={`Total requêtes AI (${windowSel})`} value={totalAIRequests} delta={totalAIRequestsDelta} series={aiRequestsSeries} dates={metrics?.series?.dates ?? []} color="sky" />
         <KpiCard title={`p95 latence (${windowSel})`} value={`${p95} ms`} delta={p95Delta} series={[]} dates={metrics?.series?.dates ?? []} color="amber" />
         <KpiCard title={`Taux d’erreur (${windowSel})`} value={`${errRate}%`} delta={errRateDelta} series={[]} dates={metrics?.series?.dates ?? []} color="red" />
         <KpiCard title={`Suspensions (${windowSel})`} value={susp} delta={suspDelta} series={metrics?.series?.suspendedCount ?? []} dates={metrics?.series?.dates ?? []} color="amber" />
         <KpiCard title={`Suppressions (${windowSel})`} value={del} delta={delDelta} series={metrics?.series?.deletedCount ?? []} dates={metrics?.series?.dates ?? []} color="red" />
-        <div className="rounded-md border p-3">
-          <div className="text-sm text-muted-foreground">Top 3 modes par coût ({windowSel})</div>
-          <ul className="mt-2 space-y-1 text-sm">
-            {top3Cost.length === 0 && <li className="text-muted-foreground">Aucune donnée</li>}
+        <div className="glass-panel rounded-lg p-4 transition-all duration-300 hover:shadow-lg">
+          <div className="text-sm font-medium text-muted-foreground mb-3">Top 3 modes par coût ({windowSel})</div>
+          <ul className="space-y-2.5">
+            {top3Cost.length === 0 && <li className="text-sm text-muted-foreground">Aucune donnée</li>}
             {top3Cost.map(([mode, usd]) => (
-              <li key={mode} className="flex items-center justify-between">
-                <a className="underline-offset-2 hover:underline" href={`/admin/metrics/mode/${encodeURIComponent(mode)}?window=${windowSel}`} aria-label={`Détails ${mode}`}>{mode}</a>
-                <span className="tabular-nums">{formatUsd(usd as number)}</span>
+              <li key={mode} className="flex items-center justify-between group">
+                <a className="text-sm underline-offset-2 hover:underline text-foreground font-medium transition-colors hover:text-brand" href={`/admin/metrics/mode/${encodeURIComponent(mode)}?window=${windowSel}`} aria-label={`Détails ${mode}`}>{mode}</a>
+                <span className="text-lg font-bold tabular-nums text-emerald-600">{formatUsd(usd as number)}</span>
               </li>
             ))}
           </ul>
@@ -129,36 +129,43 @@ function KpiCard({ title, value, delta, series, dates, color }: { title: string;
   const trendColor = typeof delta === 'number' ? (delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-muted-foreground') : 'text-muted-foreground';
   const sign = typeof delta === 'number' && delta > 0 ? '+' : '';
   const fmt = (s?: string) => s ? new Date(s).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+  
+  const glowColor = color === 'emerald' ? 'success' : color === 'amber' ? 'warning' : color === 'red' ? 'error' : 'info';
+  const glowHoverClass = `glow-hover-${glowColor}`;
+  
   return (
-    <div className="rounded-md border p-3">
-      <div className="text-sm text-muted-foreground">{title}</div>
-      <div className="mt-1 flex items-end justify-between gap-2">
+    <div className={`glass-card rounded-lg p-4 transition-all duration-300 card-lift-hover ${glowHoverClass}`}>
+      <div className="text-sm font-medium text-muted-foreground mb-2">{title}</div>
+      <div className="mt-2 flex items-end justify-between gap-3">
         <div>
-          <div className="text-2xl font-semibold">{value}</div>
+          <div className="text-3xl font-bold text-foreground">{value}</div>
           {typeof delta === 'number' && (
-            <div className={`text-xs ${trendColor}`}>{sign}{delta}% vs période précédente</div>
+            <div className={`flex items-center gap-1 text-sm font-medium mt-1 ${trendColor}`}>
+              {delta > 0 ? '↑' : delta < 0 ? '↓' : '→'}
+              <span>{sign}{delta}%</span>
+            </div>
           )}
         </div>
-        {series?.length ? <MiniSpark series={series} color={color} /> : <div className="h-16 w-28" aria-hidden />}
+        {series?.length ? <MiniSpark series={series} color={color} /> : <div className="h-20 w-32" aria-hidden />}
       </div>
-      <div className="mt-1 text-xs text-muted-foreground">{fmt(dates?.[0])} → {fmt(dates?.[dates.length-1])}</div>
+      <div className="mt-3 text-xs font-medium text-muted-foreground border-t border-border/40 pt-2">{fmt(dates?.[0])} → {fmt(dates?.[dates.length-1])}</div>
     </div>
   );
 }
 
 export function MiniSpark({ series, color }: { series: number[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
   const max = Math.max(1, ...series);
-  const heights = series.map(v => Math.max(2, Math.round((v / max) * 24)));
+  const heights = series.map(v => Math.max(3, Math.round((v / max) * 32)));
   const colors: Record<string, string> = {
-    emerald: 'bg-emerald-500/70',
-    amber: 'bg-amber-500/70',
-    red: 'bg-red-500/70',
-    sky: 'bg-sky-500/70',
+    emerald: 'bg-gradient-to-t from-emerald-500 to-emerald-400',
+    amber: 'bg-gradient-to-t from-amber-500 to-amber-400',
+    red: 'bg-gradient-to-t from-red-500 to-red-400',
+    sky: 'bg-gradient-to-t from-sky-500 to-sky-400',
   };
   return (
-    <div className="flex h-16 w-28 items-end gap-1" aria-label="Tendance">
+    <div className="flex h-20 w-32 items-end gap-1" aria-label="Tendance">
       {heights.map((h, i) => (
-        <div key={i} className={`${colors[color]} w-2 rounded`} style={{ height: `${h}px` }} aria-label={`Point ${i+1}: ${series[i]}`} />
+        <div key={i} className={`${colors[color]} w-2 rounded-sm shadow-sm opacity-90 hover:opacity-100 transition-opacity`} style={{ height: `${h}px` }} aria-label={`Point ${i+1}: ${series[i]}`} />
       ))}
     </div>
   );

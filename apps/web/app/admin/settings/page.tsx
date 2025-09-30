@@ -30,16 +30,16 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Réglages Admin</h1>
+      <h1 className="mb-6 text-3xl font-bold text-foreground">Réglages Admin</h1>
 
       <div className="flex gap-6">
         <nav className="w-56 shrink-0">
-          <div className="sticky top-6 flex flex-col gap-2">
+          <div className="sticky top-6 glass-panel rounded-lg p-3 flex flex-col gap-2">
             {SECTIONS.map((s) => (
               <Button
                 key={s.key}
                 variant={active === s.key ? 'secondary' : 'ghost'}
-                className="justify-start"
+                className={`justify-start transition-all duration-200 ${active === s.key ? 'glow-hover-info' : ''}`}
                 onClick={() => {
                   setActive(s.key);
                   const el = document.getElementById(`section-${s.hash}`);
@@ -77,9 +77,9 @@ export default function AdminSettingsPage() {
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <div className="glass-panel rounded-lg p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-foreground">{title}</h2>
       </div>
       <div className="[&>*]:max-w-full">
         {children}

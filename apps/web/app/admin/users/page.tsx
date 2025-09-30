@@ -51,70 +51,86 @@ export default function AdminUsersPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Utilisateurs</h1>
+      <h1 className="mb-6 text-3xl font-bold text-foreground">Utilisateurs</h1>
 
       <TopUsersPanel />
 
       <CreateUser onCreated={reload} />
 
-      <div className="mt-4 flex items-end gap-3">
-        <div className="flex-1">
-          <label htmlFor="q" className="mb-1 block text-sm font-medium">Recherche (identifiant ou email)</label>
-          <Input id="q" value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…"/>
+      <div className="mt-6 glass-panel rounded-lg p-6">
+        <h2 className="text-xl font-bold text-foreground mb-4">Recherche & Filtres</h2>
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <label htmlFor="q" className="mb-2 block text-sm font-medium text-foreground">Recherche (identifiant ou email)</label>
+            <Input id="q" value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…" className="glass-card-secondary"/>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-foreground">Statut</label>
+            <select
+              className="glass-card-secondary border-border/40 text-foreground h-10 w-48 rounded-md border px-3 text-sm font-medium transition-all duration-200 hover:bg-white/60 dark:hover:bg-black/30"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">Tous</option>
+              <option value="online">En ligne</option>
+              <option value="offline">Hors ligne</option>
+              <option value="suspended">Suspendu</option>
+              <option value="locked">Bloqué</option>
+              <option value="deleted">Supprimé</option>
+            </select>
+          </div>
+          <Button onClick={() => { setPage(1); reload(); }} className="glow-hover-info">Appliquer</Button>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Statut</label>
-          <select
-            className="border-input bg-background text-foreground h-9 w-48 rounded-md border px-2 text-sm"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">Tous</option>
-            <option value="online">En ligne</option>
-            <option value="offline">Hors ligne</option>
-            <option value="suspended">Suspendu</option>
-            <option value="locked">Bloqué</option>
-            <option value="deleted">Supprimé</option>
-          </select>
-        </div>
-        <Button onClick={() => { setPage(1); reload(); }}>Appliquer</Button>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-md border">
+      <div className="mt-6 glass-card overflow-hidden rounded-lg shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40">
+          <thead className="glass-card-secondary border-b border-border/40">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Identifiant</th>
-              <th className="px-3 py-2 text-left font-medium">Rôle</th>
-              <th className="px-3 py-2 text-left font-medium">État</th>
-              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">En ligne</th>
-              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">IP</th>
-              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">Géo</th>
-              <th className="px-3 py-2 text-left font-medium hidden lg:table-cell">Dernière activité</th>
-              <th className="px-3 py-2 text-right font-medium w-0 whitespace-nowrap">Actions</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Identifiant</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Rôle</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">État</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground hidden lg:table-cell">En ligne</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground hidden lg:table-cell">IP</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground hidden lg:table-cell">Géo</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground hidden lg:table-cell">Dernière activité</th>
+              <th className="px-4 py-3 text-right font-semibold text-foreground w-0 whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.id} className="border-t">
-                <td className="px-3 py-2 max-w-[220px] truncate">{u.email}</td>
-                <td className="px-3 py-2 whitespace-nowrap">{u.role}</td>
-                <td className="px-3 py-2">
-                  <div className="flex flex-wrap gap-1">
-                    {u.deletedAt ? (<span className="inline-flex items-center rounded bg-red-500/10 px-2 py-0.5 text-xs text-red-600">Supprimé</span>) : (
+            {users.map((u, idx) => (
+              <tr key={u.id} className={`border-t border-border/30 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-white/20 dark:bg-black/10' : 'bg-transparent'} hover:bg-white/40 dark:hover:bg-black/20`}>
+                <td className="px-4 py-3 max-w-[220px] truncate font-medium text-foreground">{u.email}</td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-600' : 'bg-sky-500/10 text-sky-600'}`}>
+                    {u.role}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {u.deletedAt ? (<span className="inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold bg-red-500/10 text-red-600 status-glow-error">Supprimé</span>) : (
                       <>
-                        {u.isSuspended && (<span className="inline-flex items-center rounded bg-amber-500/10 px-2 py-0.5 text-xs text-amber-600">Suspendu</span>)}
-                        {u.isLocked && (<span className="inline-flex items-center rounded bg-purple-500/10 px-2 py-0.5 text-xs text-purple-600">Bloqué</span>)}
-                        {!u.isSuspended && !u.isLocked && (<span className="inline-flex items-center rounded bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-600">Actif</span>)}
+                        {u.isSuspended && (<span className="inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold bg-amber-500/10 text-amber-600 status-glow-warn">Suspendu</span>)}
+                        {u.isLocked && (<span className="inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold bg-purple-500/10 text-purple-600">Bloqué</span>)}
+                        {!u.isSuspended && !u.isLocked && (<span className="inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold bg-emerald-500/10 text-emerald-600 status-glow-ok">Actif</span>)}
                       </>
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2 hidden lg:table-cell">{u.online ? 'Oui' : 'Non'}</td>
-                <td className="px-3 py-2 hidden lg:table-cell">{u.lastIp ?? '-'}</td>
-                <td className="px-3 py-2 hidden lg:table-cell">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
-                <td className="px-3 py-2 hidden lg:table-cell">{u.lastSeen ? new Date(u.lastSeen).toLocaleString() : '-'}</td>
-                <td className="px-3 py-2 text-right w-0 whitespace-nowrap">
+                <td className="px-4 py-3 hidden lg:table-cell font-medium">
+                  {u.online ? (
+                    <span className="inline-flex items-center gap-1.5 text-emerald-600 text-xs font-semibold">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 status-glow-pulse status-glow-ok" />
+                      Oui
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">Non</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 hidden lg:table-cell font-medium text-muted-foreground">{u.lastIp ?? '-'}</td>
+                <td className="px-4 py-3 hidden lg:table-cell font-medium text-muted-foreground">{[u.lastCity, u.lastRegion, u.lastCountry].filter(Boolean).join(', ') || '-'}</td>
+                <td className="px-4 py-3 hidden lg:table-cell font-medium text-muted-foreground">{u.lastSeen ? new Date(u.lastSeen).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</td>
+                <td className="px-4 py-3 text-right w-0 whitespace-nowrap">
                   <RowActions user={u} onChanged={reload} onShowActivity={() => setSelectedUser(u)} onManageAccess={() => setAccessUser(u)} />
                 </td>
               </tr>
@@ -131,9 +147,7 @@ export default function AdminUsersPage() {
 
 function TopUsersPanel() {
   return (
-    <div className="rounded-md border p-4">
-      <TopUsersTokensCost windowSel={'7j'} limit={3} />
-    </div>
+    <TopUsersTokensCost windowSel={'7j'} limit={5} />
   );
 }
 
@@ -162,21 +176,21 @@ function CreateUser({ onCreated }: { onCreated: () => void }) {
   };
 
   return (
-    <div className="rounded-md border p-4">
-      <h2 className="mb-2 text-lg font-semibold">Créer un utilisateur</h2>
+    <div className="mt-6 glass-panel rounded-lg p-6">
+      <h2 className="mb-4 text-xl font-bold text-foreground">Créer un utilisateur</h2>
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
         <div>
-          <label htmlFor="username" className="mb-1 block text-sm font-medium">Nom d’utilisateur</label>
-          <Input id="username" value={username} onChange={e => setUsername(e.target.value)} required />
+          <label htmlFor="username" className="mb-2 block text-sm font-medium text-foreground">Nom d'utilisateur</label>
+          <Input id="username" value={username} onChange={e => setUsername(e.target.value)} required className="glass-card-secondary" />
         </div>
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">Mot de passe</label>
-          <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          <label htmlFor="password" className="mb-2 block text-sm font-medium text-foreground">Mot de passe</label>
+          <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required className="glass-card-secondary" />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Rôle</label>
+          <label className="mb-2 block text-sm font-medium text-foreground">Rôle</label>
           <select
-            className="border-input bg-background text-foreground h-9 w-40 rounded-md border px-2 text-sm"
+            className="glass-card-secondary border-border/40 text-foreground h-10 w-40 rounded-md border px-3 text-sm font-medium transition-all duration-200 hover:bg-white/60 dark:hover:bg-black/30"
             value={role}
             onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
           >
@@ -184,7 +198,7 @@ function CreateUser({ onCreated }: { onCreated: () => void }) {
             <option value="admin">admin</option>
           </select>
         </div>
-        <Button type="submit" disabled={loading}>{loading ? 'Création…' : 'Créer'}</Button>
+        <Button type="submit" disabled={loading} className="glow-hover-success">{loading ? 'Création…' : 'Créer'}</Button>
       </form>
     </div>
   );
@@ -227,13 +241,13 @@ function RowActions({ user, onChanged, onShowActivity, onManageAccess }: { user:
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon-sm" aria-label="Plus d’actions">
+          <Button variant="secondary" size="icon-sm" aria-label="Plus d'actions">
             <IconSettings2 size={16} strokeWidth={2} />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={onShowActivity}>Détails</DropdownMenuItem>
-          <DropdownMenuItem onClick={onManageAccess}>Gérer l’accès aux modèles</DropdownMenuItem>
+          <DropdownMenuItem onClick={onManageAccess}>Gérer l'accès aux modèles</DropdownMenuItem>
           <DropdownMenuItem onClick={() => {
             const p = prompt('Nouveau mot de passe');
             if (p) doAction('reset_password', { password: p });
@@ -297,19 +311,33 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
   }, [open, user?.id, page, order]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
+  
+  const getEventBadge = (action: string) => {
+    const badges: Record<string, string> = {
+      'login_failed': 'bg-red-500/10 text-red-600',
+      'lockout': 'bg-amber-500/10 text-amber-600',
+      'unlock': 'bg-emerald-500/10 text-emerald-600',
+      'suspend': 'bg-amber-500/10 text-amber-600',
+      'unsuspend': 'bg-emerald-500/10 text-emerald-600',
+      'delete': 'bg-red-500/10 text-red-600',
+      'account_created': 'bg-sky-500/10 text-sky-600',
+      'account_updated': 'bg-sky-500/10 text-sky-600',
+    };
+    return badges[action] || 'bg-muted text-muted-foreground';
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) onClose(); }}>
-      <DialogContent ariaTitle={user ? `Historique d’activité — ${user.email}` : 'Historique d’activité'} className="max-w-3xl">
+      <DialogContent ariaTitle={user ? `Historique d'activité — ${user.email}` : 'Historique d'activité'} className="max-w-3xl glass-panel">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold">Historique d’activité</h3>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <h3 className="text-xl font-bold text-foreground">Historique d'activité</h3>
+            <p className="text-sm font-medium text-muted-foreground mt-1">{user?.email}</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-sm">Tri</label>
+            <label className="text-sm font-medium text-foreground">Tri</label>
             <select
-              className="border-input bg-background text-foreground h-9 w-40 rounded-md border px-2 text-sm"
+              className="glass-card-secondary border-border/40 text-foreground h-9 w-40 rounded-md border px-3 text-sm font-medium"
               value={order}
               onChange={(e) => setOrder(e.target.value as 'asc' | 'desc')}
             >
@@ -318,32 +346,36 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
             </select>
           </div>
         </div>
-        <div className="mt-3 overflow-hidden rounded-md border">
+        <div className="mt-4 glass-card overflow-hidden rounded-lg shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40">
+            <thead className="glass-card-secondary border-b border-border/40">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Date</th>
-                <th className="px-3 py-2 text-left font-medium">Action</th>
-                <th className="px-3 py-2 text-left font-medium">IP</th>
-                <th className="px-3 py-2 text-left font-medium">Géo</th>
-                <th className="px-3 py-2 text-left font-medium">Détails</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Date</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Action</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">IP</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Géo</th>
+                <th className="px-4 py-3 text-left font-semibold text-foreground">Détails</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((it) => (
-                <tr key={it.id} className="border-t">
-                  <td className="px-3 py-2">{new Date(it.createdAt).toLocaleString()}</td>
-                  <td className="px-3 py-2">{it.action}</td>
-                  <td className="px-3 py-2">{it.ip || '-'}</td>
-                  <td className="px-3 py-2">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
-                  <td className="max-w-[260px] truncate px-3 py-2">{it.details ? JSON.stringify(it.details) : '-'}</td>
+              {items.map((it, idx) => (
+                <tr key={it.id} className={`border-t border-border/30 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-white/20 dark:bg-black/10' : 'bg-transparent'} hover:bg-white/40 dark:hover:bg-black/20`}>
+                  <td className="px-4 py-3 font-medium text-foreground">{new Date(it.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${getEventBadge(it.action)}`}>
+                      {it.action}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-medium text-muted-foreground">{it.ip || '-'}</td>
+                  <td className="px-4 py-3 font-medium text-muted-foreground">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
+                  <td className="max-w-[260px] truncate px-4 py-3 text-xs text-muted-foreground">{it.details ? JSON.stringify(it.details) : '-'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <div className="mt-3 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">Page {page} / {totalPages} • {total} entrées</div>
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-sm font-medium text-muted-foreground">Page {page} / {totalPages} • {total} entrées</div>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="secondary" disabled={page <= 1 || loading} onClick={() => setPage((p) => Math.max(1, p - 1))}>Précédent</Button>
             <Button size="sm" variant="secondary" disabled={page >= totalPages || loading} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Suivant</Button>

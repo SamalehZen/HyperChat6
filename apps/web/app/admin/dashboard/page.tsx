@@ -12,7 +12,7 @@ export default function AdminDashboardPage() {
   const [windowSel, setWindowSel] = useState<WindowSel>('7j');
   return (
     <div className="mx-auto w-full max-w-6xl p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Tableau de bord</h1>
+      <h1 className="mb-6 text-3xl font-bold text-foreground">Tableau de bord</h1>
       <KPIHeader windowSel={windowSel} onWindowChange={setWindowSel} />
       <UsageCharts windowSel={windowSel} />
       <CostCharts windowSel={windowSel} />

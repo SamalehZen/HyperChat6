@@ -165,6 +165,10 @@ const config: any = {
                 'subtle-xs': 'var(--shadow-subtle-xs)',
                 'subtle-sm': 'var(--shadow-subtle-sm)',
             },
+            backdropFilter: {
+                'none': 'none',
+                'blur': 'blur(20px)',
+            },
         },
     },
 

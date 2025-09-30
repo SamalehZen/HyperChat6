@@ -46,12 +46,14 @@ export function UsageCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
   const COLORS = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#6366f1', '#84cc16', '#06b6d4'];
 
   return (
-    <div className="mt-4 rounded-md border p-4">
-      <h2 className="mb-3 text-lg font-semibold">Utilisation par mode</h2>
-      <div className="grid grid-cols-1 gap-4">
-        <div className="w-full h-64" aria-label="Messages par mode (aire empilée)">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={areaData} stackOffset="expand">
+    <div className="mt-6 glass-panel rounded-lg p-6 transition-all duration-300">
+      <h2 className="mb-5 text-xl font-bold text-foreground">Utilisation par mode</h2>
+      <div className="grid grid-cols-1 gap-6">
+        <div className="glass-card rounded-lg p-4">
+          <h3 className="text-base font-semibold text-foreground mb-3">Tendance temporelle (% empilé)</h3>
+          <div className="w-full h-64" aria-label="Messages par mode (aire empilée)">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={areaData} stackOffset="expand">
               <XAxis dataKey="date" hide={false} tick={{ fontSize: 10 }} />
               <YAxis hide tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v: any, name: any) => [`${(Number(v) * 100).toFixed(1)} %`, name]} labelFormatter={(l) => `Date : ${new Date(l).toLocaleString('fr-FR', { dateStyle: windowSel === '24h' ? 'short' : 'medium', timeStyle: windowSel === '24h' ? 'short' : undefined })}`} />
@@ -59,12 +61,15 @@ export function UsageCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
               {Object.keys(metrics?.usageByMode?.series?.modes || {}).map((mode, idx) => (
                 <Area key={mode} type="monotone" dataKey={mode} stackId="1" stroke={COLORS[idx % COLORS.length]} fill={COLORS[idx % COLORS.length]} name={mode} />
               ))}
-            </AreaChart>
-          </ResponsiveContainer>
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="w-full h-64" aria-label="Répartition actuelle par mode">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+        <div className="glass-card rounded-lg p-4">
+          <h3 className="text-base font-semibold text-foreground mb-3">Répartition par mode</h3>
+          <div className="w-full h-64" aria-label="Répartition actuelle par mode">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
               <Tooltip formatter={(v: any, name: any) => [Number(v).toLocaleString('fr-FR'), name]} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={(p) => `${p.name} (${p.value})`} aria-label="Répartition par mode">
@@ -72,8 +77,9 @@ export function UsageCharts({ windowSel }: { windowSel: '24h'|'7j'|'30j' }) {
                   <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
                 ))}
               </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

@@ -38,12 +38,12 @@ export const AdminSidebar = () => {
   return (
     <div
       className={cn(
-        "relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col border-r py-2 transition-all duration-200",
-        isSidebarOpen ? "w-[280px] border-border/70 bg-background shadow-xs" : "w-[60px] border-border/30"
+        "glass-sidebar relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col py-3 transition-all duration-300 shadow-lg",
+        isSidebarOpen ? "w-[280px]" : "w-[60px]"
       )}
     >
       <Flex direction="col" className="w-full flex-1 overflow-hidden">
-        <Flex direction="row" className={cn("w-full px-2 items-center", !isSidebarOpen && "justify-center px-0")} gap="sm" justify="start">
+        <Flex direction="row" className={cn("w-full px-3 items-center mb-2", !isSidebarOpen && "justify-center px-0")} gap="sm" justify="start">
           <Button
             variant="ghost"
             size="icon-sm"
@@ -51,19 +51,20 @@ export const AdminSidebar = () => {
             aria-label={isSidebarOpen ? "Réduire le panneau" : "Étendre le panneau"}
             tooltip={isSidebarOpen ? "Réduire" : "Étendre"}
             tooltipSide="right"
+            className="transition-all duration-200 hover:bg-white/60 dark:hover:bg-black/40 rounded-lg"
           >
             {isSidebarOpen ? (
-              <IconArrowBarLeft size={16} strokeWidth={2} />
+              <IconArrowBarLeft size={18} strokeWidth={2} />
             ) : (
-              <IconArrowBarRight size={16} strokeWidth={2} />
+              <IconArrowBarRight size={18} strokeWidth={2} />
             )}
           </Button>
         </Flex>
 
-        <nav className={cn("mt-2 w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-2" : "px-1")}
+        <nav className={cn("w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-3" : "px-2")}
           aria-label="Navigation administrateur"
         >
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {items.map((it) => {
               const active = it.match(pathname);
               return (
@@ -71,33 +72,36 @@ export const AdminSidebar = () => {
                   <Link href={it.href} className="block">
                     <div
                       className={cn(
-                        "hover:bg-quaternary/60 focus-visible:ring-ring/40 flex items-center gap-3 rounded-md px-2 py-1.5 outline-none transition-colors",
-                        active ? "bg-quaternary/80 text-foreground" : "text-muted-foreground",
-                        !isSidebarOpen && "justify-center px-1"
+                        "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 outline-none transition-all duration-200",
+                        active 
+                          ? "bg-white/70 dark:bg-black/40 text-foreground font-medium shadow-sm" 
+                          : "text-muted-foreground hover:bg-white/50 dark:hover:bg-black/30 hover:text-foreground",
+                        !isSidebarOpen && "justify-center px-2"
                       )}
                       aria-current={active ? "page" : undefined}
                       aria-label={isSidebarOpen ? undefined : it.label}
                       title={it.label}
                     >
-                      <it.icon size={16} strokeWidth={2} className="shrink-0" />
+                      <it.icon size={18} strokeWidth={2} className="shrink-0" />
                       {isSidebarOpen && <span className="text-sm">{it.label}</span>}
+                      {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-r-full" />}
                     </div>
                   </Link>
                 </li>
               );
             })}
-            <li key="/chat-return">
+            <li key="/chat-return" className="mt-2 pt-2 border-t border-white/20 dark:border-black/30">
               <Link href="/chat" className="block">
                 <div
                   className={cn(
-                    "hover:bg-quaternary/60 focus-visible:ring-ring/40 flex items-center gap-3 rounded-md px-2 py-1.5 outline-none transition-colors",
-                    "text-muted-foreground",
-                    !isSidebarOpen && "justify-center px-1"
+                    "group flex items-center gap-3 rounded-lg px-3 py-2.5 outline-none transition-all duration-200",
+                    "text-muted-foreground hover:bg-white/50 dark:hover:bg-black/30 hover:text-foreground",
+                    !isSidebarOpen && "justify-center px-2"
                   )}
                   aria-label={isSidebarOpen ? undefined : "Retour au chat"}
                   title="Retour au chat"
                 >
-                  <IconMessageCircleFilled size={16} strokeWidth={2} className="shrink-0" />
+                  <IconMessageCircleFilled size={18} strokeWidth={2} className="shrink-0" />
                   {isSidebarOpen && <span className="text-sm">Retour au chat</span>}
                 </div>
               </Link>

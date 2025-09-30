@@ -26,48 +26,68 @@ export function RecentEventsPanel({ defaultLimit = 25, showFilters = true }: { d
   };
 
   const allTypes = ['login_failed','lockout','unlock','suspend','unsuspend','delete','account_created','account_updated'];
+  
+  const getEventBadge = (action: string) => {
+    const badges: Record<string, string> = {
+      'login_failed': 'bg-red-500/10 text-red-600',
+      'lockout': 'bg-amber-500/10 text-amber-600',
+      'unlock': 'bg-emerald-500/10 text-emerald-600',
+      'suspend': 'bg-amber-500/10 text-amber-600',
+      'unsuspend': 'bg-emerald-500/10 text-emerald-600',
+      'delete': 'bg-red-500/10 text-red-600',
+      'account_created': 'bg-sky-500/10 text-sky-600',
+      'account_updated': 'bg-sky-500/10 text-sky-600',
+    };
+    return badges[action] || 'bg-muted text-muted-foreground';
+  };
 
   return (
-    <div className="mt-4 rounded-md border p-4">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">Événements récents (24h)</h2>
+    <div className="mt-6 glass-panel rounded-lg p-6 transition-all duration-300">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-xl font-bold text-foreground">Événements récents (24h)</h2>
         {showFilters && (
           <div className="flex flex-wrap gap-2">
             {allTypes.map((t) => (
-              <label key={t} className={`text-xs ${types.includes(t) ? 'font-semibold' : ''}`}>
-                <input type="checkbox" className="mr-1 align-middle" checked={types.includes(t)} onChange={() => toggleType(t)} />
+              <label key={t} className={`glass-card-secondary px-2.5 py-1 rounded-md text-xs cursor-pointer transition-all duration-200 ${types.includes(t) ? 'bg-brand text-white font-semibold' : 'hover:bg-white/60 dark:hover:bg-black/30'}`}>
+                <input type="checkbox" className="mr-1.5 align-middle" checked={types.includes(t)} onChange={() => toggleType(t)} />
                 {t}
               </label>
             ))}
           </div>
         )}
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="glass-card overflow-hidden rounded-lg shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40">
+          <thead className="glass-card-secondary border-b border-border/40">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Date</th>
-              <th className="px-3 py-2 text-left font-medium">Type</th>
-              <th className="px-3 py-2 text-left font-medium">IP</th>
-              <th className="px-3 py-2 text-left font-medium">Géo</th>
-              <th className="px-3 py-2 text-left font-medium">Détails</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Date</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Type</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">IP</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Géo</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Détails</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((it) => (
-              <tr key={it.id} className="border-t">
-                <td className="px-3 py-2">{new Date(it.createdAt).toLocaleString()}</td>
-                <td className="px-3 py-2">{it.action}</td>
-                <td className="px-3 py-2">{it.ip || '-'}</td>
-                <td className="px-3 py-2">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
-                <td className="max-w-[260px] truncate px-3 py-2">{it.details ? JSON.stringify(it.details) : '-'}</td>
+            {items.map((it, idx) => (
+              <tr key={it.id} className={`border-t border-border/30 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-white/20 dark:bg-black/10' : 'bg-transparent'} hover:bg-white/40 dark:hover:bg-black/20`}>
+                <td className="px-4 py-3 font-medium text-foreground">{new Date(it.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${getEventBadge(it.action)}`}>
+                    {it.action}
+                  </span>
+                </td>
+                <td className="px-4 py-3 font-medium text-muted-foreground">{it.ip || '-'}</td>
+                <td className="px-4 py-3 font-medium text-muted-foreground">{[it.city, it.region, it.country].filter(Boolean).join(', ') || '-'}</td>
+                <td className="max-w-[260px] truncate px-4 py-3 text-xs text-muted-foreground">{it.details ? JSON.stringify(it.details) : '-'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="mt-2 text-right">
-        <Button size="sm" variant="secondary" onClick={() => { const nl = limit + 25; setLimit(nl); load(nl); }}>Charger plus</Button>
+      <div className="mt-4 text-right">
+        <Button size="sm" variant="secondary" onClick={() => { const nl = limit + 25; setLimit(nl); load(nl); }} className="glass-card-secondary glow-hover-info">
+          Charger plus
+        </Button>
       </div>
     </div>
   );

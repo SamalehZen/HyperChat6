@@ -19,36 +19,36 @@ export function TopUsersTokensCost({ windowSel, limit = 3 }: { windowSel: '24h'|
   const formatUsd = (v: number) => `$${(v ?? 0).toFixed(2)}`;
 
   return (
-    <div className="mt-4 rounded-md border p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Top utilisateurs — Tokens & Coût</h2>
-        <div className="text-xs text-muted-foreground" aria-label="Période (Afrique/Djibouti)">Période: {windowSel}</div>
+    <div className="mt-6 glass-panel rounded-lg p-6 transition-all duration-300">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-foreground">Top utilisateurs — Tokens & Coût</h2>
+        <div className="glass-card-secondary px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground" aria-label="Période (Afrique/Djibouti)">Période: {windowSel}</div>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="glass-card overflow-hidden rounded-lg shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40">
+          <thead className="glass-card-secondary border-b border-border/40">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">ID</th>
-              <th className="px-3 py-2 text-right font-medium">Tokens (prompt)</th>
-              <th className="px-3 py-2 text-right font-medium">Tokens (complétion)</th>
-              <th className="px-3 py-2 text-right font-medium">Coût</th>
-              <th className="px-3 py-2 text-left font-medium">Tendance</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">ID</th>
+              <th className="px-4 py-3 text-right font-semibold text-foreground">Tokens (prompt)</th>
+              <th className="px-4 py-3 text-right font-semibold text-foreground">Tokens (complétion)</th>
+              <th className="px-4 py-3 text-right font-semibold text-foreground">Coût</th>
+              <th className="px-4 py-3 text-left font-semibold text-foreground">Tendance</th>
             </tr>
           </thead>
           <tbody>
-            {data?.top?.map((r) => (
-              <tr key={r.userId} className="border-t">
-                <td className="px-3 py-2">
-                  <a className="underline-offset-2 hover:underline" href={`/admin/users/${encodeURIComponent(r.userId)}/metrics?window=${windowSel}`} aria-label={`Détails ${r.userId}`}>{r.userId}</a>
+            {data?.top?.map((r, idx) => (
+              <tr key={r.userId} className={`border-t border-border/30 transition-colors duration-200 ${idx % 2 === 0 ? 'bg-white/20 dark:bg-black/10' : 'bg-transparent'} hover:bg-white/40 dark:hover:bg-black/20`}>
+                <td className="px-4 py-3">
+                  <a className="underline-offset-2 hover:underline font-medium text-brand transition-colors" href={`/admin/users/${encodeURIComponent(r.userId)}/metrics?window=${windowSel}`} aria-label={`Détails ${r.userId}`}>{r.userId}</a>
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">{r.promptTokens}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{r.completionTokens}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{formatUsd(r.costUsd)}</td>
-                <td className="px-3 py-2"><MiniSpark series={r.series.tokens} color="sky" /></td>
+                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">{r.promptTokens.toLocaleString()}</td>
+                <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">{r.completionTokens.toLocaleString()}</td>
+                <td className="px-4 py-3 text-right tabular-nums font-bold text-emerald-600">{formatUsd(r.costUsd)}</td>
+                <td className="px-4 py-3"><MiniSpark series={r.series.tokens} color="sky" /></td>
               </tr>
             ))}
             {(!data || data.top.length === 0) && (
-              <tr className="border-t"><td className="px-3 py-2 text-muted-foreground" colSpan={5}>Aucune donnée</td></tr>
+              <tr className="border-t"><td className="px-4 py-3 text-muted-foreground" colSpan={5}>Aucune donnée</td></tr>
             )}
           </tbody>
         </table>
