@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button, Flex, cn } from "@repo/ui";
 import { useAppStore } from "@repo/common/store";
+import { useTheme } from "next-themes";
 import {
   IconArrowBarLeft,
   IconArrowBarRight,
@@ -13,6 +14,9 @@ import {
   IconShieldCheck,
   IconSettings,
   IconMessageCircleFilled,
+  IconSun,
+  IconMoon,
+  IconLogout,
 } from "../icons";
 
 export const AdminSidebar = () => {
@@ -34,6 +38,17 @@ export const AdminSidebar = () => {
     { label: "Accès aux modèles", href: "/admin/access", icon: IconShieldCheck, match: (p) => p.startsWith("/admin/access") },
     { label: "Paramètres", href: "/admin/settings", icon: IconSettings, match: (p) => p.startsWith("/admin/settings") },
   ];
+
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  const logout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    if (typeof window !== 'undefined') window.location.href = '/sign-in';
+  };
 
   return (
     <div
@@ -109,6 +124,34 @@ export const AdminSidebar = () => {
           </ul>
         </nav>
 
+        <div className={cn("mt-2 border-t border-white/20 dark:border-black/30", isSidebarOpen ? "px-3 pt-3" : "px-1 pt-2")}> 
+          <div className={cn("flex items-center gap-2", !isSidebarOpen && "justify-center")}> 
+            <Button
+              variant="secondary"
+              size={isSidebarOpen ? "sm" : "icon-xs"}
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Basculer en mode clair' : 'Basculer en mode sombre'}
+              className="rounded-lg"
+            >
+              {theme === 'dark' ? <IconSun size={16} strokeWidth={2} /> : <IconMoon size={16} strokeWidth={2} />}
+              {isSidebarOpen && <span className="ml-2 text-xs font-medium">{theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>}
+            </Button>
+          </div>
+          <div className={cn("mt-2", !isSidebarOpen && "flex justify-center")}> 
+            <Button
+              variant="ghost"
+              size={isSidebarOpen ? "sm" : "icon-xs"}
+              onClick={logout}
+              aria-label="Se déconnecter"
+              tooltip="Se déconnecter"
+              tooltipSide="right"
+              className="rounded-lg hover:bg-white/60 dark:hover:bg-black/40"
+            >
+              <IconLogout size={16} strokeWidth={2} />
+              {isSidebarOpen && <span className="ml-2 text-xs font-medium">Déconnexion</span>}
+            </Button>
+          </div>
+        </div>
 
       </Flex>
     </div>

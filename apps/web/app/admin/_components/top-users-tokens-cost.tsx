@@ -5,7 +5,7 @@ import { BentoCard } from './bento-card';
 import { motion } from 'framer-motion';
 
 export function TopUsersTokensCost({ windowSel, limit = 5 }: { windowSel: '24h'|'7j'|'30j'; limit?: number }) {
-  const [data, setData] = useState<{ window: string; top: Array<{ userId: string; promptTokens: number; completionTokens: number; costUsd: number; series: { dates: string[]; tokens: number[]; costUsd: number[] } }> } | null>(null);
+  const [data, setData] = useState<{ window: string; top: Array<{ userId: string; email?: string | null; username?: string | null; displayName?: string | null; promptTokens: number; completionTokens: number; costUsd: number; series: { dates: string[]; tokens: number[]; costUsd: number[] } }> } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -22,12 +22,15 @@ export function TopUsersTokensCost({ windowSel, limit = 5 }: { windowSel: '24h'|
 
   const barData = useMemo(() => {
     if (!data?.top) return [];
-    return data.top.map(r => ({
-      user: r.userId.split('@')[0].substring(0, 12),
-      'Tokens prompt': r.promptTokens,
-      'Tokens completion': r.completionTokens,
-      cost: r.costUsd,
-    }));
+    return data.top.map(r => {
+      const name = (r.displayName || r.username || (r.email ? r.email.split('@')[0] : null) || r.userId).toString();
+      return {
+        user: name.substring(0, 12),
+        'Tokens prompt': r.promptTokens,
+        'Tokens completion': r.completionTokens,
+        cost: r.costUsd,
+      };
+    });
   }, [data]);
 
   const theme = {
@@ -144,7 +147,7 @@ export function TopUsersTokensCost({ windowSel, limit = 5 }: { windowSel: '24h'|
             className="glass-card-secondary rounded-lg p-3 flex items-center justify-between hover:bg-white/60 dark:hover:bg-black/30 transition-all duration-200"
           >
             <a className="text-sm font-semibold text-brand hover:underline" href={`/admin/users/${encodeURIComponent(r.userId)}/metrics?window=${windowSel}`}>
-              {r.userId.split('@')[0]}
+              {(r.displayName || r.username || (r.email ? r.email.split('@')[0] : null) || r.userId)}
             </a>
             <span className="text-lg font-black text-emerald-600">{formatUsd(r.costUsd)}</span>
           </motion.div>

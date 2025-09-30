@@ -75,6 +75,24 @@ export async function GET(request: NextRequest) {
 
   // Build series per selected users
   const selected = rows.map(r => r.userId);
+  const userDetails = selected.length
+    ? await prisma.user.findMany({
+        where: { id: { in: selected } },
+        select: { id: true, email: true },
+      })
+    : [];
+  const userInfo = new Map<string, { email: string | null; username: string | null }>();
+  userDetails.forEach((user) => {
+    const candidate = user as { id: string; email: string | null; username?: string | null };
+    const email = candidate.email ?? null;
+    const explicitUsername = candidate.username && candidate.username.trim().length > 0 ? candidate.username.trim() : null;
+    const derivedUsername = !explicitUsername && email && !email.includes('@') ? email : null;
+    userInfo.set(candidate.id, {
+      email,
+      username: explicitUsername ?? derivedUsername,
+    });
+  });
+
   const seriesDates = bins.map(b => b.label);
   const seriesByUser: Record<string, { tokens: number[]; costUsd: number[] }> = {};
   for (const uid of selected) {
@@ -101,7 +119,23 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const top = rows.map(r => ({ ...r, series: { dates: seriesDates, tokens: seriesByUser[r.userId].tokens, costUsd: seriesByUser[r.userId].costUsd } }));
+  const top = rows.map(r => {
+    const info = userInfo.get(r.userId);
+    const email = info?.email ?? null;
+    const username = info?.username ?? null;
+    const displayName = username ?? email ?? r.userId;
+    return {
+      ...r,
+      email,
+      username,
+      displayName,
+      series: {
+        dates: seriesDates,
+        tokens: seriesByUser[r.userId].tokens,
+        costUsd: seriesByUser[r.userId].costUsd,
+      },
+    };
+  });
 
   return NextResponse.json({ window: windowSel, top });
 }
