@@ -109,6 +109,7 @@ export type WorkflowContextSchema = {
     showSuggestions: boolean;
     customInstructions?: string;
     onFinish: (data: any) => void;
+    onUsage?: (data: { promptTokens?: number | null; completionTokens?: number | null }) => void;
 };
 
 export const runWorkflow = ({
@@ -137,6 +138,7 @@ export const runWorkflow = ({
     webSearch?: boolean;
     showSuggestions?: boolean;
     onFinish?: (data: any) => void;
+    onUsage?: (data: { promptTokens?: number | null; completionTokens?: number | null }) => void;
     gl?: Geo;
     customInstructions?: string;
 }) => {
@@ -191,6 +193,7 @@ export const runWorkflow = ({
         threadItemId,
         showSuggestions,
         onFinish: onFinish as any,
+        onUsage: onUsage as any,
     });
 
     // Use the typed builder

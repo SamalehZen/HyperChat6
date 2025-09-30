@@ -123,6 +123,7 @@ function createCompletionStream({
 }) {
     const encoder = new TextEncoder();
 
+    let usageRef: { promptTokens?: number | null; completionTokens?: number | null } = {};
     return new ReadableStream({
         async start(controller) {
             let heartbeatInterval: NodeJS.Timeout | null = null;
@@ -148,12 +149,15 @@ function createCompletionStream({
 
             const logMessage = async (status: 'COMPLETED' | 'ERROR' | 'ABORTED', errorCode?: string) => {
                 const latencyMs = Date.now() - startTs;
-                const costUsdCents = status === 'COMPLETED' ? creditCost * 5 : 0; // 0.05 $ / crédit
+                const costUsdCents = status === 'COMPLETED' ? creditCost * 5 : 0;
                 let promptTokens: number | null = null;
                 try {
-                    if (Array.isArray(data?.messages)) {
-                        promptTokens = estimateTokensForMessages(data.messages as any);
-                    }
+                    if (usageRef?.promptTokens != null) promptTokens = usageRef.promptTokens;
+                    else if (Array.isArray(data?.messages)) promptTokens = estimateTokensForMessages(data.messages as any);
+                } catch {}
+                let completionTokens: number | null = null;
+                try {
+                    if (usageRef?.completionTokens != null) completionTokens = usageRef.completionTokens;
                 } catch {}
                 try {
                     await prisma.messageLog.create({
@@ -167,7 +171,7 @@ function createCompletionStream({
                             status,
                             errorCode: errorCode || null,
                             promptTokens: promptTokens ?? null,
-                            completionTokens: null,
+                            completionTokens: completionTokens ?? null,
                             costUsdCents,
                         },
                     });
@@ -193,6 +197,7 @@ function createCompletionStream({
                             creditCost
                         );
                     },
+                    onUsage: (u) => { usageRef = u || usageRef; },
                 });
                 await logMessage('COMPLETED');
             } catch (error) {

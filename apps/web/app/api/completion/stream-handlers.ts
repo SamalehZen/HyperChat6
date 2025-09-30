@@ -53,6 +53,7 @@ export async function executeStream({
     gl,
     userId,
     onFinish,
+    onUsage,
 }: {
     controller: StreamController;
     encoder: TextEncoder;
@@ -61,6 +62,7 @@ export async function executeStream({
     userId?: string;
     gl?: Geo;
     onFinish?: () => Promise<void>;
+    onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
 }): Promise<{ success: boolean } | Response> {
     try {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
