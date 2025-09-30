@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from 'react';
+import { BentoCard } from './bento-card';
 
 export type WindowSel = '24h' | '7j' | '30j';
 
@@ -92,80 +93,101 @@ export function KPIHeader({ windowSel, onWindowChange }: { windowSel: WindowSel;
   const formatUsd = (v: number) => `$${(v ?? 0).toFixed(2)}`;
 
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-foreground">Indicateurs clés</h2>
+    <div className="mb-0">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-foreground">Vue d'ensemble</h2>
         <div className="glass-card-secondary flex items-center gap-1 rounded-lg p-1 shadow-sm" aria-label="Période (Afrique/Djibouti)" title="Période (Afrique/Djibouti)">
           {(['24h','7j','30j'] as const).map((w) => (
-            <button key={w} onClick={() => onWindowChange(w)} className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all duration-200 ${windowSel===w ? 'bg-brand text-white shadow-sm' : 'hover:bg-white/60 dark:hover:bg-black/30 text-muted-foreground'}`}>{w}</button>
+            <button key={w} onClick={() => onWindowChange(w)} className={`px-4 py-2 text-sm rounded-md font-semibold transition-all duration-200 ${windowSel===w ? 'bg-brand text-white shadow-md' : 'hover:bg-white/60 dark:hover:bg-black/30 text-muted-foreground'}`}>{w}</button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <KpiCard title={`En ligne (moy. ${windowSel})`} value={onlineAvg} delta={onlineDelta} series={metrics?.series?.onlineCount ?? []} dates={metrics?.series?.dates ?? []} color="emerald" />
-        <KpiCard title={`Total requêtes AI (${windowSel})`} value={totalAIRequests} delta={totalAIRequestsDelta} series={aiRequestsSeries} dates={metrics?.series?.dates ?? []} color="sky" />
-        <KpiCard title={`p95 latence (${windowSel})`} value={`${p95} ms`} delta={p95Delta} series={[]} dates={metrics?.series?.dates ?? []} color="amber" />
-        <KpiCard title={`Taux d’erreur (${windowSel})`} value={`${errRate}%`} delta={errRateDelta} series={[]} dates={metrics?.series?.dates ?? []} color="red" />
-        <KpiCard title={`Suspensions (${windowSel})`} value={susp} delta={suspDelta} series={metrics?.series?.suspendedCount ?? []} dates={metrics?.series?.dates ?? []} color="amber" />
-        <KpiCard title={`Suppressions (${windowSel})`} value={del} delta={delDelta} series={metrics?.series?.deletedCount ?? []} dates={metrics?.series?.dates ?? []} color="red" />
-        <div className="glass-panel rounded-lg p-4 transition-all duration-300 hover:shadow-lg">
-          <div className="text-sm font-medium text-muted-foreground mb-3">Top 3 modes par coût ({windowSel})</div>
-          <ul className="space-y-2.5">
+      <BentoGrid>
+        <KpiCard title="Utilisateurs en ligne" subtitle={`Moyenne ${windowSel}`} value={onlineAvg} delta={onlineDelta} series={metrics?.series?.onlineCount ?? []} dates={metrics?.series?.dates ?? []} color="emerald" delay={0} size="sm" />
+        <KpiCard title="Requêtes IA" subtitle={`Total ${windowSel}`} value={totalAIRequests.toLocaleString()} delta={totalAIRequestsDelta} series={aiRequestsSeries} dates={metrics?.series?.dates ?? []} color="sky" delay={0.05} size="sm" />
+        <KpiCard title="Latence p95" subtitle={windowSel} value={`${p95} ms`} delta={p95Delta} series={[]} dates={metrics?.series?.dates ?? []} color="amber" delay={0.1} size="sm" />
+        <KpiCard title="Taux d'erreur" subtitle={windowSel} value={`${errRate}%`} delta={errRateDelta} series={[]} dates={metrics?.series?.dates ?? []} color="red" delay={0.15} size="sm" />
+        <KpiCard title="Suspensions" subtitle={windowSel} value={susp} delta={suspDelta} series={metrics?.series?.suspendedCount ?? []} dates={metrics?.series?.dates ?? []} color="amber" delay={0.2} size="sm" />
+        <KpiCard title="Suppressions" subtitle={windowSel} value={del} delta={delDelta} series={metrics?.series?.deletedCount ?? []} dates={metrics?.series?.dates ?? []} color="red" delay={0.25} size="sm" />
+        
+        <BentoCard variant="panel" size="md" delay={0.3} lift glowOnHover glow="success" className="p-6">
+          <div className="text-lg font-bold text-foreground mb-4">Top 3 modes par coût</div>
+          <ul className="space-y-3">
             {top3Cost.length === 0 && <li className="text-sm text-muted-foreground">Aucune donnée</li>}
-            {top3Cost.map(([mode, usd]) => (
+            {top3Cost.map(([mode, usd], idx) => (
               <li key={mode} className="flex items-center justify-between group">
-                <a className="text-sm underline-offset-2 hover:underline text-foreground font-medium transition-colors hover:text-brand" href={`/admin/metrics/mode/${encodeURIComponent(mode)}?window=${windowSel}`} aria-label={`Détails ${mode}`}>{mode}</a>
-                <span className="text-lg font-bold tabular-nums text-emerald-600">{formatUsd(usd as number)}</span>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white ${idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' : idx === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' : 'bg-gradient-to-br from-orange-400 to-orange-600'}`}>
+                    {idx + 1}
+                  </div>
+                  <a className="text-sm font-semibold underline-offset-2 hover:underline text-foreground transition-colors hover:text-brand" href={`/admin/metrics/mode/${encodeURIComponent(mode)}?window=${windowSel}`} aria-label={`Détails ${mode}`}>{mode}</a>
+                </div>
+                <span className="text-xl font-bold tabular-nums text-emerald-600">{formatUsd(usd as number)}</span>
               </li>
             ))}
           </ul>
-        </div>
-      </div>
+        </BentoCard>
+      </BentoGrid>
     </div>
   );
 }
 
-function KpiCard({ title, value, delta, series, dates, color }: { title: string; value: number | string; delta?: number | null; series: number[]; dates: string[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
+function KpiCard({ title, subtitle, value, delta, series, dates, color, delay, size }: { title: string; subtitle: string; value: number | string; delta?: number | null; series: number[]; dates: string[]; color: 'emerald' | 'amber' | 'red' | 'sky'; delay: number; size: 'sm' | 'md' }) {
   const trendColor = typeof delta === 'number' ? (delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-muted-foreground') : 'text-muted-foreground';
+  const trendBg = typeof delta === 'number' ? (delta > 0 ? 'bg-emerald-500/10' : delta < 0 ? 'bg-red-500/10' : 'bg-muted/20') : 'bg-muted/20';
   const sign = typeof delta === 'number' && delta > 0 ? '+' : '';
-  const fmt = (s?: string) => s ? new Date(s).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '';
   
   const glowColor = color === 'emerald' ? 'success' : color === 'amber' ? 'warning' : color === 'red' ? 'error' : 'info';
-  const glowHoverClass = `glow-hover-${glowColor}`;
   
+  const gradientBg = {
+    emerald: 'from-emerald-500/10 to-emerald-600/5',
+    amber: 'from-amber-500/10 to-amber-600/5',
+    red: 'from-red-500/10 to-red-600/5',
+    sky: 'from-sky-500/10 to-sky-600/5',
+  }[color];
+
   return (
-    <div className={`glass-card rounded-lg p-4 transition-all duration-300 card-lift-hover ${glowHoverClass}`}>
-      <div className="text-sm font-medium text-muted-foreground mb-2">{title}</div>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <div>
-          <div className="text-3xl font-bold text-foreground">{value}</div>
+    <BentoCard variant="primary" size={size} delay={delay} lift glowOnHover glow={glowColor} className="p-5 relative overflow-hidden">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientBg} opacity-30`} />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{subtitle}</div>
+            <div className="text-sm font-medium text-foreground">{title}</div>
+          </div>
           {typeof delta === 'number' && (
-            <div className={`flex items-center gap-1 text-sm font-medium mt-1 ${trendColor}`}>
-              {delta > 0 ? '↑' : delta < 0 ? '↓' : '→'}
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${trendColor} ${trendBg}`}>
+              <span className="text-base">{delta > 0 ? '↑' : delta < 0 ? '↓' : '→'}</span>
               <span>{sign}{delta}%</span>
             </div>
           )}
         </div>
-        {series?.length ? <MiniSpark series={series} color={color} /> : <div className="h-20 w-32" aria-hidden />}
+        <div className="text-3xl font-black text-foreground mb-3">{value}</div>
+        {series?.length > 0 && <MiniSparkNivo series={series} color={color} />}
       </div>
-      <div className="mt-3 text-xs font-medium text-muted-foreground border-t border-border/40 pt-2">{fmt(dates?.[0])} → {fmt(dates?.[dates.length-1])}</div>
-    </div>
+    </BentoCard>
   );
 }
 
-export function MiniSpark({ series, color }: { series: number[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
+export function MiniSparkNivo({ series, color }: { series: number[]; color: 'emerald' | 'amber' | 'red' | 'sky' }) {
   const max = Math.max(1, ...series);
-  const heights = series.map(v => Math.max(3, Math.round((v / max) * 32)));
-  const colors: Record<string, string> = {
-    emerald: 'bg-gradient-to-t from-emerald-500 to-emerald-400',
-    amber: 'bg-gradient-to-t from-amber-500 to-amber-400',
-    red: 'bg-gradient-to-t from-red-500 to-red-400',
-    sky: 'bg-gradient-to-t from-sky-500 to-sky-400',
+  const heights = series.map(v => Math.max(4, Math.round((v / max) * 40)));
+  const gradients: Record<string, string> = {
+    emerald: 'from-emerald-400 via-emerald-500 to-emerald-600',
+    amber: 'from-amber-400 via-amber-500 to-amber-600',
+    red: 'from-red-400 via-red-500 to-red-600',
+    sky: 'from-sky-400 via-sky-500 to-sky-600',
   };
+  
   return (
-    <div className="flex h-20 w-32 items-end gap-1" aria-label="Tendance">
+    <div className="flex h-12 w-full items-end gap-0.5" aria-label="Tendance">
       {heights.map((h, i) => (
-        <div key={i} className={`${colors[color]} w-2 rounded-sm shadow-sm opacity-90 hover:opacity-100 transition-opacity`} style={{ height: `${h}px` }} aria-label={`Point ${i+1}: ${series[i]}`} />
+        <div 
+          key={i} 
+          className={`flex-1 bg-gradient-to-t ${gradients[color]} rounded-t-sm shadow-sm opacity-80 hover:opacity-100 transition-all duration-200`} 
+          style={{ height: `${h}px` }} 
+          aria-label={`Point ${i+1}: ${series[i]}`} 
+        />
       ))}
     </div>
   );

@@ -1,0 +1,86 @@
+@layer utilities {
+  /* Bento Grid Layouts */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .bento-card {
+    grid-column: span 12;
+  }
+
+  @media (min-width: 768px) {
+    .bento-grid {
+      gap: 1.25rem;
+    }
+
+    .bento-card-sm {
+      grid-column: span 6;
+    }
+
+    .bento-card-md {
+      grid-column: span 6;
+    }
+
+    .bento-card-lg {
+      grid-column: span 12;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .bento-grid {
+      gap: 1.5rem;
+    }
+
+    .bento-card-sm {
+      grid-column: span 3;
+    }
+
+    .bento-card-md {
+      grid-column: span 4;
+    }
+
+    .bento-card-lg {
+      grid-column: span 6;
+    }
+
+    .bento-card-xl {
+      grid-column: span 8;
+    }
+
+    .bento-card-full {
+      grid-column: span 12;
+    }
+
+    .bento-card-tall {
+      grid-row: span 2;
+    }
+  }
+
+  /* Stagger animation delays */
+  .stagger-1 {
+    animation-delay: 0.05s;
+  }
+
+  .stagger-2 {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-3 {
+    animation-delay: 0.15s;
+  }
+
+  .stagger-4 {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-5 {
+    animation-delay: 0.25s;
+  }
+
+  .stagger-6 {
+    animation-delay: 0.3s;
+  }
+}
