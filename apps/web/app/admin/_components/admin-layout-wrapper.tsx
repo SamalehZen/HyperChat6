@@ -1,7 +1,7 @@
 'use client';
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminSidebar } from '@repo/common/components/layout/admin-sidebar';
+import { AdminSidebar } from '@repo/common/components';
 
 export function AdminLayoutWrapper({ 
   children,
