@@ -282,6 +282,20 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
   const [order, setOrder] = useState<'asc'|'desc'>('desc');
   const [loading, setLoading] = useState(false);
 
+  const getEventBadge = (action: string) => {
+    const badges: Record<string, string> = {
+      'login_failed': 'bg-red-500/10 text-red-600',
+      'lockout': 'bg-amber-500/10 text-amber-600',
+      'unlock': 'bg-emerald-500/10 text-emerald-600',
+      'suspend': 'bg-amber-500/10 text-amber-600',
+      'unsuspend': 'bg-emerald-500/10 text-emerald-600',
+      'delete': 'bg-red-500/10 text-red-600',
+      'account_created': 'bg-sky-500/10 text-sky-600',
+      'account_updated': 'bg-sky-500/10 text-sky-600',
+    };
+    return badges[action] || 'bg-muted text-muted-foreground';
+  };
+
   useEffect(() => {
     if (user) {
       setOpen(true);
@@ -311,20 +325,6 @@ function ActivityDialog({ user, onClose }: { user: UserRow | null; onClose: () =
   }, [open, user?.id, page, order]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
-  
-  const getEventBadge = (action: string) => {
-    const badges: Record<string, string> = {
-      'login_failed': 'bg-red-500/10 text-red-600',
-      'lockout': 'bg-amber-500/10 text-amber-600',
-      'unlock': 'bg-emerald-500/10 text-emerald-600',
-      'suspend': 'bg-amber-500/10 text-amber-600',
-      'unsuspend': 'bg-emerald-500/10 text-emerald-600',
-      'delete': 'bg-red-500/10 text-red-600',
-      'account_created': 'bg-sky-500/10 text-sky-600',
-      'account_updated': 'bg-sky-500/10 text-sky-600',
-    };
-    return badges[action] || 'bg-muted text-muted-foreground';
-  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) onClose(); }}>
