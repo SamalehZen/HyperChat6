@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button, Input } from '@repo/ui';
 import { motion } from 'framer-motion';
 import { IconBolt, IconShieldCheck, IconUsers, IconChartBar } from '@repo/common/components';
-import { AnimatedForm } from '@/sandbox/modern-animated-sign-in';
+import { AnimatedForm, TechOrbitDisplay, Ripple } from '@/sandbox/modern-animated-sign-in';
 
 export default function LocalSignIn() {
   const router = useRouter();
