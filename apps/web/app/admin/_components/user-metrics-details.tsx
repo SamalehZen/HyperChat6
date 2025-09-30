@@ -61,7 +61,7 @@ export function UserMetricsDetails({ userId, initialWindow }: { userId: string; 
             }))}>
               <XAxis dataKey="date" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip formatter={(v: any, name: any) => [name === 'costUsd' ? formatUsd(v) : v, name]} />
+              <Tooltip formatter={(v: any, name: any) => [name === 'costUsd' ? formatUsd(Number(v)) : Number(v).toLocaleString('fr-FR'), name]} labelFormatter={(l) => `Date : ${new Date(l).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}`} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Area dataKey="prompt" name="Tokens prompt" type="monotone" stroke={COLORS[0]} fill={COLORS[0]} />
               <Area dataKey="completion" name="Tokens complétion" type="monotone" stroke={COLORS[1]} fill={COLORS[1]} />
