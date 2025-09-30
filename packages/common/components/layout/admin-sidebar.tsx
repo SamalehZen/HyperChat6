@@ -74,6 +74,30 @@ export const AdminSidebar = () => {
               <IconArrowBarRight size={18} strokeWidth={2} />
             )}
           </Button>
+
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Basculer en mode clair' : 'Basculer en mode sombre'}
+            tooltip={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+            tooltipSide="right"
+            className="transition-all duration-200 hover:bg-white/60 dark:hover:bg-black/40 rounded-lg"
+          >
+            {theme === 'dark' ? <IconSun size={18} strokeWidth={2} /> : <IconMoon size={18} strokeWidth={2} />}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={logout}
+            aria-label="Se déconnecter"
+            tooltip="Se déconnecter"
+            tooltipSide="right"
+            className="transition-all duration-200 hover:bg-white/60 dark:hover:bg-black/40 rounded-lg"
+          >
+            <IconLogout size={18} strokeWidth={2} />
+          </Button>
         </Flex>
 
         <nav className={cn("w-full flex-1 overflow-y-auto", isSidebarOpen ? "px-3" : "px-2")}
@@ -124,34 +148,6 @@ export const AdminSidebar = () => {
           </ul>
         </nav>
 
-        <div className={cn("mt-2 border-t border-white/20 dark:border-black/30", isSidebarOpen ? "px-3 pt-3" : "px-1 pt-2")}> 
-          <div className={cn("flex items-center gap-2", !isSidebarOpen && "justify-center")}> 
-            <Button
-              variant="secondary"
-              size={isSidebarOpen ? "sm" : "icon-xs"}
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Basculer en mode clair' : 'Basculer en mode sombre'}
-              className="rounded-lg"
-            >
-              {theme === 'dark' ? <IconSun size={16} strokeWidth={2} /> : <IconMoon size={16} strokeWidth={2} />}
-              {isSidebarOpen && <span className="ml-2 text-xs font-medium">{theme === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>}
-            </Button>
-          </div>
-          <div className={cn("mt-2", !isSidebarOpen && "flex justify-center")}> 
-            <Button
-              variant="ghost"
-              size={isSidebarOpen ? "sm" : "icon-xs"}
-              onClick={logout}
-              aria-label="Se déconnecter"
-              tooltip="Se déconnecter"
-              tooltipSide="right"
-              className="rounded-lg hover:bg-white/60 dark:hover:bg-black/40"
-            >
-              <IconLogout size={16} strokeWidth={2} />
-              {isSidebarOpen && <span className="ml-2 text-xs font-medium">Déconnexion</span>}
-            </Button>
-          </div>
-        </div>
 
       </Flex>
     </div>
