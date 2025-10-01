@@ -215,7 +215,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             });
 
             const chunkBuffer = new ChunkBuffer({
-                threshold: 8,
+                threshold: 1,
                 breakOn: ['\n'],
                 onFlush: (chunk, fullText) => {
                     updateAnswer({

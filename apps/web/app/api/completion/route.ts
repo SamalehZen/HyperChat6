@@ -140,6 +140,7 @@ function createCompletionStream({
             // Send priming event immediately to unblock intermediaries
             try {
                 controller.enqueue(encoder.encode(`event: start\ndata: {}\n\n`));
+                controller.enqueue(new Uint8Array(0));
                 const t1 = Date.now();
                 try {
                     console.log(

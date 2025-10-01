@@ -109,7 +109,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         });
 
         const chunkBuffer = new ChunkBuffer({
-            threshold: 8,
+            threshold: 1,
             breakOn: ['\n'],
             onFlush: (text: string) => {
                 events?.update('answer', current => ({

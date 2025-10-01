@@ -6,10 +6,11 @@ export const runtime = 'nodejs';
 export default function middleware(req: NextRequest) {
   const url = new URL(req.url);
 
-  // Allow public routes and assets
+  // Allow public routes and assets (and SSE streaming route)
   const pathname = url.pathname;
   if (
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/completion') ||
     pathname === '/sign-in' ||
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
@@ -34,6 +35,6 @@ export default function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api/auth|sign-in|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json).*)',
+    '/((?!api/auth|api/completion|sign-in|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.json).*)',
   ],
 };
