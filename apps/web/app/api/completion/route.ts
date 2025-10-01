@@ -48,6 +48,10 @@ export async function POST(request: NextRequest) {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
         const ip = getIp(request);
 
+        const disableVar = (process.env.DISABLE_CREDITS || '').toLowerCase();
+        const enabledVar = (process.env.CREDITS_ENABLED || '').toLowerCase();
+        const creditsEnabled = !(['1', 'true', 'yes'].includes(disableVar)) && !(['0', 'false', 'no'].includes(enabledVar));
+
         if (!ip) {
             return new Response(JSON.stringify({ error: 'Non autorisé' }), {
                 status: 401,
@@ -55,12 +59,11 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        console.log('ip', ip);
+        console.log('ip', ip, 'creditsEnabled', creditsEnabled);
 
-        const remainingCredits = await getRemainingCredits({
-            userId: userId ?? undefined,
-            ip,
-        });
+        const remainingCredits = creditsEnabled
+            ? await getRemainingCredits({ userId: userId ?? undefined, ip })
+            : Number.MAX_SAFE_INTEGER;
 
         console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
 
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        if (remainingCredits < creditCost && process.env.NODE_ENV !== 'development') {
+        if (creditsEnabled && remainingCredits < creditCost && process.env.NODE_ENV !== 'development') {
             return new Response(
                 'Vous avez atteint la limite quotidienne de requêtes. Veuillez réessayer demain ou utiliser votre propre clé API.',
                 { status: 429, headers: { 'Content-Type': 'application/json' } }
@@ -80,11 +83,11 @@ export async function POST(request: NextRequest) {
 
         const enhancedHeaders = {
             ...SSE_HEADERS,
-            'X-Credits-Available': remainingCredits.toString(),
+            'X-Credits-Available': creditsEnabled ? remainingCredits.toString() : 'disabled',
             'X-Credits-Cost': creditCost.toString(),
-            'X-Credits-Daily-Allowance': userId
-                ? DAILY_CREDITS_AUTH.toString()
-                : DAILY_CREDITS_IP.toString(),
+            'X-Credits-Daily-Allowance': creditsEnabled
+                ? (userId ? DAILY_CREDITS_AUTH.toString() : DAILY_CREDITS_IP.toString())
+                : 'disabled',
         };
 
         const encoder = new TextEncoder();
@@ -105,6 +108,7 @@ export async function POST(request: NextRequest) {
             abortController,
             gl,
             ttftStartTs: t0,
+            creditsEnabled,
         });
 
         return new Response(stream, { headers: enhancedHeaders });
@@ -124,6 +128,7 @@ function createCompletionStream({
     abortController,
     gl,
     ttftStartTs,
+    creditsEnabled,
 }: {
     data: any;
     userId?: string;
@@ -131,6 +136,7 @@ function createCompletionStream({
     abortController: AbortController;
     gl: Geo;
     ttftStartTs: number;
+    creditsEnabled: boolean;
 }) {
     const encoder = new TextEncoder();
 
@@ -216,13 +222,15 @@ function createCompletionStream({
                     gl,
                     userId: userId ?? undefined,
                     onFinish: async () => {
-                        await deductCredits(
-                            {
-                                userId: userId ?? undefined,
-                                ip: ip ?? undefined,
-                            },
-                            creditCost
-                        );
+                        if (creditsEnabled) {
+                            await deductCredits(
+                                {
+                                    userId: userId ?? undefined,
+                                    ip: ip ?? undefined,
+                                },
+                                creditCost
+                            );
+                        }
                     },
                     onUsage: (u) => { usageRef = u || usageRef; },
                     ttftStartTs,
