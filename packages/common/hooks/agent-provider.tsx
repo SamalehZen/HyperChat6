@@ -259,6 +259,23 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                                         if (shouldPersistToDB) {
                                             lastDbUpdate = Date.now();
                                         }
+                                    } else if (currentEvent === 'delta') {
+                                        const text = typeof data?.text === 'string' ? data.text : '';
+                                        if (text) {
+                                            const shouldPersistToDB =
+                                                Date.now() - lastDbUpdate >= DB_UPDATE_INTERVAL;
+                                            handleThreadItemUpdate(
+                                                body.threadId,
+                                                body.threadItemId,
+                                                'answer',
+                                                { answer: { text, status: 'PENDING' } },
+                                                body.parentThreadItemId,
+                                                shouldPersistToDB
+                                            );
+                                            if (shouldPersistToDB) {
+                                                lastDbUpdate = Date.now();
+                                            }
+                                        }
                                     } else if (currentEvent === 'done' && data.type === 'done') {
                                         setIsGenerating(false);
                                         const streamDuration = performance.now() - streamStartTime;

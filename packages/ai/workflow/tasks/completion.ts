@@ -29,8 +29,6 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
 
         console.log('customInstructions', customInstructions);
 
-        // Le prompt spécialisé est maintenant importé depuis un fichier séparé
-
         if (
             customInstructions &&
             customInstructions?.length < MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH
@@ -89,8 +87,8 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         }
 
         const reasoningBuffer = new ChunkBuffer({
-            threshold: 200,
-            breakOn: ['\n\n'],
+            threshold: 8,
+            breakOn: ['\n'],
             onFlush: (_chunk: string, fullText: string) => {
                 events?.update('steps', prev => ({
                     ...prev,
@@ -111,7 +109,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         });
 
         const chunkBuffer = new ChunkBuffer({
-            threshold: 200,
+            threshold: 8,
             breakOn: ['\n'],
             onFlush: (text: string) => {
                 events?.update('answer', current => ({

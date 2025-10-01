@@ -14,6 +14,8 @@ import { getIp } from './utils';
 import { prisma } from '@repo/prisma';
 import { getModelFromChatMode, models, estimateTokensForMessages } from '@repo/ai/models';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { headers: SSE_HEADERS });
@@ -37,6 +39,10 @@ export async function POST(request: NextRequest) {
         }
 
         const { data } = validatedBody;
+        const t0 = Date.now();
+        try {
+            console.log(`[TTFT] t0 request_received ts=${t0} threadId=${data.threadId} itemId=${data.threadItemId} mode=${data.mode}`);
+        } catch {}
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
         const ip = getIp(request);
 
@@ -96,6 +102,7 @@ export async function POST(request: NextRequest) {
             ip,
             abortController,
             gl,
+            ttftStartTs: t0,
         });
 
         return new Response(stream, { headers: enhancedHeaders });
@@ -114,12 +121,14 @@ function createCompletionStream({
     ip,
     abortController,
     gl,
+    ttftStartTs,
 }: {
     data: any;
     userId?: string;
     ip?: string;
     abortController: AbortController;
     gl: Geo;
+    ttftStartTs: number;
 }) {
     const encoder = new TextEncoder();
 
@@ -128,6 +137,20 @@ function createCompletionStream({
         async start(controller) {
             let heartbeatInterval: NodeJS.Timeout | null = null;
 
+            // Send priming event immediately to unblock intermediaries
+            try {
+                controller.enqueue(encoder.encode(`event: start\ndata: {}\n\n`));
+                const t1 = Date.now();
+                try {
+                    console.log(
+                        `[TTFT] t1 priming_enqueued delta_ms=${t1 - ttftStartTs} threadId=${data.threadId} itemId=${data.threadItemId}`
+                    );
+                } catch {}
+            } catch (e) {
+                console.warn('Failed to send priming start event', e);
+            }
+
+            // Heartbeat to keep connection alive
             heartbeatInterval = setInterval(() => {
                 controller.enqueue(encoder.encode(': heartbeat\n\n'));
             }, 15000);
@@ -198,6 +221,7 @@ function createCompletionStream({
                         );
                     },
                     onUsage: (u) => { usageRef = u || usageRef; },
+                    ttftStartTs,
                 });
                 await logMessage('COMPLETED');
             } catch (error) {

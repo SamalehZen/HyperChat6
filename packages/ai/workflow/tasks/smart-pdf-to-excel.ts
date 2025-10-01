@@ -30,16 +30,13 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
         updateAnswer({ text: '', status: 'PENDING' });
 
         if (enableStepSimulation) {
-            const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
-            // Step 0: Préparation
+            // Step 0: Préparation (no artificial delay)
             updateStep({ stepId: 0, stepStatus: 'PENDING', subSteps: { prepare: { status: 'PENDING' } } });
-            await wait(250);
             updateStep({ stepId: 0, stepStatus: 'COMPLETED', subSteps: { prepare: { status: 'COMPLETED' } } });
-            // Step 1: Extraction (garde visible le scan)
+            // Step 1: Extraction
             updateStep({ stepId: 1, stepStatus: 'PENDING', subSteps: { extract: { status: 'PENDING' } } });
-            await wait(700);
             updateStep({ stepId: 1, stepStatus: 'COMPLETED', subSteps: { extract: { status: 'COMPLETED' } } });
-            // Step 2: OCR
+            // Step 2: OCR (set to pending before generation)
             updateStep({ stepId: 2, stepStatus: 'PENDING', subSteps: { ocr: { status: 'PENDING' } } });
         }
 
@@ -54,18 +51,13 @@ export const smartPdfToExcelTask = createTask<WorkflowEventSchema, WorkflowConte
         });
 
         if (enableStepSimulation) {
-            // Complete OCR and run conversion
+            // Complete OCR and run conversion (no artificial delay)
             updateStep({ stepId: 2, stepStatus: 'COMPLETED', subSteps: { ocr: { status: 'COMPLETED' } } });
             updateStep({ stepId: 3, stepStatus: 'PENDING', subSteps: { convert: { status: 'PENDING' } } });
+            updateStep({ stepId: 3, stepStatus: 'COMPLETED', subSteps: { convert: { status: 'COMPLETED' } } });
         }
 
         updateAnswer({ text: '', finalText: response, status: 'COMPLETED' });
-
-        if (enableStepSimulation) {
-            const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
-            await wait(350);
-            updateStep({ stepId: 3, stepStatus: 'COMPLETED', subSteps: { convert: { status: 'COMPLETED' } } });
-        }
 
         context?.get('onFinish')?.({
             answer: response,

@@ -190,8 +190,6 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
                 );
             }
 
-            // Update event with read status
-
             updateStep({
                 stepId: 0,
                 stepStatus: 'COMPLETED',
@@ -203,8 +201,8 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             addSources(searchResultsData);
 
             const reasoningBuffer = new ChunkBuffer({
-                threshold: 200,
-                breakOn: ['\n\n'],
+                threshold: 16,
+                breakOn: ['\n'],
                 onFlush: (chunk, fullText) => {
                     updateStep({
                         stepId: 1,
@@ -217,8 +215,8 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
             });
 
             const chunkBuffer = new ChunkBuffer({
-                threshold: 200,
-                breakOn: ['\n\n'],
+                threshold: 8,
+                breakOn: ['\n'],
                 onFlush: (chunk, fullText) => {
                     updateAnswer({
                         text: chunk,

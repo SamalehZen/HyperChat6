@@ -1,0 +1,64 @@
+# Reduce TTFT with SSE priming + minimal buffering (quick win)
+
+## Why
+Users were waiting for 150–200 character buffers before seeing the first token. Proxies and intermediaries could also buffer the initial response. This PR reduces Time-To-First-Token (TTFT) to target ≤ 2.0s p95 for chat and correction flows by unblocking intermediaries with an immediate SSE priming event and by minimizing application‑level buffering and per‑token payload size. No architectural changes; SSE is preserved.
+
+## What changed (targeted, minimal)
+
+- API route
+  - apps/web/app/api/completion/route.ts
+    - export const runtime = 'nodejs'
+    - Send priming event immediately on stream open: `event: start` with `{}`
+    - Lightweight TTFT instrumentation: log t0 (request), t1 (priming enqueue)
+    - Pass ttftStartTs to stream for consistent metrics
+- Stream handlers
+  - apps/web/app/api/completion/stream-handlers.ts
+    - Emit minimal per‑token payloads: `event: delta` with `{ text: "..." }`
+    - Keep richer metadata only on infrequent events (`answer` final, `steps`, `status`, `done`)
+    - TTFT instrumentation: log t2 (first delta enqueue) and (t2−t0)
+- Headers (already present via SSE_HEADERS)
+  - `Content-Type: text/event-stream`
+  - `Cache-Control: no-cache, no-transform`
+  - `Connection: keep-alive`
+  - `X-Accel-Buffering: no`
+- Reduce/remove application chunk buffering (≤16 chars + flush on newline)
+  - packages/ai/workflow/tasks/completion.ts: thresholds set to 8, breakOn ['\n']
+  - packages/ai/workflow/tasks/analysis.ts: threshold 16 for reasoning, breakOn ['\n']
+  - packages/ai/workflow/tasks/pro-search.ts: reasoning 16, answer 8, breakOn ['\n'] (non‑functional for architecture)
+  - packages/ai/workflow/tasks/writer.ts: answer 8, breakOn ['\n']
+  - packages/ai/workflow/tasks/correction.ts: already emits per chunk (no buffering)
+- Remove artificial delays
+  - packages/ai/workflow/tasks/smart-pdf-to-excel.ts: removed all wait(...) sleeps; kept step updates without delays
+- Client compatibility
+  - packages/common/hooks/agent-provider.tsx: add support for `event: delta` minimal payloads and append into answer stream; preserves existing handling of `answer`/`steps`/`status`/`done`
+
+## Acceptance mapping
+- Priming: `start` event is sent immediately when the stream opens, before any heavy work
+- Headers: SSE anti‑buffering headers included as above
+- Buffering: ChunkBuffer thresholds ≤16 chars with `breakOn: ['\n']` across key tasks
+- No artificial waits: removed in smart‑pdf‑to‑excel
+- Minimal per‑token payloads: `delta` emits `{ text }` only; metadata sent separately
+- TTFT instrumentation: t0 (request), t1 (priming), t2 (first delta) logged with ms deltas
+
+## Test plan
+- Simple completion prompt
+  - Verify client receives `start` within ~<250ms p50 on staging (network permitting)
+  - Observe first `delta` quickly; first token renders immediately
+  - Check server logs for `[TTFT]` lines with t1−t0 and t2−t0
+- Correction with ~250 items
+  - Ensure `onChunk` outputs are passed through immediately as `delta`
+  - Verify final `answer` event still contains the complete text (`finalText`)
+- Pro Search / Analysis / Writer
+  - Confirm reduced thresholds do not change results, only emission timing
+- Headers
+  - Confirm response headers include: text/event-stream, no-cache/no-transform, keep‑alive, X‑Accel‑Buffering: no; compression remains off for this route
+
+## Backward compatibility
+- Existing `answer` events remain for final updates and non‑delta state. Minimal `delta` is additive and parsed by the client. No provider/model or architectural changes.
+
+## Risk & rollback
+- Risk is low; changes are limited to stream emission and buffer thresholds. To roll back, revert this PR or switch back thresholds and payload emission type. No migrations or config changes.
+
+## Notes
+- Mirrors onyx-fast approach: SSE priming, minimal payloads, app‑level buffering minimized, proxy buffering disabled.
+- No architectural changes to progressive search/correction pipelines included in this PR.
