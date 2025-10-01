@@ -16,6 +16,8 @@ import { getModelFromChatMode, models, estimateTokensForMessages } from '@repo/a
 
 export const runtime = 'nodejs';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { headers: SSE_HEADERS });
