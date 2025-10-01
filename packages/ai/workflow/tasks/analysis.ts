@@ -50,8 +50,8 @@ ${s}
                 `;
 
         const chunkBuffer = new ChunkBuffer({
-            threshold: 200,
-            breakOn: ['\n\n'],
+            threshold: 16,
+            breakOn: ['\n'],
             onFlush: (chunk: string, fullText: string) => {
                 updateStep({
                     stepId,

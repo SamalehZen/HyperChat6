@@ -14,6 +14,10 @@ import { getIp } from './utils';
 import { prisma } from '@repo/prisma';
 import { getModelFromChatMode, models, estimateTokensForMessages } from '@repo/ai/models';
 
+export const runtime = 'nodejs';
+
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { headers: SSE_HEADERS });
@@ -37,8 +41,15 @@ export async function POST(request: NextRequest) {
         }
 
         const { data } = validatedBody;
+        const t0 = Date.now();
+        try {
+            console.log(`[TTFT] t0 request_received ts=${t0} threadId=${data.threadId} itemId=${data.threadItemId} mode=${data.mode}`);
+        } catch {}
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
         const ip = getIp(request);
+
+        // TEMP: Force disable credits system for benchmarking (no env dependency)
+        const creditsEnabled = false;
 
         if (!ip) {
             return new Response(JSON.stringify({ error: 'Non autorisé' }), {
@@ -47,12 +58,11 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        console.log('ip', ip);
+        console.log('ip', ip, 'creditsEnabled', creditsEnabled);
 
-        const remainingCredits = await getRemainingCredits({
-            userId: userId ?? undefined,
-            ip,
-        });
+        const remainingCredits = creditsEnabled
+            ? await getRemainingCredits({ userId: userId ?? undefined, ip })
+            : Number.MAX_SAFE_INTEGER;
 
         console.log('remainingCredits', remainingCredits, creditCost, process.env.NODE_ENV);
 
@@ -63,7 +73,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        if (remainingCredits < creditCost && process.env.NODE_ENV !== 'development') {
+        if (creditsEnabled && remainingCredits < creditCost && process.env.NODE_ENV !== 'development') {
             return new Response(
                 'Vous avez atteint la limite quotidienne de requêtes. Veuillez réessayer demain ou utiliser votre propre clé API.',
                 { status: 429, headers: { 'Content-Type': 'application/json' } }
@@ -72,11 +82,11 @@ export async function POST(request: NextRequest) {
 
         const enhancedHeaders = {
             ...SSE_HEADERS,
-            'X-Credits-Available': remainingCredits.toString(),
+            'X-Credits-Available': creditsEnabled ? remainingCredits.toString() : 'disabled',
             'X-Credits-Cost': creditCost.toString(),
-            'X-Credits-Daily-Allowance': userId
-                ? DAILY_CREDITS_AUTH.toString()
-                : DAILY_CREDITS_IP.toString(),
+            'X-Credits-Daily-Allowance': creditsEnabled
+                ? (userId ? DAILY_CREDITS_AUTH.toString() : DAILY_CREDITS_IP.toString())
+                : 'disabled',
         };
 
         const encoder = new TextEncoder();
@@ -96,6 +106,8 @@ export async function POST(request: NextRequest) {
             ip,
             abortController,
             gl,
+            ttftStartTs: t0,
+            creditsEnabled,
         });
 
         return new Response(stream, { headers: enhancedHeaders });
@@ -114,12 +126,16 @@ function createCompletionStream({
     ip,
     abortController,
     gl,
+    ttftStartTs,
+    creditsEnabled,
 }: {
     data: any;
     userId?: string;
     ip?: string;
     abortController: AbortController;
     gl: Geo;
+    ttftStartTs: number;
+    creditsEnabled: boolean;
 }) {
     const encoder = new TextEncoder();
 
@@ -128,6 +144,22 @@ function createCompletionStream({
         async start(controller) {
             let heartbeatInterval: NodeJS.Timeout | null = null;
 
+            // Send priming event immediately to unblock intermediaries
+            let primingTs: number | null = null;
+            try {
+                controller.enqueue(encoder.encode(`event: start\ndata: {}\n\n`));
+                controller.enqueue(new Uint8Array(0));
+                primingTs = Date.now();
+                try {
+                    console.log(
+                        `[TTFT] t1 priming_enqueued delta_ms=${primingTs - ttftStartTs} threadId=${data.threadId} itemId=${data.threadItemId}`
+                    );
+                } catch {}
+            } catch (e) {
+                console.warn('Failed to send priming start event', e);
+            }
+
+            // Heartbeat to keep connection alive
             heartbeatInterval = setInterval(() => {
                 controller.enqueue(encoder.encode(': heartbeat\n\n'));
             }, 15000);
@@ -189,15 +221,19 @@ function createCompletionStream({
                     gl,
                     userId: userId ?? undefined,
                     onFinish: async () => {
-                        await deductCredits(
-                            {
-                                userId: userId ?? undefined,
-                                ip: ip ?? undefined,
-                            },
-                            creditCost
-                        );
+                        if (creditsEnabled) {
+                            await deductCredits(
+                                {
+                                    userId: userId ?? undefined,
+                                    ip: ip ?? undefined,
+                                },
+                                creditCost
+                            );
+                        }
                     },
                     onUsage: (u) => { usageRef = u || usageRef; },
+                    ttftStartTs,
+                    ttftPrimingTs: typeof primingTs === 'number' ? primingTs : undefined,
                 });
                 await logMessage('COMPLETED');
             } catch (error) {

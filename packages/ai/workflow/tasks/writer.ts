@@ -87,8 +87,8 @@ Votre rapport doit démontrer une expertise du sujet tout en restant accessible 
             });
         }
         const chunkBuffer = new ChunkBuffer({
-            threshold: 150,
-            breakOn: ['\n\n', '.', '!', '?'],
+            threshold: 1,
+            breakOn: ['\n'],
             onFlush: (text: string) => {
                 updateAnswer({
                     text,

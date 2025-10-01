@@ -6,6 +6,8 @@ import { Geo } from '@vercel/functions';
 import { CompletionRequestType, StreamController } from './types';
 import { sanitizePayloadForJSON } from './utils';
 
+const TTFT_METRICS = new WeakMap<StreamController, { startTs: number; primingTs?: number; firstDeltaTs?: number }>();
+
 export function sendMessage(
     controller: StreamController,
     encoder: TextEncoder,
@@ -17,12 +19,33 @@ export function sendMessage(
         }
 
         const sanitizedPayload = sanitizePayloadForJSON(payload);
-        const message = `event: ${payload.type}\ndata: ${JSON.stringify(sanitizedPayload)}\n\n`;
+
+        const answerState = sanitizedPayload?.answer;
+        const isDeltaEvent =
+            payload.type === 'answer' &&
+            answerState &&
+            typeof answerState.text === 'string' &&
+            (!answerState.finalText || answerState.status === 'PENDING');
+
+        let message: string;
+        if (isDeltaEvent) {
+            const metrics = TTFT_METRICS.get(controller);
+            if (metrics && metrics.firstDeltaTs == null) {
+                metrics.firstDeltaTs = Date.now();
+                try {
+                    console.log(
+                        `[TTFT] t2 first_delta_enqueued delta_ms=${metrics.firstDeltaTs - metrics.startTs} threadId=${payload.threadId} itemId=${payload.threadItemId}`
+                    );
+                } catch {}
+            }
+            message = `event: delta\ndata: ${JSON.stringify({ text: answerState.text })}\n\n`;
+        } else {
+            message = `event: ${payload.type}\ndata: ${JSON.stringify(sanitizedPayload)}\n\n`;
+        }
 
         controller.enqueue(encoder.encode(message));
         controller.enqueue(new Uint8Array(0));
     } catch (error) {
-        // This is critical - we should log errors in message serialization
         logger.error('Error serializing message payload', error, {
             payloadType: payload.type,
             threadId: payload.threadId,
@@ -54,6 +77,8 @@ export async function executeStream({
     userId,
     onFinish,
     onUsage,
+    ttftStartTs,
+    ttftPrimingTs,
 }: {
     controller: StreamController;
     encoder: TextEncoder;
@@ -63,11 +88,15 @@ export async function executeStream({
     gl?: Geo;
     onFinish?: () => Promise<void>;
     onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
+    ttftStartTs?: number;
+    ttftPrimingTs?: number;
 }): Promise<{ success: boolean } | Response> {
     try {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
 
         const { signal } = abortController;
+
+        TTFT_METRICS.set(controller, { startTs: ttftStartTs ?? Date.now(), primingTs: ttftPrimingTs });
 
         const workflow = runWorkflow({
             mode: data.mode,
@@ -135,6 +164,22 @@ export async function executeStream({
 
         posthog.flush();
 
+        const metrics = TTFT_METRICS.get(controller);
+        if (metrics) {
+            const t1 = typeof metrics.primingTs === 'number' ? metrics.primingTs - metrics.startTs : undefined;
+            const t2 = typeof metrics.firstDeltaTs === 'number' ? metrics.firstDeltaTs - metrics.startTs : undefined;
+            sendMessage(controller, encoder, {
+                type: 'metrics',
+                threadId: data.threadId,
+                threadItemId: data.threadItemId,
+                parentThreadItemId: data.parentThreadItemId,
+                ttft: {
+                    t1_minus_t0: typeof t1 === 'number' ? t1 : null,
+                    t2_minus_t0: typeof t2 === 'number' ? t2 : null,
+                },
+            });
+        }
+
         sendMessage(controller, encoder, {
             type: 'done',
             status: 'complete',
@@ -146,7 +191,6 @@ export async function executeStream({
         return { success: true };
     } catch (error) {
         if (abortController.signal.aborted) {
-            // Aborts are normal user actions, not errors
             if (process.env.NODE_ENV === 'development') {
                 logger.debug('Workflow aborted', { threadId: data.threadId });
             }
@@ -159,7 +203,6 @@ export async function executeStream({
                 parentThreadItemId: data.parentThreadItemId,
             });
         } else {
-            // Actual errors during workflow execution are important
             logger.error('Workflow execution error', error, {
                 userId,
                 threadId: data.threadId,
