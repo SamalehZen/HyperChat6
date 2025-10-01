@@ -140,13 +140,14 @@ function createCompletionStream({
             let heartbeatInterval: NodeJS.Timeout | null = null;
 
             // Send priming event immediately to unblock intermediaries
+            let primingTs: number | null = null;
             try {
                 controller.enqueue(encoder.encode(`event: start\ndata: {}\n\n`));
                 controller.enqueue(new Uint8Array(0));
-                const t1 = Date.now();
+                primingTs = Date.now();
                 try {
                     console.log(
-                        `[TTFT] t1 priming_enqueued delta_ms=${t1 - ttftStartTs} threadId=${data.threadId} itemId=${data.threadItemId}`
+                        `[TTFT] t1 priming_enqueued delta_ms=${primingTs - ttftStartTs} threadId=${data.threadId} itemId=${data.threadItemId}`
                     );
                 } catch {}
             } catch (e) {
@@ -225,6 +226,7 @@ function createCompletionStream({
                     },
                     onUsage: (u) => { usageRef = u || usageRef; },
                     ttftStartTs,
+                    ttftPrimingTs: typeof primingTs === 'number' ? primingTs : undefined,
                 });
                 await logMessage('COMPLETED');
             } catch (error) {

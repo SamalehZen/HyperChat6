@@ -6,7 +6,7 @@ import { Geo } from '@vercel/functions';
 import { CompletionRequestType, StreamController } from './types';
 import { sanitizePayloadForJSON } from './utils';
 
-const TTFT_METRICS = new WeakMap<StreamController, { startTs: number; firstDeltaTs?: number }>();
+const TTFT_METRICS = new WeakMap<StreamController, { startTs: number; primingTs?: number; firstDeltaTs?: number }>();
 
 export function sendMessage(
     controller: StreamController,
@@ -78,6 +78,7 @@ export async function executeStream({
     onFinish,
     onUsage,
     ttftStartTs,
+    ttftPrimingTs,
 }: {
     controller: StreamController;
     encoder: TextEncoder;
@@ -88,13 +89,14 @@ export async function executeStream({
     onFinish?: () => Promise<void>;
     onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
     ttftStartTs?: number;
+    ttftPrimingTs?: number;
 }): Promise<{ success: boolean } | Response> {
     try {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
 
         const { signal } = abortController;
 
-        TTFT_METRICS.set(controller, { startTs: ttftStartTs ?? Date.now() });
+        TTFT_METRICS.set(controller, { startTs: ttftStartTs ?? Date.now(), primingTs: ttftPrimingTs });
 
         const workflow = runWorkflow({
             mode: data.mode,
@@ -161,6 +163,22 @@ export async function executeStream({
         console.log('[WORKFLOW SUMMARY]', workflow.getTimingSummary());
 
         posthog.flush();
+
+        const metrics = TTFT_METRICS.get(controller);
+        if (metrics) {
+            const t1 = typeof metrics.primingTs === 'number' ? metrics.primingTs - metrics.startTs : undefined;
+            const t2 = typeof metrics.firstDeltaTs === 'number' ? metrics.firstDeltaTs - metrics.startTs : undefined;
+            sendMessage(controller, encoder, {
+                type: 'metrics',
+                threadId: data.threadId,
+                threadItemId: data.threadItemId,
+                parentThreadItemId: data.parentThreadItemId,
+                ttft: {
+                    t1_minus_t0: typeof t1 === 'number' ? t1 : null,
+                    t2_minus_t0: typeof t2 === 'number' ? t2 : null,
+                },
+            });
+        }
 
         sendMessage(controller, encoder, {
             type: 'done',
