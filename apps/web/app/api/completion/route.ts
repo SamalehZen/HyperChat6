@@ -48,9 +48,8 @@ export async function POST(request: NextRequest) {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
         const ip = getIp(request);
 
-        const disableVar = (process.env.DISABLE_CREDITS || '').toLowerCase();
-        const enabledVar = (process.env.CREDITS_ENABLED || '').toLowerCase();
-        const creditsEnabled = !(['1', 'true', 'yes'].includes(disableVar)) && !(['0', 'false', 'no'].includes(enabledVar));
+        // TEMP: Force disable credits system for benchmarking (no env dependency)
+        const creditsEnabled = false;
 
         if (!ip) {
             return new Response(JSON.stringify({ error: 'Non autorisé' }), {
