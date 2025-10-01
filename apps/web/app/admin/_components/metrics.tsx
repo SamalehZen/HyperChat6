@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from 'react';
-import { BentoCard } from './bento-card';
+import { BentoCard, BentoGrid } from './bento-card';
 
 export type WindowSel = '24h' | '7j' | '30j';
 

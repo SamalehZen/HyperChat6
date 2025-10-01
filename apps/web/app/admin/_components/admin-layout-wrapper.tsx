@@ -1,7 +1,6 @@
 'use client';
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminSidebar } from '@repo/common/components';
 
 export function AdminLayoutWrapper({ 
   children,
@@ -27,11 +26,10 @@ export function AdminLayoutWrapper({
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      <AdminSidebar />
-      <main className="admin-background flex-1 overflow-y-auto">
+    <div className="admin-background flex min-h-full w-full flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

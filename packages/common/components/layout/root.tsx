@@ -120,12 +120,17 @@ export const SideDrawer = () => {
                 <motion.div
                     initial={{ opacity: 0, x: 40 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 40 }}
+                    exit={{
+                        opacity: 0,
+                        x: 40,
+                        transition: {
+                            duration: 0.2,
+                        },
+                    }}
                     transition={{
                         type: 'spring',
                         stiffness: 300,
                         damping: 30,
-                        exit: { duration: 0.2 },
                     }}
                     className="flex min-h-[99dvh] w-[500px] shrink-0 flex-col overflow-hidden py-1.5 pl-0.5 pr-1.5"
                 >

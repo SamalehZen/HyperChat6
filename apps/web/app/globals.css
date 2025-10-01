@@ -529,7 +529,7 @@ mark.prompt-highlight {
   }
 
   .dark .admin-background {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #090909 0%, #1f1f1f 100%);
   }
 
   /* Performance optimizations */
