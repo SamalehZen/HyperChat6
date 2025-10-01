@@ -408,6 +408,9 @@ export class WorkflowEngine<
     }
 
     getTimingSummary() {
-        return this.executionContext.getMainTimingSummary();
+        return {
+            main: this.executionContext.getMainTimingSummary(),
+            tasks: this.executionContext.getTaskTimingsRaw(),
+        };
     }
 }

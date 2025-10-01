@@ -165,6 +165,20 @@ export class ExecutionContext {
         return parseFloat(value) * multiplier;
     }
 
+    getTaskTimingsRaw(): Record<string, Array<{ startTime?: number; endTime?: number; duration?: number; status: string; error?: string }>> {
+        const out: Record<string, Array<{ startTime?: number; endTime?: number; duration?: number; status: string; error?: string }>> = {};
+        this.taskTimings.forEach((timings, name) => {
+            out[name] = timings.map(t => ({
+                startTime: t.startTime,
+                endTime: t.endTime,
+                duration: t.duration,
+                status: t.status,
+                error: t.error ? (t.error.message || String(t.error)) : undefined,
+            }));
+        });
+        return out;
+    }
+
     getMainTimingSummary(): {
         totalRuns: number;
         totalFailures: number;

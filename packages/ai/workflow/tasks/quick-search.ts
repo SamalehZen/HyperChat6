@@ -163,7 +163,7 @@ export const quickSearchTask = createTask<WorkflowEventSchema, WorkflowContextSc
 
         const webpageReader = await readWebPagesWithTimeout(
             results.map((result: any) => result?.link),
-            30000
+            parseInt(process.env.WEBSEARCH_READ_TIMEOUT_MS || '10000', 10)
         );
 
         // Mark read as COMPLETED and wrapup as PENDING

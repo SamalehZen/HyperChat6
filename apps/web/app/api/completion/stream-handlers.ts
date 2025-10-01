@@ -22,7 +22,6 @@ export function sendMessage(
         controller.enqueue(encoder.encode(message));
         controller.enqueue(new Uint8Array(0));
     } catch (error) {
-        // This is critical - we should log errors in message serialization
         logger.error('Error serializing message payload', error, {
             payloadType: payload.type,
             threadId: payload.threadId,
@@ -54,6 +53,8 @@ export async function executeStream({
     userId,
     onFinish,
     onUsage,
+    onTiming,
+    correlationId,
 }: {
     controller: StreamController;
     encoder: TextEncoder;
@@ -63,6 +64,12 @@ export async function executeStream({
     gl?: Geo;
     onFinish?: () => Promise<void>;
     onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
+    onTiming?: {
+        onModelCallStart?: () => void;
+        onProviderChunk?: () => void;
+        onFirstProviderTextDelta?: () => void;
+    };
+    correlationId?: string;
 }): Promise<{ success: boolean } | Response> {
     try {
         const creditCost = CHAT_MODE_CREDIT_COSTS[data.mode];
@@ -86,6 +93,7 @@ export async function executeStream({
             showSuggestions: data.showSuggestions || false,
             onFinish: onFinish,
             onUsage: onUsage,
+            onTiming,
         });
 
         workflow.onAll((event, payload) => {
@@ -106,12 +114,38 @@ export async function executeStream({
             logger.debug('Starting workflow', { threadId: data.threadId });
         }
 
+        // Emit an early status event to keep the stream active in web-search modes
+        try {
+            sendMessage(controller, encoder, {
+                type: 'status',
+                status: 'searching',
+                threadId: data.threadId,
+                threadItemId: data.threadItemId,
+                parentThreadItemId: data.parentThreadItemId,
+            });
+        } catch {}
+
         await workflow.start('router', {
             question: data.prompt,
         });
 
         if (process.env.NODE_ENV === 'development') {
             logger.debug('Workflow completed', { threadId: data.threadId });
+        }
+
+        // Send final metrics event (non-blocking)
+        try {
+            const summary = workflow.getTimingSummary();
+            sendMessage(controller, encoder, {
+                type: 'metrics',
+                threadId: data.threadId,
+                threadItemId: data.threadItemId,
+                parentThreadItemId: data.parentThreadItemId,
+                summary,
+                correlationId,
+            });
+        } catch (e) {
+            // ignore
         }
 
         userId &&
@@ -131,8 +165,6 @@ export async function executeStream({
                 },
             });
 
-        console.log('[WORKFLOW SUMMARY]', workflow.getTimingSummary());
-
         posthog.flush();
 
         sendMessage(controller, encoder, {
@@ -146,7 +178,6 @@ export async function executeStream({
         return { success: true };
     } catch (error) {
         if (abortController.signal.aborted) {
-            // Aborts are normal user actions, not errors
             if (process.env.NODE_ENV === 'development') {
                 logger.debug('Workflow aborted', { threadId: data.threadId });
             }
@@ -159,7 +190,6 @@ export async function executeStream({
                 parentThreadItemId: data.parentThreadItemId,
             });
         } else {
-            // Actual errors during workflow execution are important
             logger.error('Workflow execution error', error, {
                 userId,
                 threadId: data.threadId,

@@ -178,7 +178,7 @@ export const proSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
                         return acc;
                     }, []),
                     signal,
-                    { batchSize: 4, maxPages: 8, timeout: 30000 }
+                    { batchSize: 3, maxPages: parseInt(process.env.WEBSEARCH_MAX_PAGES || '3', 10), timeout: parseInt(process.env.WEBSEARCH_READ_TIMEOUT_MS || '10000', 10) }
                 );
 
                 if (!webPageContent || webPageContent.length === 0) {

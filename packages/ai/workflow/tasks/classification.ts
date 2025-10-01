@@ -21,6 +21,7 @@ export const classificationTask = createTask<WorkflowEventSchema, WorkflowContex
             onChunk: (chunk) => {
                 updateAnswer({ text: chunk, status: 'PENDING' });
             },
+            onTiming: context?.get('onTiming'),
         });
 
         updateAnswer({

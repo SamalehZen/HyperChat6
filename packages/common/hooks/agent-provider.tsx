@@ -69,6 +69,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
     // Define common event types to reduce repetition
     const EVENT_TYPES = [
+        'init',
+        'metrics',
         'steps',
         'sources',
         'answer',
@@ -219,6 +221,28 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 const streamStartTime = performance.now();
 
                 let buffer = '';
+                let correlationId: string | null = null;
+                let t5: number | null = null;
+                let firstTokenPainted = false;
+
+                const postTTFB = async (t6: number) => {
+                    try {
+                        if (!correlationId) return;
+                        await fetch('/api/telemetry/ttfb', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                correlationId,
+                                t5,
+                                t6,
+                                userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+                            }),
+                            keepalive: true,
+                        });
+                    } catch (e) {
+                        console.warn('Failed to post TTFB telemetry', e);
+                    }
+                };
 
                 while (true) {
                     try {
@@ -241,6 +265,11 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
                                 try {
                                     const data = JSON.parse(dataMatch[1]);
+                                    if (currentEvent === 'init') {
+                                        correlationId = data?.correlationId || null;
+                                        t5 = performance.now();
+                                    }
+
                                     if (
                                         EVENT_TYPES.includes(currentEvent) &&
                                         data?.threadId &&
@@ -248,6 +277,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                                     ) {
                                         const shouldPersistToDB =
                                             Date.now() - lastDbUpdate >= DB_UPDATE_INTERVAL;
+                                        const isAnswerEvent = currentEvent === 'answer';
                                         handleThreadItemUpdate(
                                             data.threadId,
                                             data.threadItemId,
@@ -256,6 +286,13 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                                             data.parentThreadItemId,
                                             shouldPersistToDB
                                         );
+                                        if (isAnswerEvent && !firstTokenPainted) {
+                                            firstTokenPainted = true;
+                                            requestAnimationFrame(() => {
+                                                const t6 = performance.now();
+                                                postTTFB(t6);
+                                            });
+                                        }
                                         if (shouldPersistToDB) {
                                             lastDbUpdate = Date.now();
                                         }
