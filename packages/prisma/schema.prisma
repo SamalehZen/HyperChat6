@@ -122,3 +122,31 @@ model MessageLog {
   @@index([userId])
   @@index([status])
 }
+
+model TelemetryTTFB {
+  id             String   @id @default(cuid())
+  correlationId  String   @unique
+  userId         String?
+  mode           String
+  provider       String?
+  model          String?
+  region         String?
+  t0             DateTime?
+  t1             DateTime?
+  t2             DateTime?
+  t3             DateTime?
+  t4             DateTime?
+  t5             DateTime?
+  t6             DateTime?
+  preProcessingMs Int?
+  modelTTFBMs     Int?
+  serverTTFBMs    Int?
+  totalMs         Int?
+  clientInfo      Json?
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([mode])
+  @@index([provider])
+  @@index([userId])
+}

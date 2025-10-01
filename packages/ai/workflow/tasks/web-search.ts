@@ -52,9 +52,9 @@ export const webSearchTask = createTask<WorkflowEventSchema, WorkflowContextSche
         });
 
         const processedResults = await processWebPages(results, signal, {
-            timeout: 50000,
-            batchSize: 5,
-            maxPages: 10,
+            timeout: parseInt(process.env.WEBSEARCH_READ_TIMEOUT_MS || '10000', 10),
+            batchSize: 3,
+            maxPages: parseInt(process.env.WEBSEARCH_MAX_PAGES || '3', 10),
         });
 
         if (!processedResults || processedResults.length === 0) {

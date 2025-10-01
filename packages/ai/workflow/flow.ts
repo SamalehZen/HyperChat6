@@ -29,7 +29,6 @@ import {
 
 type Status = 'PENDING' | 'COMPLETED' | 'ERROR' | 'HUMAN_REVIEW';
 
-// Define the workflow schema type
 export type WorkflowEventSchema = {
     steps?: Record<
         string,
@@ -71,7 +70,6 @@ export type WorkflowEventSchema = {
     suggestions?: string[];
 };
 
-// Define the context schema type
 export type WorkflowContextSchema = {
     mcpConfig: Record<string, string>;
     question: string;
@@ -110,6 +108,11 @@ export type WorkflowContextSchema = {
     customInstructions?: string;
     onFinish: (data: any) => void;
     onUsage?: (data: { promptTokens?: number | null; completionTokens?: number | null }) => void;
+    onTiming?: {
+        onModelCallStart?: () => void;
+        onProviderChunk?: () => void;
+        onFirstProviderTextDelta?: () => void;
+    };
 };
 
 export const runWorkflow = ({
@@ -127,6 +130,7 @@ export const runWorkflow = ({
     onUsage,
     customInstructions,
     gl,
+    onTiming,
 }: {
     mcpConfig: Record<string, string>;
     mode: ChatMode;
@@ -142,27 +146,29 @@ export const runWorkflow = ({
     onUsage?: (data: { promptTokens?: number | null; completionTokens?: number | null }) => void;
     gl?: Geo;
     customInstructions?: string;
+    onTiming?: {
+        onModelCallStart?: () => void;
+        onProviderChunk?: () => void;
+        onFirstProviderTextDelta?: () => void;
+    };
 }) => {
     const langfuse = new Langfuse();
     const trace = langfuse.trace({
         name: 'deep-research-workflow',
     });
 
-    // Set default values for config
     const workflowConfig: WorkflowConfig = {
         maxIterations: 2,
-        timeoutMs: 480000, // Add default timeout of
+        timeoutMs: 480000,
         ...config,
     };
 
-    // Create typed event emitter with the proper type
     const events = createTypedEventEmitter<WorkflowEventSchema>({
         steps: {},
         toolCalls: [],
         toolResults: [],
         answer: {
             text: '',
-
             status: 'PENDING',
         },
         sources: [],
@@ -195,9 +201,9 @@ export const runWorkflow = ({
         showSuggestions,
         onFinish: onFinish as any,
         onUsage: onUsage as any,
+        onTiming,
     });
 
-    // Use the typed builder
     const builder = new WorkflowBuilder(threadId, {
         trace,
         initialEventState: events.getAllState(),

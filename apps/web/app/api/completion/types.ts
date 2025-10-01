@@ -33,4 +33,5 @@ export const SSE_HEADERS = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Accept',
     'X-Accel-Buffering': 'no',
+    'Content-Encoding': 'identity',
 } as const;

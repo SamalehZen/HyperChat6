@@ -116,6 +116,7 @@ Appliquez cette méthodologie avec la plus grande rigueur à la liste de libell�
             onChunk: (chunk) => {
                 updateAnswer({ text: chunk, status: 'PENDING' });
             },
+            onTiming: context?.get('onTiming'),
         });
 
         updateAnswer({

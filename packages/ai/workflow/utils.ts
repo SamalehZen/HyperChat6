@@ -18,6 +18,9 @@ export type ChunkBufferOptions = {
     threshold?: number;
     breakOn?: string[];
     onFlush: (chunk: string, fullText: string) => void;
+    flushFirstTokenImmediately?: boolean;
+    thresholdInitial?: number;
+    thresholdNext?: number;
 };
 
 export class ChunkBuffer {
@@ -26,23 +29,47 @@ export class ChunkBuffer {
     private threshold?: number;
     private breakPatterns: string[];
     private onFlush: (chunk: string, fullText: string) => void;
+    private flushFirstToken: boolean;
+    private thresholdInitial: number;
+    private thresholdNext: number;
+    private firstFlushed = false;
 
     constructor(options: ChunkBufferOptions) {
+        const envInitial = parseInt(process.env.STREAM_FIRST_TOKEN_THRESHOLD_INITIAL || '1', 10);
+        const envNext = parseInt(process.env.STREAM_FIRST_TOKEN_THRESHOLD_NEXT || '150', 10);
+        const immediate = (process.env.STREAM_FIRST_TOKEN_IMMEDIATE || 'true').toLowerCase() !== 'false';
+
         this.threshold = options.threshold;
         this.breakPatterns = options.breakOn || ['\n\n', '.', '!', '?'];
         this.onFlush = options.onFlush;
+        this.flushFirstToken = options.flushFirstTokenImmediately ?? immediate;
+        this.thresholdInitial = options.thresholdInitial ?? envInitial;
+        this.thresholdNext = options.thresholdNext ?? envNext;
+
+        if (this.flushFirstToken) {
+            this.threshold = this.thresholdInitial;
+        }
     }
 
     add(chunk: string): void {
         this.fullText += chunk;
         this.buffer += chunk;
 
-        const shouldFlush =
-            (this.threshold && this.buffer.length >= this.threshold) ||
-            this.breakPatterns.some(pattern => chunk.includes(pattern) || chunk.endsWith(pattern));
+        let shouldFlush = false;
+        if (this.flushFirstToken && !this.firstFlushed) {
+            shouldFlush = this.buffer.length >= (this.thresholdInitial || 1);
+        } else {
+            shouldFlush =
+                (this.threshold && this.buffer.length >= this.threshold) ||
+                this.breakPatterns.some(pattern => chunk.includes(pattern) || chunk.endsWith(pattern));
+        }
 
         if (shouldFlush) {
             this.flush();
+            if (this.flushFirstToken && !this.firstFlushed) {
+                this.firstFlushed = true;
+                this.threshold = this.thresholdNext;
+            }
         }
     }
 
@@ -56,6 +83,7 @@ export class ChunkBuffer {
     end(): void {
         this.flush();
         this.fullText = '';
+        this.firstFlushed = false;
     }
 }
 
@@ -75,6 +103,7 @@ export const generateText = async ({
     topP,
     maxOutputTokens,
     onUsage,
+    onTiming,
 }: {
     prompt: string;
     model: ModelEnum;
@@ -91,6 +120,11 @@ export const generateText = async ({
     topP?: number;
     maxOutputTokens?: number;
     onUsage?: (usage: { promptTokens?: number | null; completionTokens?: number | null }) => void;
+    onTiming?: {
+        onModelCallStart?: () => void;
+        onProviderChunk?: () => void;
+        onFirstProviderTextDelta?: () => void;
+    };
 }) => {
     try {
         if (signal?.aborted) {
@@ -105,6 +139,7 @@ export const generateText = async ({
         const selectedModel = getLanguageModel(model, middleware);
         const isGemini = !!models.find(m => m.id === model && m.provider === 'google');
         let aggregatedText = '';
+        onTiming?.onModelCallStart?.();
         const { fullStream } = !!messages?.length
             ? streamText({
                   system: prompt,
@@ -131,13 +166,19 @@ export const generateText = async ({
               });
         let fullText = '';
         let reasoning = '';
+        let firstTextDeltaSeen = false;
 
         for await (const chunk of fullStream) {
             if (signal?.aborted) {
                 throw new Error('Operation aborted');
             }
 
+            onTiming?.onProviderChunk?.();
             if (chunk.type === 'text-delta') {
+                if (!firstTextDeltaSeen) {
+                    firstTextDeltaSeen = true;
+                    onTiming?.onFirstProviderTextDelta?.();
+                }
                 fullText += chunk.textDelta;
                 aggregatedText += chunk.textDelta;
                 onChunk?.(chunk.textDelta, fullText);
@@ -310,6 +351,9 @@ export const getHumanizedDate = () => {
     return format(new Date(), 'MMMM dd, yyyy, h:mm a');
 };
 
+const serpCache = new Map<string, { timestamp: number; results: any[] }>();
+const FIVE_MIN_MS = 5 * 60 * 1000;
+
 export const getSERPResults = async (queries: string[], gl?: Geo) => {
     const myHeaders = new Headers();
     const apiKey = process.env.SERPER_API_KEY || (self as any).SERPER_API_KEY || '';
@@ -329,11 +373,17 @@ export const getSERPResults = async (queries: string[], gl?: Geo) => {
         }))
     );
 
-    console.log('raw', raw);
+    const cacheKey = raw;
+    const now = Date.now();
+    const cached = serpCache.get(cacheKey);
+    if (cached && now - cached.timestamp < FIVE_MIN_MS) {
+        return cached.results;
+    }
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const serpTimeout = parseInt(process.env.WEBSEARCH_TIMEOUT_SERP_MS || '5000', 10);
+        const timeoutId = setTimeout(() => controller.abort(), serpTimeout);
 
         const response = await fetch('https://google.serper.dev/search', {
             method: 'POST',
@@ -359,11 +409,13 @@ export const getSERPResults = async (queries: string[], gl?: Geo) => {
                 index === self.findIndex((r: any) => r?.link === result?.link)
         );
 
-        return uniqueOrganicResults.slice(0, 10).map((item: any) => ({
+        const processed = uniqueOrganicResults.slice(0, 10).map((item: any) => ({
             title: item.title,
             link: item.link,
             snippet: item.snippet,
         }));
+        serpCache.set(cacheKey, { timestamp: now, results: processed });
+        return processed;
     } catch (error) {
         console.error(error);
         return [];
@@ -465,7 +517,11 @@ export const readURL = async (url: string): Promise<TReaderResult> => {
 export const processWebPages = async (
     results: Array<{ link: string; title: string }>,
     signal?: AbortSignal,
-    options = { batchSize: 4, maxPages: 8, timeout: 30000 }
+    options = {
+        batchSize: 3,
+        maxPages: parseInt(process.env.WEBSEARCH_MAX_PAGES || '3', 10),
+        timeout: parseInt(process.env.WEBSEARCH_READ_TIMEOUT_MS || '10000', 10),
+    }
 ) => {
     const processedResults: Array<{ title: string; link: string; content: string }> = [];
     const timeoutSignal = AbortSignal.timeout(options.timeout);

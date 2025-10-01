@@ -20,6 +20,7 @@ export const nomenclatureDouaniereTask = createTask<WorkflowEventSchema, Workflo
             onChunk: (chunk) => {
                 updateAnswer({ text: chunk, status: 'PENDING' });
             },
+            onTiming: context?.get('onTiming'),
         });
 
         updateAnswer({

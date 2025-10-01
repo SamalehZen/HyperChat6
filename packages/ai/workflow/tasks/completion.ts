@@ -111,7 +111,9 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         });
 
         const chunkBuffer = new ChunkBuffer({
-            threshold: 200,
+            threshold: parseInt(process.env.STREAM_FIRST_TOKEN_THRESHOLD_NEXT || '150', 10),
+            thresholdInitial: parseInt(process.env.STREAM_FIRST_TOKEN_THRESHOLD_INITIAL || '1', 10),
+            flushFirstTokenImmediately: (process.env.STREAM_FIRST_TOKEN_IMMEDIATE || 'true').toLowerCase() !== 'false',
             breakOn: ['\n'],
             onFlush: (text: string) => {
                 events?.update('answer', current => ({
@@ -140,6 +142,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
                 const u = context.get('onUsage');
                 if (u) u(usage);
             },
+            onTiming: context.get('onTiming'),
         });
 
         reasoningBuffer.end();
