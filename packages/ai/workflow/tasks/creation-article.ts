@@ -114,7 +114,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return obj;
     };
 
-    const REQUIRED_FIELDS: Array<keyof any> = ['libelle_principal','code_barres_initial','numero_fournisseur_unique','numero_article'];
+    type FieldKey = 'libelle_principal' | 'code_barres_initial' | 'numero_fournisseur_unique' | 'numero_article';
+    const REQUIRED_FIELDS: FieldKey[] = ['libelle_principal','code_barres_initial','numero_fournisseur_unique','numero_article'];
 
     const getExpectedFieldFromAssistant = (msgs: any[]): string | null => {
       for (let i = msgs.length - 1; i >= 0; i--) {
@@ -157,15 +158,16 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       }
     }
 
-    const nextMissing = REQUIRED_FIELDS.find(f => !safeString((payload as any)[f]));
+    const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
     if (nextMissing) {
-      const friendly: Record<string,string> = {
+      const friendly: Record<FieldKey,string> = {
         libelle_principal: 'le libellé principal de l\'article',
         code_barres_initial: 'le code‑barres initial (EAN, max 20)',
         numero_fournisseur_unique: 'le numéro fournisseur unique',
         numero_article: 'le numéro d\'article',
       };
-      const prompt = `Merci. Veuillez fournir ${friendly[nextMissing]}.\n\nCREATION-ARTICLE:EXPECT=${nextMissing}`;
+      const key: FieldKey = nextMissing;
+      const prompt = `Merci. Veuillez fournir ${friendly[key]}.\n\nCREATION-ARTICLE:EXPECT=${key}`;
       updateAnswer({ text: prompt, finalText: prompt, status: 'COMPLETED' });
       updateStatus('COMPLETED');
       context?.update('answer', _ => prompt);
