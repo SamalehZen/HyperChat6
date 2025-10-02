@@ -372,10 +372,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     return table;
   },
   onError: handleError,
-  route: ({ context }) => {
-    if (context?.get('showSuggestions') && context.get('answer')) {
-      return 'suggestions';
-    }
+  route: () => {
     return 'end';
   },
 });
