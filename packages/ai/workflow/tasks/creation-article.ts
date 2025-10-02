@@ -108,10 +108,10 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['GENECB'] = '';
     }
 
-    let AA = FallbackCodes.AA;
-    let AB = FallbackCodes.AB;
-    let AC = FallbackCodes.AC;
-    let AD = FallbackCodes.AD;
+    let AA: string = FallbackCodes.AA;
+    let AB: string = FallbackCodes.AB;
+    let AC: string = FallbackCodes.AC;
+    let AD: string = FallbackCodes.AD;
 
     try {
       const clsResponse = await generateText({
