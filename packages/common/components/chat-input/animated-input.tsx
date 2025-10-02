@@ -5,6 +5,7 @@ import {
     ImageAttachment,
     ImageDropzoneRoot,
     MessagesRemainingBadge,
+    FileImport,
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName, getShineColors } from '@repo/shared/config';
@@ -381,6 +382,7 @@ export const AnimatedChatInput = ({
                                 </button>
                             </div>
                         )}
+                        <FileImport />
                         <AI_Prompt
                             value={inputValue}
                             onChange={setInputValue}
