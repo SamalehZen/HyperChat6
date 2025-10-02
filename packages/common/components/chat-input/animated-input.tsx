@@ -134,7 +134,7 @@ export const AnimatedChatInput = ({
             isAuthRequired: ChatModeConfig[ChatMode.CREATION_D_ARTICLE].isAuthRequired,
             isNew: ChatModeConfig[ChatMode.CREATION_D_ARTICLE].isNew,
             category: 'advanced',
-        }
+        },
         {
             id: ChatMode.REVISION_DE_PRIX,
             name: 'Révision de Prix',
