@@ -18,7 +18,7 @@ import { useAgentStream } from '../../hooks/agent-provider';
 import { useApiKeysStore, useChatStore } from '../../store';
 import { ExamplePrompts } from '../exmaple-prompts';
 import { useEffectivePreferences, useAllowedChatModes } from '@repo/common/hooks';
-import { NewIcon, ComingSoonIcon } from '../icons';
+import { NewIcon, ComingSoonIcon, DocumentPlusIcon } from '../icons';
 import {
     IconAtom,
     IconNorthStar,
@@ -126,6 +126,15 @@ export const AnimatedChatInput = ({
             isAuthRequired: ChatModeConfig[ChatMode.CLASSIFICATION].isAuthRequired,
             category: 'advanced',
         },
+        {
+            id: ChatMode.CREATION_D_ARTICLE,
+            name: 'Création d’article',
+            icon: <DocumentPlusIcon />,
+            creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.CREATION_D_ARTICLE],
+            isAuthRequired: ChatModeConfig[ChatMode.CREATION_D_ARTICLE].isAuthRequired,
+            isNew: ChatModeConfig[ChatMode.CREATION_D_ARTICLE].isNew,
+            category: 'advanced',
+        }
         {
             id: ChatMode.REVISION_DE_PRIX,
             name: 'Révision de Prix',

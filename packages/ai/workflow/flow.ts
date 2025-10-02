@@ -25,6 +25,7 @@ import {
     suggestionsTask,
     webSearchTask,
     writerTask,
+    creationArticleTask,
 } from './tasks';
 
 type Status = 'PENDING' | 'COMPLETED' | 'ERROR' | 'HUMAN_REVIEW';
@@ -218,6 +219,7 @@ export const runWorkflow = ({
         completionTask,
         correctionTask,
         classificationTask,
+        creationArticleTask,
         revisionDePrixTask,
         nomenclatureDouaniereTask,
         smartPdfToExcelTask,

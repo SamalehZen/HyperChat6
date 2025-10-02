@@ -42,6 +42,7 @@ import {
   X as LucideX,
   Frown as LucideFrown,
   ExternalLink as LucideExternalLink,
+  FilePlus as LucideFilePlus,
 } from 'lucide-react';
 
 export type IconProps = React.ComponentProps<typeof LucidePlus>;
@@ -102,6 +103,10 @@ export const IconQuestionMark = (props: IconProps) => <LucideHelp aria-hidden="t
 
 export const NomenclatureDouaniereIcon = () => {
   return <IconFileFilled size={20} strokeWidth={2} className="text-muted-foreground" />;
+};
+
+export const DocumentPlusIcon = () => {
+  return <LucideFilePlus size={20} strokeWidth={2} className="text-muted-foreground" />;
 };
 
 export const ToolIcon = ({ className }: { className?: string }) => {
