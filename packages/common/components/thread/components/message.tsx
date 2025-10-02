@@ -33,6 +33,8 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
         }
     }, [copyToClipboard]);
 
+
+
     const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
 
     return (
