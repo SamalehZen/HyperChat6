@@ -51,7 +51,7 @@ function toNormalizedCSV(rows: Array<Record<typeof EXPECTED_HEADERS[number], str
   return [header, ...data].join('\n');
 }
 
-export const FileImport: React.FC = () => {
+export const FileImportIcon: React.FC = () => {
   const chatMode = useChatStore((s) => s.chatMode);
   const setInputValue = useChatStore((s) => s.setInputValue);
   const createThread = useChatStore(s => s.createThread);
@@ -176,33 +176,39 @@ export const FileImport: React.FC = () => {
   };
 
   return (
-    <div className="mb-2 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.csv"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleFile(f);
-          }}
-        />
-        <Tooltip content={t('article.import.title')}>
-          <Button variant="ghost" size="icon-sm" onClick={handlePick}>
-            <IconPaperclip size={16} strokeWidth={2} />
-          </Button>
-        </Tooltip>
-        <span className="text-xs text-muted-foreground">{t('article.import.selectFile')}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.csv" download>
-          {t('article.import.template')} (.csv)
-        </a>
-        <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.xlsx" download>
-          {t('article.import.template')} (.xlsx)
-        </a>
-      </div>
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.csv"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+        }}
+      />
+      <Tooltip content={t('article.import.title')}>
+        <Button variant="ghost" size="icon-sm" onClick={handlePick}>
+          <IconPaperclip size={16} strokeWidth={2} />
+        </Button>
+      </Tooltip>
+    </>
+  );
+};
+
+export const FileImportLinks: React.FC = () => {
+  const chatMode = useChatStore((s) => s.chatMode);
+  const { isSignedIn } = useAuth();
+  const { t } = useI18n();
+  if (chatMode !== ChatMode.CREATION_D_ARTICLE || !isSignedIn) return null;
+  return (
+    <div className="mb-2 flex items-center justify-end gap-3">
+      <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.csv" download>
+        {t('article.import.template')} (.csv)
+      </a>
+      <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.xlsx" download>
+        {t('article.import.template')} (.xlsx)
+      </a>
     </div>
   );
 };

@@ -5,7 +5,8 @@ import {
     ImageAttachment,
     ImageDropzoneRoot,
     MessagesRemainingBadge,
-    FileImport,
+    FileImportIcon,
+    FileImportLinks,
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName, getShineColors } from '@repo/shared/config';
@@ -382,7 +383,7 @@ export const AnimatedChatInput = ({
                                 </button>
                             </div>
                         )}
-                        <FileImport />
+                        <FileImportLinks />
                         <AI_Prompt
                             value={inputValue}
                             onChange={setInputValue}
@@ -398,6 +399,7 @@ export const AnimatedChatInput = ({
                             webSearchEnabled={useWebSearch}
                             onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
                             shineColors={getShineColors(effective.aiPromptShinePreset)}
+                            leftActions={<FileImportIcon />}
                         />
                     </ImageDropzoneRoot>
                 </Flex>
