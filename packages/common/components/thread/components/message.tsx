@@ -37,8 +37,7 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
     const tableRows = useMemo(() => {
         const lines = (message || '').split('\n').filter(l => l.trim().startsWith('|'));
         if (lines.length >= 3) {
-            const take = lines.slice(0, 3);
-            const rows = take.map(line => line.split('|').slice(1, -1).map(c => c.trim()));
+            const rows = lines.map(line => line.split('|').slice(1, -1).map(c => c.trim()));
             if (rows.every(r => r.length > 0)) return rows;
         }
         return null;
