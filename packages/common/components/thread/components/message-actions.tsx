@@ -5,8 +5,8 @@ import { useChatStore } from '@repo/common/store';
 import { ChatMode, getChatModeName } from '@repo/shared/config';
 import { ThreadItem } from '@repo/shared/types';
 import { Button, DropdownMenu, DropdownMenuTrigger } from '@repo/ui';
-import { IconCheck, IconCopy, IconMarkdown, IconRefresh, IconTrash } from '@tabler/icons-react';
-import { forwardRef, useState } from 'react';
+import { IconCheck, IconCopy, IconMarkdown, IconRefresh, IconTrash, IconFileSpreadsheet } from '@tabler/icons-react';
+import { forwardRef, useMemo, useState } from 'react';
 type MessageActionsProps = {
     threadItem: ThreadItem;
     isLast: boolean;
@@ -20,6 +20,43 @@ export const MessageActions = forwardRef<HTMLDivElement, MessageActionsProps>(
         const useWebSearch = useChatStore(state => state.useWebSearch);
         const [chatMode, setChatMode] = useState<ChatMode>(threadItem.mode);
         const { copyToClipboard, status, copyMarkdown, markdownCopyStatus } = useCopyText();
+        const canDownloadXLSX = useMemo(() => {
+            if (threadItem.mode !== ChatMode.CREATION_D_ARTICLE) return false;
+            const text = threadItem?.answer?.text || '';
+            const lines = text.split('\n');
+            const tableStart = lines.findIndex(l => l.trim().startsWith('|'));
+            if (tableStart === -1) return false;
+            const tableLines = [] as string[];
+            for (let i = tableStart; i < lines.length; i++) {
+                if (lines[i].trim().startsWith('|')) tableLines.push(lines[i]); else break;
+            }
+            return tableLines.length >= 3;
+        }, [threadItem.mode, threadItem?.answer?.text]);
+
+        const handleDownloadXLSX = async () => {
+            try {
+                const XLSX = await import('xlsx');
+                const text = threadItem?.answer?.text || '';
+                const lines = text.split('\n');
+                const tableStart = lines.findIndex(l => l.trim().startsWith('|'));
+                if (tableStart === -1) return;
+                const tableLines: string[][] = [];
+                for (let i = tableStart; i < lines.length; i++) {
+                    if (!lines[i].trim().startsWith('|')) break;
+                    const row = lines[i].split('|').slice(1, -1).map(c => c.trim());
+                    tableLines.push(row);
+                }
+                if (tableLines.length === 0) return;
+                const ws = XLSX.utils.aoa_to_sheet(tableLines);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Articles');
+                const filename = `creation-article-${threadItem.id}.xlsx`;
+                XLSX.writeFile(wb, filename);
+            } catch (e) {
+                console.error('XLSX export failed', e);
+            }
+        };
+
         return (
             <div className="flex flex-row items-center gap-1 py-2">
                 {threadItem?.answer?.text && (
@@ -88,16 +125,28 @@ export const MessageActions = forwardRef<HTMLDivElement, MessageActionsProps>(
                 )}
 
                 {isLast && (
-                    <Button
-                        variant="ghost-bordered"
-                        size="icon-sm"
-                        onClick={() => {
-                            removeThreadItem(threadItem.id);
-                        }}
-                        tooltip="Remove"
-                    >
-                        <IconTrash size={16} strokeWidth={2} />
-                    </Button>
+                    <>
+                        <Button
+                            variant="ghost-bordered"
+                            size="icon-sm"
+                            onClick={() => {
+                                removeThreadItem(threadItem.id);
+                            }}
+                            tooltip="Remove"
+                        >
+                            <IconTrash size={16} strokeWidth={2} />
+                        </Button>
+                        {canDownloadXLSX && (
+                            <Button
+                                variant="ghost-bordered"
+                                size="icon-sm"
+                                onClick={handleDownloadXLSX}
+                                tooltip="Télécharger XLSX"
+                            >
+                                <IconFileSpreadsheet size={16} strokeWidth={2} />
+                            </Button>
+                        )}
+                    </>
                 )}
                 {threadItem.mode && (
                     <p className="text-muted-foreground px-2 text-xs">
