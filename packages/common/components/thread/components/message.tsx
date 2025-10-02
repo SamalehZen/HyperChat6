@@ -5,7 +5,7 @@ import { useChatStore } from '@repo/common/store';
 import { ThreadItem } from '@repo/shared/types';
 import { Button, cn } from '@repo/ui';
 import { IconCheck, IconCopy, IconPencil } from '@tabler/icons-react';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { ImageMessage } from './image-message';
 type MessageProps = {
