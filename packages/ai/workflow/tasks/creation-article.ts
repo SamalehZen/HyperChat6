@@ -117,16 +117,34 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     type FieldKey = 'libelle_principal' | 'code_barres_initial' | 'numero_fournisseur_unique' | 'numero_article';
     const REQUIRED_FIELDS: FieldKey[] = ['libelle_principal','code_barres_initial','numero_fournisseur_unique','numero_article'];
 
-    const getExpectedFieldFromAssistant = (msgs: any[]): string | null => {
+    const getExpectedFieldFromAssistant = (msgs: any[]): FieldKey | null => {
       for (let i = msgs.length - 1; i >= 0; i--) {
         const m = msgs[i];
         if (m?.role === 'assistant') {
           const t = safeString(m?.content || '');
           const match = t.match(/CREATION-ARTICLE:EXPECT\s*=\s*(\w+)/i);
-          if (match) return match[1];
+          if (match) return match[1] as FieldKey;
         }
       }
       return null;
+    };
+
+    const getStateFromAssistant = (msgs: any[]): Partial<Record<FieldKey,string>> => {
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        const m = msgs[i];
+        if (m?.role === 'assistant') {
+          const t = safeString(m?.content || '');
+          const idx = t.lastIndexOf('CREATION-ARTICLE:STATE=');
+          if (idx >= 0) {
+            const after = t.slice(idx + 'CREATION-ARTICLE:STATE='.length).trim();
+            try {
+              const obj = JSON.parse(after);
+              return obj as any;
+            } catch {}
+          }
+        }
+      }
+      return {};
     };
 
     const extractStructured = (text: string) => extractJson(text) || parseKeyValue(text) || {};
@@ -142,10 +160,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return acc;
     };
 
-    let payload = extractStructured(question);
-    // Merge structured values from previous messages
-    const historyValues = aggregateFromMessages(messages);
-    payload = { ...historyValues, ...payload };
+    const state = getStateFromAssistant(messages);
+    let payload = { ...state, ...aggregateFromMessages(messages), ...extractStructured(question) } as Partial<Record<FieldKey,string>>;
 
     // If previous assistant asked for a specific field and user sent plain text without keys, bind it
     const expected = getExpectedFieldFromAssistant(messages);
@@ -167,7 +183,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         numero_article: 'le numéro d\'article',
       };
       const key: FieldKey = nextMissing;
-      const prompt = `Merci. Veuillez fournir ${friendly[key]}.\n\nCREATION-ARTICLE:EXPECT=${key}`;
+      const stateLine = `CREATION-ARTICLE:STATE=${JSON.stringify(payload)}`;
+      const prompt = `Merci. Veuillez fournir ${friendly[key]}.\n\nCREATION-ARTICLE:EXPECT=${key}\n\n${stateLine}`;
       updateAnswer({ text: prompt, finalText: prompt, status: 'COMPLETED' });
       updateStatus('COMPLETED');
       context?.update('answer', _ => prompt);
