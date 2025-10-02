@@ -8,6 +8,9 @@ import { useI18n } from '@repo/common/i18n';
 import { IconPaperclip } from '../icons';
 import * as XLSX from 'xlsx';
 import React from 'react';
+import { useAgentStream } from '../../hooks/agent-provider';
+import { useParams, useRouter } from 'next/navigation';
+import { v4 as uuidv4 } from 'uuid';
 
 const EXPECTED_HEADERS = [
   'libelle_principal',
@@ -51,10 +54,16 @@ function toNormalizedCSV(rows: Array<Record<typeof EXPECTED_HEADERS[number], str
 export const FileImport: React.FC = () => {
   const chatMode = useChatStore((s) => s.chatMode);
   const setInputValue = useChatStore((s) => s.setInputValue);
+  const createThread = useChatStore(s => s.createThread);
+  const getThreadItems = useChatStore(s => s.getThreadItems);
+  const useWebSearch = useChatStore(s => s.useWebSearch);
   const { isSignedIn } = useAuth();
   const { t } = useI18n();
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { handleSubmit } = useAgentStream();
+  const { threadId: currentThreadId } = useParams();
+  const { push } = useRouter();
 
   if (chatMode !== ChatMode.CREATION_D_ARTICLE || !isSignedIn) return null;
 
@@ -136,7 +145,29 @@ export const FileImport: React.FC = () => {
       }
       toast({ title: t('article.import.successPreview', { count: records.length }) });
 
-      setInputValue(csv);
+      let threadId = currentThreadId?.toString();
+      let isNew = false;
+      if (!threadId) {
+        isNew = true;
+        const optimisticId = uuidv4();
+        // Use a concise title instead of full CSV
+        const title = `${t('article.import.title')} (${records.length})`;
+        push(`/chat/${optimisticId}`);
+        createThread(optimisticId, { title });
+        threadId = optimisticId;
+      }
+
+      const formData = new FormData();
+      formData.append('query', csv);
+      formData.append('imageAttachmentCount', '0');
+      const items = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
+
+      await handleSubmit({
+        formData,
+        newThreadId: isNew ? threadId : undefined,
+        messages: items,
+        useWebSearch,
+      });
     } catch (e: any) {
       toast({ title: t('article.import.error', { reason: e?.message || 'Unknown' }), variant: 'destructive' });
     } finally {

@@ -215,8 +215,9 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       }
     }
 
+    const hasCsv = (() => { const tmp = validateAndCollectCSV(question); return tmp.valid.length > 0; })();
     const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
-    if (nextMissing) {
+    if (!hasCsv && nextMissing) {
       const friendly: Record<FieldKey,string> = {
         libelle_principal: 'le libellé principal de l\'article',
         code_barres_initial: 'le code‑barres initial (EAN, max 20)',
