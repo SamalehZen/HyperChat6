@@ -70,6 +70,24 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
     const numero_article = safeString(payload?.numero_article);
 
+    if (!libelle_principal || !code_barres_initial || !numero_fournisseur_unique || !numero_article) {
+      const help = [
+        'Ce mode nécessite 4 champs obligatoires:',
+        "- libelle_principal (ex: CAHIER DE POESIE 170X220 48P INCOLO)",
+        "- code_barres_initial (ex: 3020120014739)",
+        "- numero_fournisseur_unique (ex: 273)",
+        "- numero_article (ex: 136246)",
+        '',
+        'Fournissez-les en JSON ou paires clé: valeur. Exemples:',
+        '{"libelle_principal":"YAOURT GREC NATURE 150G","code_barres_initial":"3760123456789","numero_fournisseur_unique":"273","numero_article":"987654"}',
+        'libelle_principal: YAOURT GREC NATURE 150G; code_barres_initial: 3760123456789; numero_fournisseur_unique: 273; numero_article: 987654',
+      ].join('\n');
+      updateAnswer({ text: help, finalText: help, status: 'COMPLETED' });
+      updateStatus('COMPLETED');
+      context?.update('answer', _ => help);
+      return help;
+    }
+
     const normalizedLabel = collapseSpaces(stripAccents(libelle_principal.toUpperCase()));
 
     const values: Record<string, string> = {};
@@ -157,10 +175,10 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
     } catch {}
 
-    values['AA'] = AA;
-    values['AB'] = AB;
-    values['AC'] = AC;
-    values['AD'] = AD;
+    values['CSECAR'] = AA;
+    values['CRAYAR'] = AB;
+    values['CFAMAR'] = AC;
+    values['CSFAAR'] = AD;
 
     if (numero_fournisseur_unique) {
       values['NORAEF'] = numero_fournisseur_unique;
