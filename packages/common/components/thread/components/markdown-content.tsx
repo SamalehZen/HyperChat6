@@ -162,7 +162,7 @@ export const MarkdownContent = memo(
         const renderExportBar = () => {
             // Vérifier si on doit afficher la barre d'export
             const shouldShowExportBar = 
-                [ChatMode.SMART_PDF_TO_EXCEL, ChatMode.GEMINI_2_5_FLASH].includes(chatMode) &&
+                [ChatMode.SMART_PDF_TO_EXCEL, ChatMode.GEMINI_2_5_FLASH, ChatMode.CREATION_D_ARTICLE].includes(chatMode) &&
                 tableCount > 0 &&
                 typeof totalAttachments !== 'undefined'; // Éviter l'affichage sur les pages non-chat (privacy/terms)
             
