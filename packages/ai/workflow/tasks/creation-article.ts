@@ -172,7 +172,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
 
     const table = [toRow(HEADERS_LONG), toRow(HEADERS_CODES), toRow(valuesRow)].join('\n');
 
-    updateAnswer({ text: '', finalText: table, status: 'COMPLETED' });
+    updateAnswer({ text: table, finalText: table, status: 'COMPLETED' });
 
     context?.get('onFinish')?.({
       answer: table,
