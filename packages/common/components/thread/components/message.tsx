@@ -1,4 +1,5 @@
 import { ChatEditor, markdownStyles } from '@repo/common/components';
+import { ChatMode } from '@repo/shared/config';
 import { useAgentStream, useChatEditor, useCopyText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem } from '@repo/shared/types';
@@ -32,6 +33,50 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
             copyToClipboard(messageRef.current);
         }
     }, [copyToClipboard]);
+
+    const tableRows = useMemo(() => {
+        const lines = (message || '').split('\n').filter(l => l.trim().startsWith('|'));
+        if (lines.length >= 3) {
+            const take = lines.slice(0, 3);
+            const rows = take.map(line => line.split('|').slice(1, -1).map(c => c.trim()));
+            if (rows.every(r => r.length > 0)) return rows;
+        }
+        return null;
+    }, [message]);
+
+    const handleDownloadCSV = useCallback(() => {
+        if (!tableRows) return;
+        const csv = tableRows
+            .map(r => r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(','))
+            .join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `creation-article-${threadItem.id}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, [tableRows, threadItem.id]);
+
+    const handleDownloadXLSX = useCallback(async () => {
+        if (!tableRows) return;
+        const XLSX = await import('xlsx');
+        const ws = XLSX.utils.aoa_to_sheet(tableRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Article');
+        const data = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `creation-article-${threadItem.id}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, [tableRows, threadItem.id]);
 
     const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
 
@@ -104,6 +149,12 @@ export const Message = memo(({ message, imageAttachments, threadItem }: MessageP
                                 >
                                     <IconPencil size={14} strokeWidth={2} />
                                 </Button>
+                                {threadItem.mode === ChatMode.CREATION_D_ARTICLE && !!tableRows && (
+                                    <>
+                                        <Button variant="secondary" size="xs" onClick={handleDownloadCSV}>CSV</Button>
+                                        <Button variant="secondary" size="xs" onClick={handleDownloadXLSX}>XLSX</Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </>
