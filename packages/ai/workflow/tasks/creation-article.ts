@@ -284,30 +284,6 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return table;
     }
 
-    const libelle_principal = safeString(payload?.libelle_principal);
-    const code_barres_initial = safeString(payload?.code_barres_initial);
-    const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
-    const numero_article = safeString(payload?.numero_article);
-
-    if (!libelle_principal || !code_barres_initial || !numero_fournisseur_unique || !numero_article) {
-      const help = [
-        'Ce mode nécessite 4 champs obligatoires:',
-        "- libelle_principal (ex: CAHIER DE POESIE 170X220 48P INCOLO)",
-        "- code_barres_initial (ex: 3020120014739)",
-        "- numero_fournisseur_unique (ex: 273)",
-        "- numero_article (ex: 136246)",
-        '',
-        'Vous pouvez aussi fournir un CSV (Option B) :',
-        'libelle_principal,code_barres_initial,numero_fournisseur_unique,numero_article',
-        'YAOURT GREC NATURE 150G,3760123456789,273,987654',
-        'CHIPS NATURE 150G,3760123456222,273,348763',
-      ].join('\n');
-      updateAnswer({ text: help, finalText: help, status: 'COMPLETED' });
-      updateStatus('COMPLETED');
-      context?.update('answer', _ => help);
-      return help;
-    }
-
     // Mono-article (comportement existant)
     const normalizedLabel = collapseSpaces(stripAccents(libelle_principal.toUpperCase()));
 
