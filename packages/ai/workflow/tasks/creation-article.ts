@@ -218,19 +218,20 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const hasCsv = (() => { const tmp = validateAndCollectCSV(question); return tmp.valid.length > 0; })();
     const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
     if (!hasCsv && nextMissing) {
-      const friendly: Record<FieldKey,string> = {
-        libelle_principal: 'le libellé principal de l\'article',
-        code_barres_initial: 'le code‑barres initial (EAN, max 20)',
-        numero_fournisseur_unique: 'le numéro fournisseur unique',
-        numero_article: 'le numéro d\'article',
-      };
-      const key: FieldKey = nextMissing;
-      const stateLine = `CREATION-ARTICLE:STATE=${JSON.stringify(payload)}`;
-      const prompt = `Merci. Veuillez fournir ${friendly[key]}.\n\nCREATION-ARTICLE:EXPECT=${key}\n\n${stateLine}`;
-      updateAnswer({ text: prompt, finalText: prompt, status: 'COMPLETED' });
+      const intro = [
+        'Je suis un agent spécialisé pour préparer le fichier Excel de création cyrusEREF, sans perte de temps.',
+        '',
+        'Procédez en 3 étapes rapides :',
+        '1) Téléchargez le modèle: [CSV](/templates/article_import_template.csv) · [XLSX](/templates/article_import_template.xlsx)',
+        '2) Remplissez exactement 4 colonnes: libelle_principal, code_barres_initial (≤20 car.), numero_fournisseur_unique, numero_article',
+        '3) Importez le fichier via l’icône « Importer » à côté du sélecteur de modèle. Je génère automatiquement le tableau final et les « Commentaires d’import » (lignes ignorées + raisons).',
+        '',
+        'Limites: jusqu’à 300 lignes par import.'
+      ].join('\n');
+      updateAnswer({ text: intro, finalText: intro, status: 'COMPLETED' });
       updateStatus('COMPLETED');
-      context?.update('answer', _ => prompt);
-      return prompt;
+      context?.update('answer', _ => intro);
+      return intro;
     }
 
     const libelle_principal = safeString(payload?.libelle_principal);
