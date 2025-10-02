@@ -218,6 +218,23 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const hasCsv = (() => { const tmp = validateAndCollectCSV(question); return tmp.valid.length > 0; })();
     const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
     if (!hasCsv && nextMissing) {
+      const isDomainQuestion = /\?|\b(comment|combien|peux|puis-je|est-ce|pourquoi|quel(?:le|s)?|format|mod[èe]le|template|csv|xlsx|ean|colonn|ligne|ignor|limite|valid|doubl|num[ée]riq|import|export|résultat|tableau)\b/i.test(question);
+      if (isDomainQuestion) {
+        try {
+          const system = `Tu es un assistant spécialisé pour la création d’article (cyrusEREF). Réponds uniquement aux questions liées à:\n- modèles CSV/XLSX et étapes d’import\n- 4 colonnes requises (libelle_principal, code_barres_initial ≤ 20, numero_fournisseur_unique, numero_article)\n- limites (max 300 lignes)\n- validation et commentaires d’import (lignes ignorées et raisons)\n- formatage/conseils pour obtenir le tableau final.\nNe réponds pas à des sujets hors de ce périmètre. Sois clair, concis et pratique.`;
+          const answer = await generateText({
+            prompt: system,
+            model: ModelEnum.GEMINI_2_5_FLASH,
+            messages: [{ role: 'user', content: question }] as any,
+            signal,
+          });
+          const text = safeString(answer || '').trim() || 'Je peux aider uniquement sur l’import CSV/XLSX de création d’article. Téléchargez le modèle (CSV/XLSX), remplissez les 4 colonnes, puis importez pour obtenir le tableau.';
+          updateAnswer({ text, finalText: text, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          context?.update('answer', _ => text);
+          return text;
+        } catch {}
+      }
       const intro = [
         'Je suis un agent spécialisé pour préparer le fichier Excel de création cyrusEREF, sans perte de temps.',
         '',
