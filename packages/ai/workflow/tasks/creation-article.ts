@@ -114,7 +114,68 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return obj;
     };
 
-    const payload = extractJson(question) || extractJson(safeString(messages?.[messages.length - 1]?.content || '')) || parseKeyValue(question);
+    const REQUIRED_FIELDS: Array<keyof any> = ['libelle_principal','code_barres_initial','numero_fournisseur_unique','numero_article'];
+
+    const getExpectedFieldFromAssistant = (msgs: any[]): string | null => {
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        const m = msgs[i];
+        if (m?.role === 'assistant') {
+          const t = safeString(m?.content || '');
+          const match = t.match(/CREATION-ARTICLE:EXPECT\s*=\s*(\w+)/i);
+          if (match) return match[1];
+        }
+      }
+      return null;
+    };
+
+    const extractStructured = (text: string) => extractJson(text) || parseKeyValue(text) || {};
+
+    const aggregateFromMessages = (msgs: any[]) => {
+      const acc: any = {};
+      for (const m of msgs || []) {
+        if (m?.role === 'user' && typeof m?.content === 'string') {
+          const obj = extractStructured(m.content);
+          Object.assign(acc, obj);
+        }
+      }
+      return acc;
+    };
+
+    let payload = extractStructured(question);
+    // Merge structured values from previous messages
+    const historyValues = aggregateFromMessages(messages);
+    payload = { ...historyValues, ...payload };
+
+    // If previous assistant asked for a specific field and user sent plain text without keys, bind it
+    const expected = getExpectedFieldFromAssistant(messages);
+    if (expected && !payload?.[expected]) {
+      const latestUser = [...(messages || [])].reverse().find(m => m?.role === 'user');
+      const latestText = safeString(latestUser?.content || question || '');
+      const hasKeys = /libelle_principal|code_barres_initial|numero_fournisseur_unique|numero_article/i.test(latestText);
+      if (!hasKeys && latestText && latestText.length > 1) {
+        payload[expected] = latestText.trim();
+      }
+    }
+
+    const nextMissing = REQUIRED_FIELDS.find(f => !safeString((payload as any)[f]));
+    if (nextMissing) {
+      const friendly: Record<string,string> = {
+        libelle_principal: 'le libellé principal de l\'article',
+        code_barres_initial: 'le code‑barres initial (EAN, max 20)',
+        numero_fournisseur_unique: 'le numéro fournisseur unique',
+        numero_article: 'le numéro d\'article',
+      };
+      const prompt = `Merci. Veuillez fournir ${friendly[nextMissing]}.\n\nCREATION-ARTICLE:EXPECT=${nextMissing}`;
+      updateAnswer({ text: prompt, finalText: prompt, status: 'COMPLETED' });
+      updateStatus('COMPLETED');
+      context?.update('answer', _ => prompt);
+      return prompt;
+    }
+
+    const libelle_principal = safeString(payload?.libelle_principal);
+    const code_barres_initial = safeString(payload?.code_barres_initial);
+    const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
+    const numero_article = safeString(payload?.numero_article);
 
     // Try CSV multi-ligne d'abord
     const csvItems = parseCSVRecords(question);
