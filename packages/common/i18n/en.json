@@ -101,5 +101,17 @@
   "account.suspended.message": "Your account has been suspended for violating the rules. Please contact the administrator.",
   "account.deleted.title": "Account deleted",
   "account.deleted.message": "You did not follow the rules. Your account has been deleted. Please contact the administrator.",
-  "account.deleted.logoutIn": "Logging out in {seconds}s…"
+  "account.deleted.logoutIn": "Logging out in {seconds}s…",
+
+  "article.import.title": "Import articles",
+  "article.import.selectFile": "Select an Excel or CSV file",
+  "article.import.onlyAuthenticated": "Sign in required to import",
+  "article.import.template": "Download template",
+  "article.import.reading": "Reading file…",
+  "article.import.headerError": "Header must be exactly: libelle_principal, code_barres_initial, numero_fournisseur_unique, numero_article",
+  "article.import.truncated": "{count} rows exceed the 300 limit and were ignored",
+  "article.import.successPreview": "{count} rows ready to send",
+  "article.import.comments.title": "Import comments",
+  "article.import.comments.none": "No rows were ignored",
+  "article.import.error": "Import failed: {reason}"
 }

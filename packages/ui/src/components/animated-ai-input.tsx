@@ -199,6 +199,7 @@ interface AI_PromptProps {
     webSearchEnabled?: boolean;
     onToggleWebSearch?: () => void;
     shineColors?: string[];
+    leftActions?: React.ReactNode;
 }
 
 export function AI_Prompt({
@@ -216,6 +217,7 @@ export function AI_Prompt({
     webSearchEnabled = false,
     onToggleWebSearch,
     shineColors,
+    leftActions,
 }: AI_PromptProps) {
     const [internalValue, setInternalValue] = useState("");
     const [internalSelectedModel, setInternalSelectedModel] = useState(models[0]?.id || "");
@@ -376,6 +378,7 @@ export function AI_Prompt({
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                             <div className="h-4 w-px bg-gray-300 dark:bg-gray-600 mx-0.5" />
+                                            {leftActions}
                                         </>
                                     )}
                                     {showWebToggle && (

@@ -83,6 +83,47 @@ const parseCSVRecords = (text: string) => {
   return records;
 };
 
+const validateAndCollectCSV = (text: string) => {
+  const lines = text.split(/\r?\n/).map((s) => s.trim());
+  const nonEmpty = lines.map((l, idx) => ({ line: l, idx })).filter((x) => x.line.length > 0);
+  const headerIdxObj = nonEmpty.find((x) => /^(libelle_principal)\s*,\s*(code_barres_initial)\s*,\s*(numero_fournisseur_unique)\s*,\s*(numero_article)\s*$/i.test(x.line));
+  if (!headerIdxObj) return { valid: [] as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>, errors: [] as string[] };
+  const headerArr = parseCSVLine(headerIdxObj.line).map((h) => h.toLowerCase().trim());
+  const idx = {
+    lib: headerArr.indexOf('libelle_principal'),
+    ean: headerArr.indexOf('code_barres_initial'),
+    nor: headerArr.indexOf('numero_fournisseur_unique'),
+    art: headerArr.indexOf('numero_article'),
+  };
+  if (idx.lib < 0 || idx.ean < 0 || idx.nor < 0 || idx.art < 0) {
+    return { valid: [], errors: [] };
+  }
+  const errors: string[] = [];
+  const valid: Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }> = [];
+  for (let i = headerIdxObj.idx + 1; i < lines.length; i++) {
+    const raw = lines[i];
+    if (!raw || !raw.trim()) continue;
+    const row = parseCSVLine(raw);
+    const lib = safeString(row[idx.lib]).trim();
+    const ean = safeString(row[idx.ean]).trim();
+    const nor = safeString(row[idx.nor]).trim();
+    const art = safeString(row[idx.art]).trim();
+    const rowErrors: string[] = [];
+    if (!lib) rowErrors.push('champ manquant libelle_principal');
+    if (!ean) rowErrors.push('champ manquant code_barres_initial');
+    if (!nor) rowErrors.push('champ manquant numero_fournisseur_unique');
+    if (!art) rowErrors.push('champ manquant numero_article');
+    if (ean && ean.length > 20) rowErrors.push('longueur code_barres_initial > 20');
+    if (rowErrors.length > 0) {
+      const logicalLine = i - headerIdxObj.idx; // 1-based data row index
+      errors.push(`Ligne ${logicalLine}: ${rowErrors.join('; ')}`);
+      continue;
+    }
+    valid.push({ libelle_principal: lib, code_barres_initial: ean, numero_fournisseur_unique: nor, numero_article: art });
+  }
+  return { valid, errors };
+};
+
 export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
   name: 'creation-article',
   execute: async ({ events, context, signal }) => {
@@ -174,21 +215,40 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       }
     }
 
+    const hasCsv = (() => { const tmp = validateAndCollectCSV(question); return tmp.valid.length > 0; })();
     const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
-    if (nextMissing) {
-      const friendly: Record<FieldKey,string> = {
-        libelle_principal: 'le libellé principal de l\'article',
-        code_barres_initial: 'le code‑barres initial (EAN, max 20)',
-        numero_fournisseur_unique: 'le numéro fournisseur unique',
-        numero_article: 'le numéro d\'article',
-      };
-      const key: FieldKey = nextMissing;
-      const stateLine = `CREATION-ARTICLE:STATE=${JSON.stringify(payload)}`;
-      const prompt = `Merci. Veuillez fournir ${friendly[key]}.\n\nCREATION-ARTICLE:EXPECT=${key}\n\n${stateLine}`;
-      updateAnswer({ text: prompt, finalText: prompt, status: 'COMPLETED' });
+    if (!hasCsv && nextMissing) {
+      const isDomainQuestion = /\?|\b(comment|combien|peux|puis-je|est-ce|pourquoi|quel(?:le|s)?|format|mod[èe]le|template|csv|xlsx|ean|colonn|ligne|ignor|limite|valid|doubl|num[ée]riq|import|export|résultat|tableau)\b/i.test(question);
+      if (isDomainQuestion) {
+        try {
+          const system = `Tu es un assistant spécialisé pour la création d’article (cyrusEREF). Réponds uniquement aux questions liées à:\n- modèles CSV/XLSX et étapes d’import\n- 4 colonnes requises (libelle_principal, code_barres_initial ≤ 20, numero_fournisseur_unique, numero_article)\n- limites (max 300 lignes)\n- validation et commentaires d’import (lignes ignorées et raisons)\n- formatage/conseils pour obtenir le tableau final.\nNe réponds pas à des sujets hors de ce périmètre. Sois clair, concis et pratique.`;
+          const answer = await generateText({
+            prompt: system,
+            model: ModelEnum.GEMINI_2_5_FLASH,
+            messages: [{ role: 'user', content: question }] as any,
+            signal,
+          });
+          const text = safeString(answer || '').trim() || 'Je peux aider uniquement sur l’import CSV/XLSX de création d’article. Téléchargez le modèle (CSV/XLSX), remplissez les 4 colonnes, puis importez pour obtenir le tableau.';
+          updateAnswer({ text, finalText: text, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          context?.update('answer', _ => text);
+          return text;
+        } catch {}
+      }
+      const intro = [
+        'Je suis un agent spécialisé pour préparer le fichier Excel de création cyrusEREF, sans perte de temps.',
+        '',
+        'Procédez en 3 étapes rapides :',
+        '1) Téléchargez le modèle: [CSV](/templates/article_import_template.csv) · [XLSX](/templates/article_import_template.xlsx)',
+        '2) Remplissez exactement 4 colonnes: libelle_principal, code_barres_initial (≤20 car.), numero_fournisseur_unique, numero_article',
+        '3) Importez le fichier via l’icône « Importer » à côté du sélecteur de modèle. Je génère automatiquement le tableau final et les « Commentaires d’import » (lignes ignorées + raisons).',
+        '',
+        'Limites: jusqu’à 300 lignes par import.'
+      ].join('\n');
+      updateAnswer({ text: intro, finalText: intro, status: 'COMPLETED' });
       updateStatus('COMPLETED');
-      context?.update('answer', _ => prompt);
-      return prompt;
+      context?.update('answer', _ => intro);
+      return intro;
     }
 
     const libelle_principal = safeString(payload?.libelle_principal);
@@ -283,14 +343,20 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     };
 
     if (csvItems && csvItems.length > 0) {
+      const { valid, errors } = validateAndCollectCSV(question);
+      const limited = valid.slice(0, 300);
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
-      for (const it of csvItems.slice(0, 300)) {
+      for (const it of limited) {
         const r = await buildRowForItem(it);
         rows.push(toRow(r));
       }
-      const table = rows.join('\n');
+      const commentsTitle = `\n\n## Commentaires d’import`;
+      const commentsBody = errors.length
+        ? errors.map(e => `- ${e}`).join('\n')
+        : `- Aucune ligne ignorée`;
+      const table = rows.join('\n') + commentsTitle + '\n' + commentsBody;
       updateAnswer({ text: table, finalText: table, status: 'COMPLETED' });
       updateStatus('COMPLETED');
       context?.update('answer', _ => table);

@@ -110,5 +110,17 @@
   "admin.kpi.suspended": "Comptes suspendus",
   "admin.kpi.deleted": "Comptes supprimés",
   "admin.kpi.reactivatedAfterLockout": "Réactivations après lockout (24h)",
-  "admin.events.recent": "Événements récents (24h)"
+  "admin.events.recent": "Événements récents (24h)",
+
+  "article.import.title": "Importer des articles",
+  "article.import.selectFile": "Sélectionner un fichier Excel ou CSV",
+  "article.import.onlyAuthenticated": "Connexion requise pour importer",
+  "article.import.template": "Télécharger le modèle",
+  "article.import.reading": "Lecture du fichier…",
+  "article.import.headerError": "L’en-tête doit contenir exactement : libelle_principal, code_barres_initial, numero_fournisseur_unique, numero_article",
+  "article.import.truncated": "{count} lignes excèdent la limite de 300 et ont été ignorées",
+  "article.import.successPreview": "{count} lignes prêtes à l’envoi",
+  "article.import.comments.title": "Commentaires d’import",
+  "article.import.comments.none": "Aucune ligne ignorée",
+  "article.import.error": "Échec de l’import: {reason}"
 }

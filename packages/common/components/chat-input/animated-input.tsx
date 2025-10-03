@@ -5,6 +5,8 @@ import {
     ImageAttachment,
     ImageDropzoneRoot,
     MessagesRemainingBadge,
+    FileImportIcon,
+    FileImportLinks,
 } from '@repo/common/components';
 import { useImageAttachment } from '@repo/common/hooks';
 import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig, getChatModeName, getShineColors } from '@repo/shared/config';
@@ -282,6 +284,10 @@ export const AnimatedChatInput = ({
 
     const sendMessage = async (value: string, modelId: string) => {
         if (!value.trim()) return;
+        if (isGenerating) {
+            toast({ title: 'Réponse en cours… Vous pouvez saisir votre prochaine question pendant le streaming.' });
+            return;
+        }
 
         // Check authentication requirements
         const selectedModel = activeModels.find(m => m.id === modelId);
@@ -381,6 +387,7 @@ export const AnimatedChatInput = ({
                                 </button>
                             </div>
                         )}
+                        <FileImportLinks />
                         <AI_Prompt
                             value={inputValue}
                             onChange={setInputValue}
@@ -391,11 +398,11 @@ export const AnimatedChatInput = ({
                             onModelChange={handleModelChange}
                             onAttachFile={ChatModeConfig[chatMode]?.imageUpload ? handleFileAttachment : undefined}
                             fileAccept={(chatMode === ChatMode.GEMINI_2_5_FLASH || chatMode === ChatMode.SMART_PDF_TO_EXCEL) ? 'image/jpeg,image/png,image/gif,application/pdf' : 'image/jpeg,image/png,image/gif'}
-                            disabled={isGenerating}
                             showWebToggle={!!(ChatModeConfig[chatMode]?.webSearch || hasApiKeyForChatMode(chatMode))}
                             webSearchEnabled={useWebSearch}
                             onToggleWebSearch={() => setUseWebSearch(!useWebSearch)}
                             shineColors={getShineColors(effective.aiPromptShinePreset)}
+                            leftActions={<FileImportIcon />}
                         />
                     </ImageDropzoneRoot>
                 </Flex>
