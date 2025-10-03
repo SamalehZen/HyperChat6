@@ -260,51 +260,66 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const csvItems = parseCSVRecords(question);
     const toRow = (arr: any[]) => `| ${arr.map(v => safeString(v)).join(' | ')} |`;
 
+    const classificationCache = new Map<string, { AA: string; AB: string; AC: string; AD: string }>();
     const classify = async (normalizedLabel: string) => {
+      if (classificationCache.has(normalizedLabel)) {
+        return classificationCache.get(normalizedLabel)!;
+      }
       let AA: string = FallbackCodes.AA;
       let AB: string = FallbackCodes.AB;
       let AC: string = FallbackCodes.AC;
       let AD: string = FallbackCodes.AD;
       try {
-        const clsResponse = await generateText({
-          prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
-          model: ModelEnum.GEMINI_2_5_FLASH,
-          messages: [{ role: 'user', content: `Libellé: ${normalizedLabel}` }] as any,
-          signal,
-        });
-        const getCodes = (text: string) => {
-          try {
-            const first = text.indexOf('{');
-            const last = text.lastIndexOf('}');
-            if (first !== -1 && last !== -1 && last > first) {
-              const jsonStr = text.slice(first, last + 1);
-              const obj = JSON.parse(jsonStr);
-              return {
-                AA: safeString(obj?.AA || obj?.aa),
-                AB: safeString(obj?.AB || obj?.ab),
-                AC: safeString(obj?.AC || obj?.ac),
-                AD: safeString(obj?.AD || obj?.ad),
-              };
-            }
-          } catch {}
-          const reAA = /\bAA\s*[:=]\s*['\"]?(\d{2})/i.exec(text);
-          const reAB = /\bAB\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-          const reAC = /\bAC\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-          const reAD = /\bAD\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-          return {
-            AA: safeString(reAA?.[1] || ''),
-            AB: safeString(reAB?.[1] || ''),
-            AC: safeString(reAC?.[1] || ''),
-            AD: safeString(reAD?.[1] || ''),
+        const ac = new AbortController();
+        const onAbort = () => ac.abort();
+        signal?.addEventListener('abort', onAbort, { once: true } as any);
+        const timer = setTimeout(() => ac.abort(), 6000);
+        try {
+          const clsResponse = await generateText({
+            prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
+            model: ModelEnum.GEMINI_2_5_FLASH,
+            messages: [{ role: 'user', content: `Libellé: ${normalizedLabel}` }] as any,
+            signal: ac.signal,
+          });
+          const getCodes = (text: string) => {
+            try {
+              const first = text.indexOf('{');
+              const last = text.lastIndexOf('}');
+              if (first !== -1 && last !== -1 && last > first) {
+                const jsonStr = text.slice(first, last + 1);
+                const obj = JSON.parse(jsonStr);
+                return {
+                  AA: safeString(obj?.AA || obj?.aa),
+                  AB: safeString(obj?.AB || obj?.ab),
+                  AC: safeString(obj?.AC || obj?.ac),
+                  AD: safeString(obj?.AD || obj?.ad),
+                };
+              }
+            } catch {}
+            const reAA = /\bAA\s*[:=]\s*['\"]?(\d{2})/i.exec(text);
+            const reAB = /\bAB\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+            const reAC = /\bAC\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+            const reAD = /\bAD\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+            return {
+              AA: safeString(reAA?.[1] || ''),
+              AB: safeString(reAB?.[1] || ''),
+              AC: safeString(reAC?.[1] || ''),
+              AD: safeString(reAD?.[1] || ''),
+            };
           };
-        };
-        const parsed = getCodes(clsResponse || '');
-        if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
-        if (/^\d{3}$/.test(parsed.AB)) AB = parsed.AB;
-        if (/^\d{3}$/.test(parsed.AC)) AC = parsed.AC;
-        if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
+          const parsed = getCodes(clsResponse || '');
+          if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
+          if (/^\d{3}$/.test(parsed.AB)) AB = parsed.AB;
+          if (/^\d{3}$/.test(parsed.AC)) AC = parsed.AC;
+          if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
+        } finally {
+          clearTimeout(timer);
+          signal?.removeEventListener?.('abort', onAbort as any);
+        }
       } catch {}
-      return { AA, AB, AC, AD };
+      const result = { AA, AB, AC, AD };
+      classificationCache.set(normalizedLabel, result);
+      return result;
     };
 
     const buildRowForItem = async (item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }) => {
@@ -348,10 +363,24 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
-      for (const it of limited) {
+      const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T, idx: number) => Promise<R>) => {
+        const res = new Array<R>(items.length);
+        let idx = 0;
+        const workers = Array.from({ length: Math.max(1, limit) }).map(async () => {
+          while (true) {
+            const current = idx++;
+            if (current >= items.length) break;
+            res[current] = await fn(items[current], current);
+          }
+        });
+        await Promise.all(workers);
+        return res;
+      };
+      const dataRows = await mapWithConcurrency(limited, 6, async (it) => {
         const r = await buildRowForItem(it);
-        rows.push(toRow(r));
-      }
+        return toRow(r);
+      });
+      rows.push(...dataRows);
       const commentsTitle = `\n\n## Commentaires d’import`;
       const commentsBody = errors.length
         ? errors.map(e => `- ${e}`).join('\n')
