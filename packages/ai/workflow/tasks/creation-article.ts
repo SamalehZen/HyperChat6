@@ -329,15 +329,17 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         return res;
       };
       const classifErrors: string[] = [];
+      const rawLabels = limited.map(it => safeString(it.libelle_principal));
+      const { classifyCodesBatchFlash } = await import('./classification-codes');
+      const batchCodes = await classifyCodesBatchFlash(rawLabels, signal);
       const dataRows = await mapWithConcurrency(limited, 4, async (it, i) => {
-        const rawLabel = safeString(it.libelle_principal);
-        const { AA, AB, AC, AD } = await classifyCodesHierarchicalFlash(rawLabel, signal);
-        const vd = validateCodesDetailed(AA, AB, AC, AD);
+        const codes = batchCodes[i] || { AA: '', AB: '', AC: '', AD: '' };
+        const vd = validateCodesDetailed(codes.AA, codes.AB, codes.AC, codes.AD);
         if (!vd.ok) {
           classifErrors.push(`Ligne ${i + 1}: ${vd.reasons.join(', ')}`);
           return '' as any;
         }
-        const r = await buildRowForItem({ ...it }, { AA, AB, AC, AD });
+        const r = await buildRowForItem({ ...it }, codes);
         return toRow(r);
       });
       rows.push(...dataRows.filter(Boolean as any));
