@@ -2,6 +2,31 @@ import { ModelEnum } from '../../models';
 import { generateText } from '../utils';
 import { GEMINI_SPECIALIZED_PROMPT } from './gemini-specialized-prompt';
 
+const VALID2 = new Set<string>();
+const VALID3 = new Set<string>();
+(function buildValidSets() {
+  try {
+    const txt = GEMINI_SPECIALIZED_PROMPT || '';
+    const startIdx = txt.indexOf('CLASSIFICATION_HIERARCHY');
+    const segment = startIdx >= 0 ? txt.slice(startIdx) : txt;
+    const re = /(?:^|\n)\s*(\d{2,3})\s/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(segment))) {
+      const code = m[1];
+      if (code.length === 2) VALID2.add(code);
+      else if (code.length === 3) VALID3.add(code);
+    }
+  } catch {}
+})();
+
+export function validateCodes(AA?: string, AB?: string, AC?: string, AD?: string) {
+  const aaOk = !!AA && VALID2.has(AA);
+  const abOk = !!AB && VALID3.has(AB);
+  const acOk = !!AC && VALID3.has(AC);
+  const adOk = !!AD && VALID3.has(AD);
+  return aaOk && abOk && acOk && adOk;
+}
+
 const classificationCache = new Map<string, { AA: string; AB: string; AC: string; AD: string }>();
 
 const safeString = (v: any) => (v === undefined || v === null ? '' : String(v));
@@ -77,3 +102,4 @@ export async function classifyCodesByEngine(normalizedLabel: string, signal?: Ab
   classificationCache.set(normalizedLabel, result);
   return result;
 }
+

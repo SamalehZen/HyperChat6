@@ -304,6 +304,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
+      const { validateCodes, classifyCodesByEngine } = await import('./classification-codes');
       const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T, idx: number) => Promise<R>) => {
         const res = new Array<R>(items.length);
         let idx = 0;
@@ -317,11 +318,21 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         await Promise.all(workers);
         return res;
       };
-      const dataRows = await mapWithConcurrency(limited, 4, async (it) => {
-        const r = await buildRowForItem(it);
+      const classifErrors: string[] = [];
+      const dataRows = await mapWithConcurrency(limited, 4, async (it, i) => {
+        const normalizedLabel = collapseSpaces(stripAccents(safeString(it.libelle_principal).toUpperCase()));
+        const { AA, AB, AC, AD } = await classifyCodesByEngine(normalizedLabel, signal);
+        if (!validateCodes(AA, AB, AC, AD)) {
+          classifErrors.push(`Ligne ${i + 1}: classification non déterminée`);
+          return '' as any;
+        }
+        const r = await buildRowForItem({ ...it });
         return toRow(r);
       });
-      rows.push(...dataRows);
+      rows.push(...dataRows.filter(Boolean as any));
+      if (classifErrors.length) {
+        errors.push(...classifErrors);
+      }
       const commentsTitle = `\n\n## Commentaires d’import`;
       const commentsBody = errors.length
         ? errors.map(e => `- ${e}`).join('\n')
