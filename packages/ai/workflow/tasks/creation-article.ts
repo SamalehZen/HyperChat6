@@ -269,52 +269,63 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       let AB: string = FallbackCodes.AB;
       let AC: string = FallbackCodes.AC;
       let AD: string = FallbackCodes.AD;
-      try {
+      const getCodes = (text: string) => {
+        try {
+          const first = text.indexOf('{');
+          const last = text.lastIndexOf('}');
+          if (first !== -1 && last !== -1 && last > first) {
+            const jsonStr = text.slice(first, last + 1);
+            const obj = JSON.parse(jsonStr);
+            return {
+              AA: safeString(obj?.AA || obj?.aa),
+              AB: safeString(obj?.AB || obj?.ab),
+              AC: safeString(obj?.AC || obj?.ac),
+              AD: safeString(obj?.AD || obj?.ad),
+            };
+          }
+        } catch {}
+        const reAA = /\bAA\s*[:=]\s*['\"]?(\d{2})/i.exec(text);
+        const reAB = /\bAB\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+        const reAC = /\bAC\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+        const reAD = /\bAD\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
+        return {
+          AA: safeString(reAA?.[1] || ''),
+          AB: safeString(reAB?.[1] || ''),
+          AC: safeString(reAC?.[1] || ''),
+          AD: safeString(reAD?.[1] || ''),
+        };
+      };
+      const ask = async (model: ModelEnum) => {
         const ac = new AbortController();
         const onAbort = () => ac.abort();
         signal?.addEventListener('abort', onAbort, { once: true } as any);
-        const timer = setTimeout(() => ac.abort(), 6000);
+        const timer = setTimeout(() => ac.abort(), 12000);
         try {
           const clsResponse = await generateText({
-            prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
-            model: ModelEnum.GEMINI_2_5_FLASH,
+            prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON strict: {"AA":"..","AB":"..","AC":"..","AD":".."}. Les codes doivent exister dans la hiérarchie fournie ci‑dessus. Aucune explication.',
+            model,
             messages: [{ role: 'user', content: `Libellé: ${normalizedLabel}` }] as any,
             signal: ac.signal,
           });
-          const getCodes = (text: string) => {
-            try {
-              const first = text.indexOf('{');
-              const last = text.lastIndexOf('}');
-              if (first !== -1 && last !== -1 && last > first) {
-                const jsonStr = text.slice(first, last + 1);
-                const obj = JSON.parse(jsonStr);
-                return {
-                  AA: safeString(obj?.AA || obj?.aa),
-                  AB: safeString(obj?.AB || obj?.ab),
-                  AC: safeString(obj?.AC || obj?.ac),
-                  AD: safeString(obj?.AD || obj?.ad),
-                };
-              }
-            } catch {}
-            const reAA = /\bAA\s*[:=]\s*['\"]?(\d{2})/i.exec(text);
-            const reAB = /\bAB\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-            const reAC = /\bAC\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-            const reAD = /\bAD\s*[:=]\s*['\"]?(\d{3})/i.exec(text);
-            return {
-              AA: safeString(reAA?.[1] || ''),
-              AB: safeString(reAB?.[1] || ''),
-              AC: safeString(reAC?.[1] || ''),
-              AD: safeString(reAD?.[1] || ''),
-            };
-          };
-          const parsed = getCodes(clsResponse || '');
+          return getCodes(clsResponse || '');
+        } finally {
+          clearTimeout(timer);
+          signal?.removeEventListener?.('abort', onAbort as any);
+        }
+      };
+      try {
+        let parsed = await ask(ModelEnum.GEMINI_2_5_FLASH);
+        if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
+        if (/^\d{3}$/.test(parsed.AB)) AB = parsed.AB;
+        if (/^\d{3}$/.test(parsed.AC)) AC = parsed.AC;
+        if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
+        const ok = /^\d{2}$/.test(AA) && /^\d{3}$/.test(AB) && /^\d{3}$/.test(AC) && /^\d{3}$/.test(AD);
+        if (!ok) {
+          parsed = await ask(ModelEnum.GEMINI_2_5_PRO);
           if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
           if (/^\d{3}$/.test(parsed.AB)) AB = parsed.AB;
           if (/^\d{3}$/.test(parsed.AC)) AC = parsed.AC;
           if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
-        } finally {
-          clearTimeout(timer);
-          signal?.removeEventListener?.('abort', onAbort as any);
         }
       } catch {}
       const result = { AA, AB, AC, AD };
@@ -376,7 +387,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         await Promise.all(workers);
         return res;
       };
-      const dataRows = await mapWithConcurrency(limited, 6, async (it) => {
+      const dataRows = await mapWithConcurrency(limited, 4, async (it) => {
         const r = await buildRowForItem(it);
         return toRow(r);
       });
