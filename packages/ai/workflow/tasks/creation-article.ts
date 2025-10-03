@@ -378,7 +378,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['GENECB'] = '';
     }
 
-    const { AA, AB, AC, AD } = await classify(normalizedLabel);
+    const { classifyCodesByEngine } = await import('./classification-codes');
+    const { AA, AB, AC, AD } = await classifyCodesByEngine(normalizedLabel, signal);
 
     values['CSECAR'] = AA;
     values['CRAYAR'] = AB;
