@@ -262,7 +262,10 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
 
 
 
-    const buildRowForItem = async (item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }) => {
+    const buildRowForItem = async (
+      item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string },
+      pre?: { AA?: string; AB?: string; AC?: string; AD?: string }
+    ) => {
       const values: Record<string, string> = {};
       for (let i = 0; i < HEADERS_CODES.length; i++) {
         const code = HEADERS_CODES[i];
@@ -287,12 +290,19 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const art = safeString(item.numero_article);
       if (art) values['NARTAR'] = art;
       if (!values['CEANAR']) values['GENECB'] = '1'; else values['GENECB'] = '';
-      const { classifyCodesByEngine } = await import('./classification-codes');
-      const { AA, AB, AC, AD } = await classifyCodesByEngine(safeString(item.libelle_principal), signal);
-      values['CSECAR'] = AA;
-      values['CRAYAR'] = AB;
-      values['CFAMAR'] = AC;
-      values['CSFAAR'] = AD;
+      if (pre?.AA && pre?.AB && pre?.AC && pre?.AD) {
+        values['CSECAR'] = pre.AA;
+        values['CRAYAR'] = pre.AB;
+        values['CFAMAR'] = pre.AC;
+        values['CSFAAR'] = pre.AD;
+      } else {
+        const { classifyCodesHierarchicalFlash } = await import('./classification-codes');
+        const { AA, AB, AC, AD } = await classifyCodesHierarchicalFlash(safeString(item.libelle_principal), signal);
+        values['CSECAR'] = AA;
+        values['CRAYAR'] = AB;
+        values['CFAMAR'] = AC;
+        values['CSFAAR'] = AD;
+      }
       const nor = safeString(item.numero_fournisseur_unique);
       if (nor) values['NORAEF'] = nor;
       return HEADERS_CODES.map(code => safeString(values[code] ?? ''));
@@ -304,7 +314,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
-      const { validateCodesDetailed, classifyCodesByEngine } = await import('./classification-codes');
+      const { validateCodesDetailed, classifyCodesHierarchicalFlash } = await import('./classification-codes');
       const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T, idx: number) => Promise<R>) => {
         const res = new Array<R>(items.length);
         let idx = 0;
@@ -321,13 +331,13 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const classifErrors: string[] = [];
       const dataRows = await mapWithConcurrency(limited, 4, async (it, i) => {
         const rawLabel = safeString(it.libelle_principal);
-        const { AA, AB, AC, AD } = await classifyCodesByEngine(rawLabel, signal);
+        const { AA, AB, AC, AD } = await classifyCodesHierarchicalFlash(rawLabel, signal);
         const vd = validateCodesDetailed(AA, AB, AC, AD);
         if (!vd.ok) {
           classifErrors.push(`Ligne ${i + 1}: ${vd.reasons.join(', ')}`);
           return '' as any;
         }
-        const r = await buildRowForItem({ ...it });
+        const r = await buildRowForItem({ ...it }, { AA, AB, AC, AD });
         return toRow(r);
       });
       rows.push(...dataRows.filter(Boolean as any));

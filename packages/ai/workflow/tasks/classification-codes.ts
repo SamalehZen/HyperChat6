@@ -95,3 +95,58 @@ export async function classifyCodesByEngine(normalizedLabel: string, signal?: Ab
   return result;
 }
 
+async function askStep(rawLabel: string, level: 'AA' | 'AB' | 'AC' | 'AD', ctx: { AA?: string; AB?: string; AC?: string }, signal?: AbortSignal) {
+  const ac = new AbortController();
+  const onAbort = () => ac.abort();
+  signal?.addEventListener('abort', onAbort, { once: true } as any);
+  const timer = setTimeout(() => ac.abort(), 10000);
+  try {
+    const system =
+      GEMINI_SPECIALIZED_PROMPT +
+      `\n\nRéponds uniquement avec un JSON strict pour le niveau ${level}.` +
+      (level === 'AA'
+        ? ` Format: {"AA":".."} (exactement 2 chiffres).`
+        : level === 'AB'
+        ? ` Format: {"AB":"..."} (exactement 3 chiffres) et cohérent avec AA="${ctx.AA ?? ''}".`
+        : level === 'AC'
+        ? ` Format: {"AC":"..."} (exactement 3 chiffres) et cohérent avec AA="${ctx.AA ?? ''}", AB="${ctx.AB ?? ''}".`
+        : ` Format: {"AD":"..."} (exactement 3 chiffres) et cohérent avec AA="${ctx.AA ?? ''}", AB="${ctx.AB ?? ''}", AC="${ctx.AC ?? ''}".`);
+    const res = await generateText({
+      prompt: system,
+      model: ModelEnum.GEMINI_2_5_FLASH,
+      messages: [{ role: 'user', content: `Libellé: ${rawLabel}` }] as any,
+      signal: ac.signal,
+    });
+    const parsed = parseCodes(res || '');
+    return parsed;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener?.('abort', onAbort as any);
+  }
+}
+
+export async function classifyCodesHierarchicalFlash(rawLabel: string, signal?: AbortSignal) {
+  let AA = '', AB = '', AC = '', AD = '';
+  // AA
+  for (let attempt = 0; attempt < 2 && !/^\d{2}$/.test(AA); attempt++) {
+    const p = await askStep(rawLabel, 'AA', {}, signal);
+    if (p.AA && /^\d{2}$/.test(p.AA)) AA = p.AA;
+  }
+  // AB
+  for (let attempt = 0; attempt < 2 && !/^\d{3}$/.test(AB); attempt++) {
+    const p = await askStep(rawLabel, 'AB', { AA }, signal);
+    if (p.AB && /^\d{3}$/.test(p.AB)) AB = p.AB;
+  }
+  // AC
+  for (let attempt = 0; attempt < 2 && !/^\d{3}$/.test(AC); attempt++) {
+    const p = await askStep(rawLabel, 'AC', { AA, AB }, signal);
+    if (p.AC && /^\d{3}$/.test(p.AC)) AC = p.AC;
+  }
+  // AD
+  for (let attempt = 0; attempt < 2 && !/^\d{3}$/.test(AD); attempt++) {
+    const p = await askStep(rawLabel, 'AD', { AA, AB, AC }, signal);
+    if (p.AD && /^\d{3}$/.test(p.AD)) AD = p.AD;
+  }
+  return { AA, AB, AC, AD };
+}
+
