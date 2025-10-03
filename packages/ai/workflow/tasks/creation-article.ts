@@ -288,7 +288,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       if (art) values['NARTAR'] = art;
       if (!values['CEANAR']) values['GENECB'] = '1'; else values['GENECB'] = '';
       const { classifyCodesByEngine } = await import('./classification-codes');
-      const { AA, AB, AC, AD } = await classifyCodesByEngine(normalizedLabel, signal);
+      const { AA, AB, AC, AD } = await classifyCodesByEngine(safeString(item.libelle_principal), signal);
       values['CSECAR'] = AA;
       values['CRAYAR'] = AB;
       values['CFAMAR'] = AC;
@@ -304,7 +304,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
-      const { validateCodes, classifyCodesByEngine } = await import('./classification-codes');
+      const { validateCodesDetailed, classifyCodesByEngine } = await import('./classification-codes');
       const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T, idx: number) => Promise<R>) => {
         const res = new Array<R>(items.length);
         let idx = 0;
@@ -320,10 +320,11 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       };
       const classifErrors: string[] = [];
       const dataRows = await mapWithConcurrency(limited, 4, async (it, i) => {
-        const normalizedLabel = collapseSpaces(stripAccents(safeString(it.libelle_principal).toUpperCase()));
-        const { AA, AB, AC, AD } = await classifyCodesByEngine(normalizedLabel, signal);
-        if (!validateCodes(AA, AB, AC, AD)) {
-          classifErrors.push(`Ligne ${i + 1}: classification non déterminée`);
+        const rawLabel = safeString(it.libelle_principal);
+        const { AA, AB, AC, AD } = await classifyCodesByEngine(rawLabel, signal);
+        const vd = validateCodesDetailed(AA, AB, AC, AD);
+        if (!vd.ok) {
+          classifErrors.push(`Ligne ${i + 1}: ${vd.reasons.join(', ')}`);
           return '' as any;
         }
         const r = await buildRowForItem({ ...it });
@@ -390,7 +391,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     }
 
     const { classifyCodesByEngine } = await import('./classification-codes');
-    const { AA, AB, AC, AD } = await classifyCodesByEngine(normalizedLabel, signal);
+    const { AA, AB, AC, AD } = await classifyCodesByEngine(libelle_principal, signal);
 
     values['CSECAR'] = AA;
     values['CRAYAR'] = AB;
