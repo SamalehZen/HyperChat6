@@ -56,7 +56,7 @@ async function askModel(normalizedLabel: string, model: ModelEnum, signal?: Abor
 export async function classifyCodesByEngine(normalizedLabel: string, signal?: AbortSignal) {
   if (classificationCache.has(normalizedLabel)) return classificationCache.get(normalizedLabel)!;
 
-  let AA = '07', AB = '074', AC = '742', AD = '206';
+  let AA = '', AB = '', AC = '', AD = '';
   try {
     let parsed = await askModel(normalizedLabel, ModelEnum.GEMINI_2_5_FLASH, signal);
     if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
@@ -65,7 +65,8 @@ export async function classifyCodesByEngine(normalizedLabel: string, signal?: Ab
     if (/^\d{3}$/.test(parsed.AD)) AD = parsed.AD;
     const ok = /^\d{2}$/.test(AA) && /^\d{3}$/.test(AB) && /^\d{3}$/.test(AC) && /^\d{3}$/.test(AD);
     if (!ok) {
-      parsed = await askModel(normalizedLabel, ModelEnum.GEMINI_2_5_PRO, signal);
+      // Second essai Flash uniquement
+      parsed = await askModel(normalizedLabel, ModelEnum.GEMINI_2_5_FLASH, signal);
       if (/^\d{2}$/.test(parsed.AA)) AA = parsed.AA;
       if (/^\d{3}$/.test(parsed.AB)) AB = parsed.AB;
       if (/^\d{3}$/.test(parsed.AC)) AC = parsed.AC;
