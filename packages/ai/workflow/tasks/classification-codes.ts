@@ -2,38 +2,20 @@ import { ModelEnum } from '../../models';
 import { generateText } from '../utils';
 import { GEMINI_SPECIALIZED_PROMPT } from './gemini-specialized-prompt';
 
-const VALID2 = new Set<string>();
-const VALID3 = new Set<string>();
-(function buildValidSets() {
-  try {
-    const txt = GEMINI_SPECIALIZED_PROMPT || '';
-    const startIdx = txt.indexOf('CLASSIFICATION_HIERARCHY');
-    const segment = startIdx >= 0 ? txt.slice(startIdx) : txt;
-    const re = /(?:^|\n)\s*(\d{2,3})\s/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(segment))) {
-      const code = m[1];
-      if (code.length === 2) VALID2.add(code);
-      else if (code.length === 3) VALID3.add(code);
-    }
-  } catch {}
-})();
-
 export function validateCodes(AA?: string, AB?: string, AC?: string, AD?: string) {
-  const aaOk = !!AA && VALID2.has(AA);
-  const abOk = !!AB && VALID3.has(AB) && (!!AA ? AB.startsWith(AA) : true);
-  const acOk = !!AC && VALID3.has(AC);
-  const adOk = !!AD && VALID3.has(AD);
+  const aaOk = typeof AA === 'string' && /^\d{2}$/.test(AA);
+  const abOk = typeof AB === 'string' && /^\d{3}$/.test(AB);
+  const acOk = typeof AC === 'string' && /^\d{3}$/.test(AC);
+  const adOk = typeof AD === 'string' && /^\d{3}$/.test(AD);
   return aaOk && abOk && acOk && adOk;
 }
 
 export function validateCodesDetailed(AA?: string, AB?: string, AC?: string, AD?: string) {
   const reasons: string[] = [];
-  if (!AA || !VALID2.has(AA)) reasons.push('AA invalide ou inconnu');
-  if (!AB || !VALID3.has(AB)) reasons.push('AB invalide ou inconnu');
-  else if (AA && !AB.startsWith(AA)) reasons.push(`AB (« ${AB} ») non cohérent avec AA (« ${AA} »)`);
-  if (!AC || !VALID3.has(AC)) reasons.push('AC invalide ou inconnu');
-  if (!AD || !VALID3.has(AD)) reasons.push('AD invalide ou inconnu');
+  if (!(typeof AA === 'string' && /^\d{2}$/.test(AA))) reasons.push('AA invalide (attendu 2 chiffres)');
+  if (!(typeof AB === 'string' && /^\d{3}$/.test(AB))) reasons.push('AB invalide (attendu 3 chiffres)');
+  if (!(typeof AC === 'string' && /^\d{3}$/.test(AC))) reasons.push('AC invalide (attendu 3 chiffres)');
+  if (!(typeof AD === 'string' && /^\d{3}$/.test(AD))) reasons.push('AD invalide (attendu 3 chiffres)');
   return { ok: reasons.length === 0, reasons };
 }
 
