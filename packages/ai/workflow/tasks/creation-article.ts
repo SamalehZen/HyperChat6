@@ -3,7 +3,6 @@ import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { generateText, handleError, sendEvents } from '../utils';
 import { GEMINI_SPECIALIZED_PROMPT } from './gemini-specialized-prompt';
-import { CREATION_ARTICLE_CLASSIFICATION_PROMPT } from './creation-article-classification-prompt';
 import { HEADERS_LONG, HEADERS_CODES, REF_ROW, MAX_LENGTHS } from '../prompts/arkabase-article-structure';
 
 const stripAccents = (s: string) =>
@@ -62,6 +61,16 @@ const parseCSVLine = (line: string): string[] => {
 };
 
 type HeaderVariant = 'new' | 'old';
+
+type ClassificationCodes = { AA: string; AB: string; AC: string; AD: string };
+type ClassificationPreviewItem = {
+  index: number;
+  libelle: string;
+  aa: { code: string; libelle: string };
+  ab: { code: string; libelle: string };
+  ac: { code: string; libelle: string };
+  ad: { code: string; libelle: string };
+};
 
 const detectHeaderVariant = (header: string[]): HeaderVariant | null => {
   if (!header || header.length < 3) return null;
@@ -245,8 +254,60 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       }
     }
 
-    const hasCsv = (() => { const tmp = validateAndCollectCSV(question); return tmp.valid.length > 0; })();
+    const csvValidation = validateAndCollectCSV(question);
+    const hasCsv = csvValidation.valid.length > 0;
     const nextMissing = REQUIRED_FIELDS.find((f): f is FieldKey => !safeString((payload as any)[f]));
+
+    const pendingRecordsRaw = context?.get('creationArticlePendingRecords') as string | null | undefined;
+    const pendingClassificationsRaw = context?.get('creationArticlePendingClassifications') as string | null | undefined;
+    const pendingErrorsRaw = context?.get('creationArticlePendingErrors') as string | null | undefined;
+    const hasPendingPreview = !!pendingRecordsRaw && !!pendingClassificationsRaw;
+    if (hasPendingPreview) {
+      const normalizedQuestion = question.toLowerCase();
+      const wantsApproval = /\boui\b/.test(normalizedQuestion);
+      const looksLikeNewCsv = hasCsv || normalizedQuestion.includes('libelle_principal');
+      if (wantsApproval) {
+        try {
+          const records = JSON.parse(pendingRecordsRaw as string) as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>;
+          const classifications = JSON.parse(pendingClassificationsRaw as string) as ClassificationPreviewItem[];
+          const errors = pendingErrorsRaw ? JSON.parse(pendingErrorsRaw as string) as string[] : [];
+          context?.update('creationArticlePendingRecords', () => null);
+          context?.update('creationArticlePendingClassifications', () => null);
+          context?.update('creationArticlePendingErrors', () => null);
+          const table = await createFinalOutput(records, errors, classifications);
+          updateAnswer({ text: table, finalText: table, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          context?.update('answer', _ => table);
+          context?.get('onFinish')?.({
+            answer: table,
+            threadId: context?.get('threadId'),
+            threadItemId: context?.get('threadItemId'),
+            mode: 'creation-d-article',
+          });
+          return table;
+        } catch {
+          context?.update('creationArticlePendingRecords', () => null);
+          context?.update('creationArticlePendingClassifications', () => null);
+          context?.update('creationArticlePendingErrors', () => null);
+          const message = 'La pré-classification précédente n’est plus disponible. Merci de réimporter le fichier.';
+          updateAnswer({ text: message, finalText: message, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          context?.update('answer', _ => message);
+          return message;
+        }
+      } else if (!looksLikeNewCsv) {
+        const reminder = 'Merci de répondre "oui" pour valider ces classifications, ou réimportez un fichier pour recommencer.';
+        updateAnswer({ text: reminder, finalText: reminder, status: 'COMPLETED' });
+        updateStatus('COMPLETED');
+        context?.update('answer', _ => reminder);
+        return reminder;
+      } else {
+        context?.update('creationArticlePendingRecords', () => null);
+        context?.update('creationArticlePendingClassifications', () => null);
+        context?.update('creationArticlePendingErrors', () => null);
+      }
+    }
+
     if (!hasCsv && nextMissing) {
       const isDomainQuestion = /\?|\b(comment|combien|peux|puis-je|est-ce|pourquoi|quel(?:le|s)?|format|mod[èe]le|template|csv|xlsx|ean|colonn|ligne|ignor|limite|valid|doubl|num[ée]riq|import|export|résultat|tableau)\b/i.test(question);
       if (isDomainQuestion) {
@@ -286,7 +347,6 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
 
     // Try CSV multi-ligne d'abord
-    const csvItems = parseCSVRecords(question);
     const toRow = (arr: any[]) => `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`;
 
     const classify = async (labelForClassification: string) => {
@@ -297,9 +357,9 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const labelToSend = safeString(labelForClassification).trim();
       try {
         const clsResponse = await generateText({
-          prompt: CREATION_ARTICLE_CLASSIFICATION_PROMPT,
+          prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
           model: ModelEnum.GEMINI_2_5_FLASH,
-          messages: [{ role: 'user', content: labelToSend }] as any,
+          messages: [{ role: 'user', content: `Libellé: ${labelToSend}` }] as any,
           signal,
         });
         const getCodes = (text: string) => {
@@ -337,7 +397,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return { AA, AB, AC, AD };
     };
 
-    const buildRowForItem = async (item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }) => {
+    const buildRowForItem = async (item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }, preclassified?: ClassificationCodes) => {
       const values: Record<string, string> = {};
       for (let i = 0; i < HEADERS_CODES.length; i++) {
         const code = HEADERS_CODES[i];
@@ -366,39 +426,136 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['NFOUEF'] = nor;
       values['NORAEF'] = '';
       if (!values['CEANAR']) values['GENECB'] = '1'; else values['GENECB'] = '';
-      const { AA, AB, AC, AD } = await classify(originalLabel || normalizedLabel);
-      values['CSECAR'] = AA;
-      values['CRAYAR'] = AB;
-      values['CFAMAR'] = AC;
-      values['CSFAAR'] = AD;
+      let codes = preclassified;
+      if (!codes || !codes.AA || !codes.AB || !codes.AC || !codes.AD) {
+        codes = await classify(originalLabel || normalizedLabel);
+      }
+      values['CSECAR'] = safeString(codes?.AA || '');
+      values['CRAYAR'] = safeString(codes?.AB || '');
+      values['CFAMAR'] = safeString(codes?.AC || '');
+      values['CSFAAR'] = safeString(codes?.AD || '');
       return HEADERS_CODES.map(code => formatDecimalSeparator(values[code] ?? ''));
     };
 
-    if (csvItems && csvItems.length > 0) {
-      const { valid, errors } = validateAndCollectCSV(question);
-      const limited = valid.slice(0, 300);
+    const renderClassificationPreviewTable = (classifications: ClassificationPreviewItem[]) => {
+      const header = '| Libellé | Code secteur | Nom secteur | Code rayon | Nom rayon | Code famille | Nom famille | Code sous-famille | Nom sous-famille |';
+      const separator = '|---|---|---|---|---|---|---|---|---|';
+      const rows = classifications
+        .sort((a, b) => a.index - b.index)
+        .map((item) => {
+          const safeLibelle = safeString(item.libelle).replace(/\|/g, '\\|');
+          return `| ${safeLibelle} | ${safeString(item.aa?.code || '')} | ${safeString(item.aa?.libelle || '')} | ${safeString(item.ab?.code || '')} | ${safeString(item.ab?.libelle || '')} | ${safeString(item.ac?.code || '')} | ${safeString(item.ac?.libelle || '')} | ${safeString(item.ad?.code || '')} | ${safeString(item.ad?.libelle || '')} |`;
+        });
+      return [header, separator, ...rows].join('\n');
+    };
+
+    const classificationsToCodes = (classifications?: ClassificationPreviewItem[] | null): ClassificationCodes[] => {
+      if (!classifications) return [];
+      const sorted = [...classifications].sort((a, b) => a.index - b.index);
+      return sorted.map((item) => ({
+        AA: safeString(item.aa?.code || ''),
+        AB: safeString(item.ab?.code || ''),
+        AC: safeString(item.ac?.code || ''),
+        AD: safeString(item.ad?.code || ''),
+      }));
+    };
+
+    const classifyBatchForPreview = async (records: Array<{ libelle_principal: string }>) => {
+      if (!records.length) return [] as ClassificationPreviewItem[];
+      const payload = records.map((item, index) => ({ index: index + 1, libelle: safeString(item.libelle_principal) }));
+      const instruction = [
+        'Analyse les articles suivants pour le format cyrusEREF.',
+        'Retourne un JSON strict de la forme {"items":[{"index":1,"libelle":"...","aa":{"code":"..","libelle":".."},"ab":{...},"ac":{...},"ad":{...}}]} pour tous les articles.',
+        'Chaque libellé doit être traité de manière indépendante et cohérente avec la hiérarchie officielle.',
+        'Articles:',
+        JSON.stringify(payload),
+        'Réponds uniquement avec le JSON demandé, sans texte additionnel.'
+      ].join('\n');
+
+      const response = await generateText({
+        prompt: GEMINI_SPECIALIZED_PROMPT,
+        model: ModelEnum.GEMINI_2_5_FLASH,
+        messages: [{ role: 'user', content: instruction }] as any,
+        signal,
+      });
+
+      const parsed = extractJson(response) ?? (() => {
+        try {
+          return JSON.parse(response);
+        } catch {
+          return null;
+        }
+      })();
+      if (!parsed || !Array.isArray(parsed.items)) {
+        throw new Error('CLASSIFICATION_PREVIEW_PARSE_ERROR');
+      }
+      const items = (parsed.items as any[]).map((entry) => ({
+        index: Number(entry?.index ?? 0),
+        libelle: safeString(entry?.libelle || ''),
+        aa: { code: safeString(entry?.aa?.code || ''), libelle: safeString(entry?.aa?.libelle || '') },
+        ab: { code: safeString(entry?.ab?.code || ''), libelle: safeString(entry?.ab?.libelle || '') },
+        ac: { code: safeString(entry?.ac?.code || ''), libelle: safeString(entry?.ac?.libelle || '') },
+        ad: { code: safeString(entry?.ad?.code || ''), libelle: safeString(entry?.ad?.libelle || '') },
+      })) as ClassificationPreviewItem[];
+      return items.sort((a, b) => a.index - b.index);
+    };
+
+    const createFinalOutput = async (
+      records: Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>,
+      errors: string[],
+      preclassifiedItems?: ClassificationPreviewItem[] | null,
+    ) => {
+      const codesList = classificationsToCodes(preclassifiedItems);
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
       rows.push(toRow(HEADERS_CODES));
-      for (const it of limited) {
-        const r = await buildRowForItem(it);
-        rows.push(toRow(r));
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        const preCodes = codesList[i];
+        const row = await buildRowForItem(record, preCodes);
+        rows.push(toRow(row));
       }
       const commentsTitle = `\n\n## Commentaires d’import`;
       const commentsBody = errors.length
-        ? errors.map(e => `- ${e}`).join('\n')
+        ? errors.map((e) => `- ${e}`).join('\n')
         : `- Aucune ligne ignorée`;
-      const table = rows.join('\n') + commentsTitle + '\n' + commentsBody;
-      updateAnswer({ text: table, finalText: table, status: 'COMPLETED' });
-      updateStatus('COMPLETED');
-      context?.update('answer', _ => table);
-      context?.get('onFinish')?.({
-        answer: table,
-        threadId: context?.get('threadId'),
-        threadItemId: context?.get('threadItemId'),
-        mode: 'creation-d-article',
-      });
-      return table;
+      return rows.join('\n') + commentsTitle + '\n' + commentsBody;
+    };
+
+    if (hasCsv) {
+      const limited = csvValidation.valid.slice(0, 300);
+      const errors = csvValidation.errors;
+      if (!limited.length) {
+        const table = await createFinalOutput(limited, errors, null);
+        updateAnswer({ text: table, finalText: table, status: 'COMPLETED' });
+        updateStatus('COMPLETED');
+        context?.update('answer', _ => table);
+        context?.get('onFinish')?.({
+          answer: table,
+          threadId: context?.get('threadId'),
+          threadItemId: context?.get('threadItemId'),
+          mode: 'creation-d-article',
+        });
+        return table;
+      }
+      try {
+        const previewClassifications = await classifyBatchForPreview(limited);
+        context?.update('creationArticlePendingRecords', () => JSON.stringify(limited));
+        context?.update('creationArticlePendingClassifications', () => JSON.stringify(previewClassifications));
+        context?.update('creationArticlePendingErrors', () => JSON.stringify(errors));
+        const previewTable = renderClassificationPreviewTable(previewClassifications);
+        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.`;
+        updateAnswer({ text: responseText, finalText: responseText, status: 'COMPLETED' });
+        updateStatus('COMPLETED');
+        context?.update('answer', _ => responseText);
+        return responseText;
+      } catch (error) {
+        const message = 'Impossible de générer la pré-classification. Merci de réessayer.';
+        updateAnswer({ text: message, finalText: message, status: 'COMPLETED' });
+        updateStatus('COMPLETED');
+        context?.update('answer', _ => message);
+        return message;
+      }
     }
 
     // Mono-article (comportement existant)
