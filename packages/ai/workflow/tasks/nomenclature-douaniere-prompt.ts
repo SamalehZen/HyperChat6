@@ -8,7 +8,6 @@ Produits | Surtaxe | TIC sur base | TIC | Taxe sanitaire kg Net | Nomenclature
 LAP Parfum | 500 | 23% | 5 | 0 | 2350
 BASE TIC VINS/ALCOOL | 1500%Btic | 23% | 5 | 5 | 2315
 P.NET JUS FRUITS | 0 | 0% | 0 | 5 | 2340
-Sirops/Concentrés boissons (Tesseire, sirops, bidons, ZERO, etc.) | 0 | 0% | 0 | 5 | 2340
 LITRE EAU | 14 | 23% | 5 | 5 | 2314
 P.NET Pâtes alimentaires | 40 | 20% | 5 | 5 | 2040
 P.NET YAOURTS | 100 | 10% | 20 | 20 | 2010
@@ -23,6 +22,8 @@ kg Crèmes desserts | 0 | 10% | 10 | 10 | 1010
 Épicerie autres | 0 | 23% | 5 | 5 | 2305
 Aliments enfantine | 0 | 8% | 5 | 5 | 1305
 Électroménager/Textile/Informatique | 0 | 10% | 0 | 0 | 1000
+
+> Note : La catégorie « P.NET JUS FRUITS » couvre également tous les sirops, concentrés et préparations liquides (Tesseire, formats bidon, versions ZERO, etc.).
 
 ---
 
