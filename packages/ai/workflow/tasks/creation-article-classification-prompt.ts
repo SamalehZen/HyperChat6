@@ -10,12 +10,11 @@ Points clés :
 5. Tu garantis la cohérence : mêmes produits, mêmes codes.
 
 Cas particuliers :
-- Si le libellé mentionne un sirop, un concentré ou une boisson à diluer (ex : Tesseire, sirop, concentré, ZERO), tu les classes en 03 / 041 / 413 / 301.
 - Si tu hésites, tu choisis la catégorie la plus probable et tu restes cohérent avec les cas similaires.
 
-Exemples :
-- "BID 60CL CITRON TESSEIRE ZERO" → {"AA":"03","AB":"041","AC":"413","AD":"301"}
-- "1L JUS POMME ABC HELIOR" → {"AA":"03","AB":"041","AC":"412","AD":"201"}
-- "250ML JUS DE CITRON BIO CRF" → {"AA":"03","AB":"041","AC":"413","AD":"301"}
+Références de classification :
+BID 60CL CITRON TESSEIRE ZERO	04	LIQUIDES	041	LIQUIDES	413	SIROPS ET CONCENTRES	302	SIROPS BOUTEILLE
+1L JUS POMME ABC HELIOR	04	LIQUIDES	041	LIQUIDES	412	JUS DE FRUITS	201	PUR JUS DE FRUITS
+250ML JUS DE CITRON BIO CRF	04	LIQUIDES	041	LIQUIDES	415	LIQUIDES BIO	503	JUS DE FRUITS BIO
 
 Réponds uniquement avec le JSON demandé.`;
