@@ -3,6 +3,7 @@ import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { generateText, handleError, sendEvents } from '../utils';
 import { GEMINI_SPECIALIZED_PROMPT } from './gemini-specialized-prompt';
+import { CREATION_ARTICLE_CLASSIFICATION_PROMPT } from './creation-article-classification-prompt';
 import { HEADERS_LONG, HEADERS_CODES, REF_ROW, MAX_LENGTHS } from '../prompts/arkabase-article-structure';
 
 const stripAccents = (s: string) =>
@@ -296,9 +297,9 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const labelToSend = safeString(labelForClassification).trim();
       try {
         const clsResponse = await generateText({
-          prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
+          prompt: CREATION_ARTICLE_CLASSIFICATION_PROMPT,
           model: ModelEnum.GEMINI_2_5_FLASH,
-          messages: [{ role: 'user', content: `Libellé: ${labelToSend}` }] as any,
+          messages: [{ role: 'user', content: labelToSend }] as any,
           signal,
         });
         const getCodes = (text: string) => {
