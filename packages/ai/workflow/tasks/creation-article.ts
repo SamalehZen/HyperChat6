@@ -13,6 +13,10 @@ const stripAccents = (s: string) =>
     .replace(/æ/g, 'ae');
 
 const safeString = (v: any) => (v === undefined || v === null ? '' : String(v));
+const formatDecimalSeparator = (value: any) => {
+  const str = safeString(value);
+  return /^-?\d+\.\d+$/.test(str) ? str.replace('.', ',') : str;
+};
 const collapseSpaces = (s: string) => s.replace(/\s+/g, ' ').trim();
 const truncate = (s: string, max: number) => (safeString(s).length > max ? safeString(s).slice(0, max) : safeString(s));
 
@@ -282,7 +286,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
 
     // Try CSV multi-ligne d'abord
     const csvItems = parseCSVRecords(question);
-    const toRow = (arr: any[]) => `| ${arr.map(v => safeString(v)).join(' | ')} |`;
+    const toRow = (arr: any[]) => `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`;
 
     const classify = async (normalizedLabel: string) => {
       let AA: string = FallbackCodes.AA;
@@ -336,7 +340,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       for (let i = 0; i < HEADERS_CODES.length; i++) {
         const code = HEADERS_CODES[i];
         if (COPY_FROM_REF_CODES.has(code)) {
-          const refVal = safeString((REF_ROW as any)[i] ?? '');
+          const refVal = formatDecimalSeparator((REF_ROW as any)[i] ?? '');
           if (refVal) values[code] = refVal;
         }
       }
@@ -364,7 +368,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['CRAYAR'] = AB;
       values['CFAMAR'] = AC;
       values['CSFAAR'] = AD;
-      return HEADERS_CODES.map(code => safeString(values[code] ?? ''));
+      return HEADERS_CODES.map(code => formatDecimalSeparator(values[code] ?? ''));
     };
 
     if (csvItems && csvItems.length > 0) {
@@ -402,7 +406,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     for (let i = 0; i < HEADERS_CODES.length; i++) {
       const code = HEADERS_CODES[i];
       if (COPY_FROM_REF_CODES.has(code)) {
-        const refVal = safeString((REF_ROW as any)[i] ?? '');
+        const refVal = formatDecimalSeparator((REF_ROW as any)[i] ?? '');
         if (refVal) values[code] = refVal;
       }
     }
@@ -441,7 +445,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     values['CFAMAR'] = AC;
     values['CSFAAR'] = AD;
 
-    const valuesRow = HEADERS_CODES.map(code => safeString(values[code] ?? ''));
+    const valuesRow = HEADERS_CODES.map(code => formatDecimalSeparator(values[code] ?? ''));
 
     const table = [toRow(HEADERS_LONG), toRow(HEADERS_CODES), toRow(valuesRow)].join('\n');
 
