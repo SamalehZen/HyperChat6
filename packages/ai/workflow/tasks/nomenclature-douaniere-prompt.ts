@@ -23,6 +23,8 @@ kg Crèmes desserts | 0 | 10% | 10 | 10 | 1010
 Aliments enfantine | 0 | 8% | 5 | 5 | 1305
 Électroménager/Textile/Informatique | 0 | 10% | 0 | 0 | 1000
 
+> Note : La catégorie « P.NET JUS FRUITS » couvre également tous les sirops, concentrés et préparations liquides (Tesseire, formats bidon, versions ZERO, etc.).
+
 ---
 
 ## 🎯 Objectif de l’agent :
@@ -57,6 +59,7 @@ Article | Nomenclature | Produits-Catégorie | Surtaxe | TIC sur base | TIC | Ta
 
 ## 🛑 Règles strictes :
 - Toujours afficher la réponse sous forme de tableau (même si un seul produit est demandé).
+- Tout article liquide (jus, sirop, concentré, préparation à diluer, format en cl/l, marques comme Tesseire, bidons « ZERO », etc.) doit être classé dans la catégorie **P.NET JUS FRUITS** avec la nomenclature **2340**, même si le nom ne mentionne pas explicitement "sirop" ou "jus".
 - Ne jamais inventer de code ou de taxe inexistante.
 - Si le produit n’existe pas dans le tableau, donner la catégorie la plus proche et expliquer en commentaire.
 

@@ -12,21 +12,38 @@ import { useAgentStream } from '../../hooks/agent-provider';
 import { useParams, useRouter } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 
-const EXPECTED_HEADERS = [
+const HEADER_NEW = [
   'libelle_principal',
   'code_barres_initial',
   'numero_fournisseur_unique',
-  'numero_article',
 ] as const;
+
+const HEADER_OLD = [...HEADER_NEW, 'numero_article'] as const;
+
+type HeaderVariant = 'new' | 'old';
+
+type ImportRecord = {
+  libelle_principal: string;
+  code_barres_initial: string;
+  numero_fournisseur_unique: string;
+  numero_article: string;
+};
 
 function normalizeHeader(values: any[]): string[] {
   return (values || []).map((v) => String(v ?? '').trim());
 }
 
-function isExactHeader(arr: string[]) {
-  if (!arr || arr.length < EXPECTED_HEADERS.length) return false;
-  const sliced = arr.slice(0, EXPECTED_HEADERS.length);
-  return EXPECTED_HEADERS.every((h, i) => sliced[i] === h);
+function getHeaderVariant(arr: string[]): HeaderVariant | null {
+  if (!arr) return null;
+  const trimmed = [...arr];
+  while (trimmed.length > 0 && trimmed[trimmed.length - 1] === '') trimmed.pop();
+  if (trimmed.length === HEADER_NEW.length && HEADER_NEW.every((h, i) => trimmed[i] === h)) {
+    return 'new';
+  }
+  if (trimmed.length === HEADER_OLD.length && HEADER_OLD.every((h, i) => trimmed[i] === h)) {
+    return 'old';
+  }
+  return null;
 }
 
 function parseCsvText(text: string) {
@@ -34,20 +51,27 @@ function parseCsvText(text: string) {
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
-  if (lines.length === 0) return { headerOk: false, rows: [] as string[][] };
+  if (lines.length === 0) return { headerVariant: null as HeaderVariant | null, rows: [] as string[][] };
   const header = normalizeHeader(lines[0].split(','));
-  const headerOk = isExactHeader(header);
+  const headerVariant = getHeaderVariant(header);
   const rows = lines.slice(1).map((l) => l.split(','));
-  return { headerOk, rows };
+  return { headerVariant, rows };
 }
 
-function toNormalizedCSV(rows: Array<Record<typeof EXPECTED_HEADERS[number], string>>) {
-  const header = EXPECTED_HEADERS.join(',');
-  const data = rows.map((r) =>
-    [r.libelle_principal, r.code_barres_initial, r.numero_fournisseur_unique, r.numero_article]
-      .map((v) => (v ?? '').toString().replace(/\r|\n/g, ' ').trim())
-      .join(',')
-  );
+function toNormalizedCSV(rows: ImportRecord[], variant: HeaderVariant | null) {
+  const headerType: HeaderVariant = variant === 'old' ? 'old' : 'new';
+  const header = (headerType === 'old' ? HEADER_OLD : HEADER_NEW).join(',');
+  const data = rows.map((r) => {
+    const base = [
+      (r.libelle_principal ?? '').toString().replace(/\r|\n/g, ' ').trim(),
+      (r.code_barres_initial ?? '').toString().replace(/\r|\n/g, ' ').trim(),
+      (r.numero_fournisseur_unique ?? '').toString().replace(/\r|\n/g, ' ').trim(),
+    ];
+    if (headerType === 'old') {
+      base.push((r.numero_article ?? '').toString().replace(/\r|\n/g, ' ').trim());
+    }
+    return base.join(',');
+  });
   return [header, ...data].join('\n');
 }
 
@@ -73,7 +97,8 @@ export const FileImportIcon: React.FC = () => {
     try {
       toast({ title: t('article.import.reading') });
 
-      let records: Array<Record<typeof EXPECTED_HEADERS[number], string>> = [];
+      let records: ImportRecord[] = [];
+      let headerVariant: HeaderVariant | null = null;
 
       if (file.name.toLowerCase().endsWith('.xlsx')) {
         const buf = await file.arrayBuffer();
@@ -83,23 +108,25 @@ export const FileImportIcon: React.FC = () => {
         const ws = wb.Sheets[firstSheetName];
         const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
         const header = normalizeHeader(rows[0] || []);
-        if (!isExactHeader(header)) {
+        const variant = getHeaderVariant(header);
+        if (!variant) {
           toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
           return;
         }
+        headerVariant = variant;
         const idx = {
           lib: header.indexOf('libelle_principal'),
           ean: header.indexOf('code_barres_initial'),
           nor: header.indexOf('numero_fournisseur_unique'),
-          art: header.indexOf('numero_article'),
+          art: variant === 'old' ? header.indexOf('numero_article') : -1,
         };
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i] || [];
           const lib = String(row[idx.lib] ?? '').trim();
           const ean = String(row[idx.ean] ?? '').trim();
           const nor = String(row[idx.nor] ?? '').trim();
-          const art = String(row[idx.art] ?? '').trim();
-          if (!lib || !ean || !nor || !art) continue;
+          const art = idx.art >= 0 ? String(row[idx.art] ?? '').trim() : '';
+          if (!lib || !ean || !nor) continue;
           if (ean.length > 20) continue;
           records.push({
             libelle_principal: lib,
@@ -110,15 +137,19 @@ export const FileImportIcon: React.FC = () => {
         }
       } else if (file.name.toLowerCase().endsWith('.csv')) {
         const text = await file.text();
-        const { headerOk, rows } = parseCsvText(text);
-        if (!headerOk) {
+        const { headerVariant: variant, rows } = parseCsvText(text);
+        if (!variant) {
           toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
           return;
         }
+        headerVariant = variant;
         for (const row of rows) {
           const cols = normalizeHeader(row);
-          const [lib, ean, nor, art] = cols;
-          if (!lib || !ean || !nor || !art) continue;
+          const lib = cols[0] ?? '';
+          const ean = cols[1] ?? '';
+          const nor = cols[2] ?? '';
+          const art = variant === 'old' ? (cols[3] ?? '') : '';
+          if (!lib || !ean || !nor) continue;
           if (ean.length > 20) continue;
           records.push({
             libelle_principal: lib,
@@ -138,7 +169,7 @@ export const FileImportIcon: React.FC = () => {
         records = records.slice(0, 300);
       }
 
-      const csv = toNormalizedCSV(records);
+      const csv = toNormalizedCSV(records, headerVariant);
 
       if (truncated > 0) {
         toast({ title: t('article.import.truncated', { count: truncated }) });

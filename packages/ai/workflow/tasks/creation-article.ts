@@ -13,6 +13,10 @@ const stripAccents = (s: string) =>
     .replace(/æ/g, 'ae');
 
 const safeString = (v: any) => (v === undefined || v === null ? '' : String(v));
+const formatDecimalSeparator = (value: any) => {
+  const str = safeString(value);
+  return /^-?\d+\.\d+$/.test(str) ? str.replace('.', ',') : str;
+};
 const collapseSpaces = (s: string) => s.replace(/\s+/g, ' ').trim();
 const truncate = (s: string, max: number) => (safeString(s).length > max ? safeString(s).slice(0, max) : safeString(s));
 
@@ -56,18 +60,37 @@ const parseCSVLine = (line: string): string[] => {
   return result.map(s => s.trim());
 };
 
+type HeaderVariant = 'new' | 'old';
+
+const detectHeaderVariant = (header: string[]): HeaderVariant | null => {
+  if (!header || header.length < 3) return null;
+  const baseMatch =
+    header[0] === 'libelle_principal' &&
+    header[1] === 'code_barres_initial' &&
+    header[2] === 'numero_fournisseur_unique';
+  if (!baseMatch) return null;
+  const trimmed = [...header];
+  while (trimmed.length > 0 && trimmed[trimmed.length - 1] === '') trimmed.pop();
+  if (trimmed.length >= 4 && trimmed[3] === 'numero_article') return 'old';
+  if (trimmed.length === 3) return 'new';
+  return null;
+};
+
 const parseCSVRecords = (text: string) => {
   const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
   const headerIndex = lines.findIndex(l => /^libelle_principal\s*,/i.test(l));
   if (headerIndex === -1) return [] as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>;
-  const header = parseCSVLine(lines[headerIndex]).map(h => h.toLowerCase());
+  const headerTokens = parseCSVLine(lines[headerIndex]).map(h => h.toLowerCase());
+  while (headerTokens.length > 0 && headerTokens[headerTokens.length - 1] === '') headerTokens.pop();
+  const variant = detectHeaderVariant(headerTokens);
+  if (!variant) return [] as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>;
   const idx = {
-    lib: header.indexOf('libelle_principal'),
-    ean: header.indexOf('code_barres_initial'),
-    nor: header.indexOf('numero_fournisseur_unique'),
-    art: header.indexOf('numero_article'),
+    lib: headerTokens.indexOf('libelle_principal'),
+    ean: headerTokens.indexOf('code_barres_initial'),
+    nor: headerTokens.indexOf('numero_fournisseur_unique'),
+    art: variant === 'old' ? headerTokens.indexOf('numero_article') : -1,
   };
-  if (idx.lib < 0 || idx.ean < 0 || idx.nor < 0 || idx.art < 0) return [] as any[];
+  if (idx.lib < 0 || idx.ean < 0 || idx.nor < 0) return [] as any[];
   const records: Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }> = [];
   for (let i = headerIndex + 1; i < lines.length; i++) {
     const row = parseCSVLine(lines[i]);
@@ -75,8 +98,8 @@ const parseCSVRecords = (text: string) => {
     const lib = row[idx.lib] || '';
     const ean = row[idx.ean] || '';
     const nor = row[idx.nor] || '';
-    const art = row[idx.art] || '';
-    if (lib && ean && nor && art) {
+    const art = idx.art >= 0 ? row[idx.art] || '' : '';
+    if (lib && ean && nor) {
       records.push({ libelle_principal: lib, code_barres_initial: ean, numero_fournisseur_unique: nor, numero_article: art });
     }
   }
@@ -86,16 +109,23 @@ const parseCSVRecords = (text: string) => {
 const validateAndCollectCSV = (text: string) => {
   const lines = text.split(/\r?\n/).map((s) => s.trim());
   const nonEmpty = lines.map((l, idx) => ({ line: l, idx })).filter((x) => x.line.length > 0);
-  const headerIdxObj = nonEmpty.find((x) => /^(libelle_principal)\s*,\s*(code_barres_initial)\s*,\s*(numero_fournisseur_unique)\s*,\s*(numero_article)\s*$/i.test(x.line));
+  const headerIdxObj = nonEmpty.find((x) => {
+    const header = parseCSVLine(x.line).map((h) => h.toLowerCase());
+    while (header.length > 0 && header[header.length - 1] === '') header.pop();
+    return !!detectHeaderVariant(header);
+  });
   if (!headerIdxObj) return { valid: [] as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>, errors: [] as string[] };
-  const headerArr = parseCSVLine(headerIdxObj.line).map((h) => h.toLowerCase().trim());
+  const headerArr = parseCSVLine(headerIdxObj.line).map((h) => h.toLowerCase());
+  while (headerArr.length > 0 && headerArr[headerArr.length - 1] === '') headerArr.pop();
+  const variant = detectHeaderVariant(headerArr);
+  if (!variant) return { valid: [] as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>, errors: [] as string[] };
   const idx = {
     lib: headerArr.indexOf('libelle_principal'),
     ean: headerArr.indexOf('code_barres_initial'),
     nor: headerArr.indexOf('numero_fournisseur_unique'),
-    art: headerArr.indexOf('numero_article'),
+    art: variant === 'old' ? headerArr.indexOf('numero_article') : -1,
   };
-  if (idx.lib < 0 || idx.ean < 0 || idx.nor < 0 || idx.art < 0) {
+  if (idx.lib < 0 || idx.ean < 0 || idx.nor < 0) {
     return { valid: [], errors: [] };
   }
   const errors: string[] = [];
@@ -107,15 +137,14 @@ const validateAndCollectCSV = (text: string) => {
     const lib = safeString(row[idx.lib]).trim();
     const ean = safeString(row[idx.ean]).trim();
     const nor = safeString(row[idx.nor]).trim();
-    const art = safeString(row[idx.art]).trim();
+    const art = idx.art >= 0 ? safeString(row[idx.art]).trim() : '';
     const rowErrors: string[] = [];
     if (!lib) rowErrors.push('champ manquant libelle_principal');
     if (!ean) rowErrors.push('champ manquant code_barres_initial');
     if (!nor) rowErrors.push('champ manquant numero_fournisseur_unique');
-    if (!art) rowErrors.push('champ manquant numero_article');
     if (ean && ean.length > 20) rowErrors.push('longueur code_barres_initial > 20');
     if (rowErrors.length > 0) {
-      const logicalLine = i - headerIdxObj.idx; // 1-based data row index
+      const logicalLine = i - headerIdxObj.idx;
       errors.push(`Ligne ${logicalLine}: ${rowErrors.join('; ')}`);
       continue;
     }
@@ -156,7 +185,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     };
 
     type FieldKey = 'libelle_principal' | 'code_barres_initial' | 'numero_fournisseur_unique' | 'numero_article';
-    const REQUIRED_FIELDS: FieldKey[] = ['libelle_principal','code_barres_initial','numero_fournisseur_unique','numero_article'];
+    const REQUIRED_FIELDS: FieldKey[] = ['libelle_principal','code_barres_initial','numero_fournisseur_unique'];
 
     const getExpectedFieldFromAssistant = (msgs: any[]): FieldKey | null => {
       for (let i = msgs.length - 1; i >= 0; i--) {
@@ -221,14 +250,14 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       const isDomainQuestion = /\?|\b(comment|combien|peux|puis-je|est-ce|pourquoi|quel(?:le|s)?|format|mod[èe]le|template|csv|xlsx|ean|colonn|ligne|ignor|limite|valid|doubl|num[ée]riq|import|export|résultat|tableau)\b/i.test(question);
       if (isDomainQuestion) {
         try {
-          const system = `Tu es un assistant spécialisé pour la création d’article (cyrusEREF). Réponds uniquement aux questions liées à:\n- modèles CSV/XLSX et étapes d’import\n- 4 colonnes requises (libelle_principal, code_barres_initial ≤ 20, numero_fournisseur_unique, numero_article)\n- limites (max 300 lignes)\n- validation et commentaires d’import (lignes ignorées et raisons)\n- formatage/conseils pour obtenir le tableau final.\nNe réponds pas à des sujets hors de ce périmètre. Sois clair, concis et pratique.`;
+          const system = `Tu es un assistant spécialisé pour la création d’article (cyrusEREF). Réponds uniquement aux questions liées à:\n- modèles CSV/XLSX et étapes d’import\n- colonnes requises (libelle_principal, code_barres_initial ≤ 20, numero_fournisseur_unique) et colonne optionnelle numero_article pour les anciens fichiers\n- limites (max 300 lignes)\n- validation et commentaires d’import (lignes ignorées et raisons)\n- formatage/conseils pour obtenir le tableau final.\nNe réponds pas à des sujets hors de ce périmètre. Sois clair, concis et pratique.`;
           const answer = await generateText({
             prompt: system,
             model: ModelEnum.GEMINI_2_5_FLASH,
             messages: [{ role: 'user', content: question }] as any,
             signal,
           });
-          const text = safeString(answer || '').trim() || 'Je peux aider uniquement sur l’import CSV/XLSX de création d’article. Téléchargez le modèle (CSV/XLSX), remplissez les 4 colonnes, puis importez pour obtenir le tableau.';
+          const text = safeString(answer || '').trim() || 'Je peux aider uniquement sur l’import CSV/XLSX de création d’article. Téléchargez le modèle (CSV/XLSX), remplissez les colonnes obligatoires (libelle_principal, code_barres_initial ≤ 20, numero_fournisseur_unique), puis importez pour obtenir le tableau. La colonne numero_article reste optionnelle.';
           updateAnswer({ text, finalText: text, status: 'COMPLETED' });
           updateStatus('COMPLETED');
           context?.update('answer', _ => text);
@@ -240,8 +269,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         '',
         'Procédez en 3 étapes rapides :',
         '1) Téléchargez le modèle: [CSV](/templates/article_import_template.csv) · [XLSX](/templates/article_import_template.xlsx)',
-        '2) Remplissez exactement 4 colonnes: libelle_principal, code_barres_initial (≤20 car.), numero_fournisseur_unique, numero_article',
-        '3) Importez le fichier via l’icône « Importer » à côté du sélecteur de modèle. Je génère automatiquement le tableau final et les « Commentaires d’import » (lignes ignorées + raisons).',
+        '2) Remplissez les colonnes obligatoires: libelle_principal, code_barres_initial (≤20 car.), numero_fournisseur_unique. La colonne numero_article reste acceptée pour les anciens modèles.',
+        '3) Importez le fichier via l’icône « Importer » à côté du sélecteur de modèle. Je génère automatiquement le tableau final et les « Commentaires d’import » (lignes ignorées + raisons) et je gère aussi l’ancien modèle à 4 colonnes si besoin.',
         '',
         'Limites: jusqu’à 300 lignes par import.'
       ].join('\n');
@@ -254,11 +283,10 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const libelle_principal = safeString(payload?.libelle_principal);
     const code_barres_initial = safeString(payload?.code_barres_initial);
     const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
-    const numero_article = safeString(payload?.numero_article);
 
     // Try CSV multi-ligne d'abord
     const csvItems = parseCSVRecords(question);
-    const toRow = (arr: any[]) => `| ${arr.map(v => safeString(v)).join(' | ')} |`;
+    const toRow = (arr: any[]) => `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`;
 
     const classify = async (normalizedLabel: string) => {
       let AA: string = FallbackCodes.AA;
@@ -312,7 +340,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       for (let i = 0; i < HEADERS_CODES.length; i++) {
         const code = HEADERS_CODES[i];
         if (COPY_FROM_REF_CODES.has(code)) {
-          const refVal = safeString((REF_ROW as any)[i] ?? '');
+          const refVal = formatDecimalSeparator((REF_ROW as any)[i] ?? '');
           if (refVal) values[code] = refVal;
         }
       }
@@ -329,17 +357,18 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       applyLabel('LARFEF');
       const ean = safeString(item.code_barres_initial);
       if (ean) values['CEANAR'] = truncate(ean, CODE_LENGTHS['CEANAR'] || 20);
-      const art = safeString(item.numero_article);
-      if (art) values['NARTAR'] = art;
+      values['NARTAR'] = '';
+      values['NAS1AS'] = '201';
+      const nor = safeString(item.numero_fournisseur_unique);
+      values['NFOUEF'] = nor;
+      values['NORAEF'] = '';
       if (!values['CEANAR']) values['GENECB'] = '1'; else values['GENECB'] = '';
       const { AA, AB, AC, AD } = await classify(normalizedLabel);
       values['CSECAR'] = AA;
       values['CRAYAR'] = AB;
       values['CFAMAR'] = AC;
       values['CSFAAR'] = AD;
-      const nor = safeString(item.numero_fournisseur_unique);
-      if (nor) values['NORAEF'] = nor;
-      return HEADERS_CODES.map(code => safeString(values[code] ?? ''));
+      return HEADERS_CODES.map(code => formatDecimalSeparator(values[code] ?? ''));
     };
 
     if (csvItems && csvItems.length > 0) {
@@ -377,7 +406,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     for (let i = 0; i < HEADERS_CODES.length; i++) {
       const code = HEADERS_CODES[i];
       if (COPY_FROM_REF_CODES.has(code)) {
-        const refVal = safeString((REF_ROW as any)[i] ?? '');
+        const refVal = formatDecimalSeparator((REF_ROW as any)[i] ?? '');
         if (refVal) values[code] = refVal;
       }
     }
@@ -398,9 +427,10 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['CEANAR'] = truncate(code_barres_initial, CODE_LENGTHS['CEANAR'] || 20);
     }
 
-    if (numero_article) {
-      values['NARTAR'] = numero_article;
-    }
+    values['NARTAR'] = '';
+    values['NAS1AS'] = '201';
+    values['NFOUEF'] = numero_fournisseur_unique;
+    values['NORAEF'] = '';
 
     if (!values['CEANAR']) {
       values['GENECB'] = '1';
@@ -415,11 +445,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     values['CFAMAR'] = AC;
     values['CSFAAR'] = AD;
 
-    if (numero_fournisseur_unique) {
-      values['NORAEF'] = numero_fournisseur_unique;
-    }
-
-    const valuesRow = HEADERS_CODES.map(code => safeString(values[code] ?? ''));
+    const valuesRow = HEADERS_CODES.map(code => formatDecimalSeparator(values[code] ?? ''));
 
     const table = [toRow(HEADERS_LONG), toRow(HEADERS_CODES), toRow(valuesRow)].join('\n');
 
