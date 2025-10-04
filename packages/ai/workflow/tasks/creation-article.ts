@@ -288,16 +288,17 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const csvItems = parseCSVRecords(question);
     const toRow = (arr: any[]) => `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`;
 
-    const classify = async (normalizedLabel: string) => {
+    const classify = async (labelForClassification: string) => {
       let AA: string = FallbackCodes.AA;
       let AB: string = FallbackCodes.AB;
       let AC: string = FallbackCodes.AC;
       let AD: string = FallbackCodes.AD;
+      const labelToSend = safeString(labelForClassification).trim();
       try {
         const clsResponse = await generateText({
           prompt: GEMINI_SPECIALIZED_PROMPT + '\n\nRéponds uniquement avec un JSON compact contenant les 4 codes de classification pour ce libellé: {"AA":"..","AB":"..","AC":"..","AD":".."}. Aucune explication.',
           model: ModelEnum.GEMINI_2_5_FLASH,
-          messages: [{ role: 'user', content: `Libellé: ${normalizedLabel}` }] as any,
+          messages: [{ role: 'user', content: `Libellé: ${labelToSend}` }] as any,
           signal,
         });
         const getCodes = (text: string) => {
@@ -344,7 +345,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
           if (refVal) values[code] = refVal;
         }
       }
-      const normalizedLabel = collapseSpaces(stripAccents(safeString(item.libelle_principal).toUpperCase()));
+      const originalLabel = safeString(item.libelle_principal);
+      const normalizedLabel = collapseSpaces(stripAccents(originalLabel.toUpperCase()));
       const applyLabel = (code: string) => {
         const max = CODE_LENGTHS[code] || 9999;
         values[code] = truncate(normalizedLabel, max);
@@ -363,7 +365,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['NFOUEF'] = nor;
       values['NORAEF'] = '';
       if (!values['CEANAR']) values['GENECB'] = '1'; else values['GENECB'] = '';
-      const { AA, AB, AC, AD } = await classify(normalizedLabel);
+      const { AA, AB, AC, AD } = await classify(originalLabel || normalizedLabel);
       values['CSECAR'] = AA;
       values['CRAYAR'] = AB;
       values['CFAMAR'] = AC;
@@ -399,7 +401,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     }
 
     // Mono-article (comportement existant)
-    const normalizedLabel = collapseSpaces(stripAccents(libelle_principal.toUpperCase()));
+    const originalLabel = libelle_principal;
+    const normalizedLabel = collapseSpaces(stripAccents(originalLabel.toUpperCase()));
 
     const values: Record<string, string> = {};
 
@@ -438,7 +441,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       values['GENECB'] = '';
     }
 
-    const { AA, AB, AC, AD } = await classify(normalizedLabel);
+    const { AA, AB, AC, AD } = await classify(originalLabel || normalizedLabel);
 
     values['CSECAR'] = AA;
     values['CRAYAR'] = AB;
