@@ -347,9 +347,9 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const numero_fournisseur_unique = safeString(payload?.numero_fournisseur_unique);
 
     // Try CSV multi-ligne d'abord
-    const toRow = (arr: any[]) => `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`;
+    function toRow(arr: any[]) { return `| ${arr.map(v => formatDecimalSeparator(v)).join(' | ')} |`; }
 
-    const classify = async (labelForClassification: string) => {
+    async function classify(labelForClassification: string) {
       let AA: string = FallbackCodes.AA;
       let AB: string = FallbackCodes.AB;
       let AC: string = FallbackCodes.AC;
@@ -397,7 +397,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return { AA, AB, AC, AD };
     };
 
-    const buildRowForItem = async (item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }, preclassified?: ClassificationCodes) => {
+    async function buildRowForItem(item: { libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }, preclassified?: ClassificationCodes) {
       const values: Record<string, string> = {};
       for (let i = 0; i < HEADERS_CODES.length; i++) {
         const code = HEADERS_CODES[i];
@@ -449,7 +449,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return [header, separator, ...rows].join('\n');
     };
 
-    const classificationsToCodes = (classifications?: ClassificationPreviewItem[] | null): ClassificationCodes[] => {
+    function classificationsToCodes(classifications?: ClassificationPreviewItem[] | null): ClassificationCodes[] {
       if (!classifications) return [];
       const sorted = [...classifications].sort((a, b) => a.index - b.index);
       return sorted.map((item) => ({
@@ -500,11 +500,11 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return items.sort((a, b) => a.index - b.index);
     };
 
-    const createFinalOutput = async (
+    async function createFinalOutput(
       records: Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>,
       errors: string[],
       preclassifiedItems?: ClassificationPreviewItem[] | null,
-    ) => {
+    ) {
       const codesList = classificationsToCodes(preclassifiedItems);
       const rows: string[] = [];
       rows.push(toRow(HEADERS_LONG));
