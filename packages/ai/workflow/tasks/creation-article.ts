@@ -227,6 +227,24 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
       return {};
     };
 
+    function getPendingFromAssistant(msgs: any[]) {
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        const m = msgs[i];
+        if (m?.role === 'assistant') {
+          const t = safeString(m?.content || '');
+          const idx = t.lastIndexOf('CREATION-ARTICLE:PENDING=');
+          if (idx >= 0) {
+            const after = t.slice(idx + 'CREATION-ARTICLE:PENDING='.length).trim();
+            try {
+              const obj = JSON.parse(after);
+              return obj as any;
+            } catch {}
+          }
+        }
+      }
+      return null;
+    }
+
     const extractStructured = (text: string) => extractJson(text) || parseKeyValue(text) || {};
 
     const aggregateFromMessages = (msgs: any[]) => {
@@ -261,18 +279,31 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const pendingRecordsRaw = context?.get('creationArticlePendingRecords') as string | null | undefined;
     const pendingClassificationsRaw = context?.get('creationArticlePendingClassifications') as string | null | undefined;
     const pendingErrorsRaw = context?.get('creationArticlePendingErrors') as string | null | undefined;
+    const latestUser = [...(messages || [])].reverse().find(m => m?.role === 'user');
+    const latestText = safeString(latestUser?.content || question || '');
+    const normalizedQuestion = latestText.toLowerCase();
+    const wantsApproval = /\boui\b/.test(normalizedQuestion);
+    const looksLikeNewCsv = hasCsv || normalizedQuestion.includes('libelle_principal');
     const hasPendingPreview = !!pendingRecordsRaw && !!pendingClassificationsRaw;
-    if (hasPendingPreview) {
-      const latestUser = [...(messages || [])].reverse().find(m => m?.role === 'user');
-      const latestText = safeString(latestUser?.content || question || '');
-      const normalizedQuestion = latestText.toLowerCase();
-      const wantsApproval = /\boui\b/.test(normalizedQuestion);
-      const looksLikeNewCsv = hasCsv || normalizedQuestion.includes('libelle_principal');
+    if (hasPendingPreview || wantsApproval) {
       if (wantsApproval) {
         try {
-          const records = JSON.parse(pendingRecordsRaw as string) as Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }>;
-          const classifications = JSON.parse(pendingClassificationsRaw as string) as ClassificationPreviewItem[];
-          const errors = pendingErrorsRaw ? JSON.parse(pendingErrorsRaw as string) as string[] : [];
+          let records: Array<{ libelle_principal: string; code_barres_initial: string; numero_fournisseur_unique: string; numero_article: string }> | null = null;
+          let classifications: ClassificationPreviewItem[] | null = null;
+          let errors: string[] = [];
+          if (pendingRecordsRaw && pendingClassificationsRaw) {
+            records = JSON.parse(pendingRecordsRaw as string);
+            classifications = JSON.parse(pendingClassificationsRaw as string);
+            errors = pendingErrorsRaw ? JSON.parse(pendingErrorsRaw as string) as string[] : [];
+          } else {
+            const pend = getPendingFromAssistant(messages) as any;
+            if (pend) {
+              records = pend.records || null;
+              classifications = pend.classifications || null;
+              errors = Array.isArray(pend.errors) ? pend.errors : [];
+            }
+          }
+          if (!records || !classifications) throw new Error('NO_PENDING_DATA');
           context?.update('creationArticlePendingRecords', () => null);
           context?.update('creationArticlePendingClassifications', () => null);
           context?.update('creationArticlePendingErrors', () => null);
@@ -297,7 +328,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
           context?.update('answer', _ => message);
           return message;
         }
-      } else if (!looksLikeNewCsv) {
+      } else if (!looksLikeNewCsv && hasPendingPreview) {
         const reminder = 'Merci de répondre "oui" pour valider ces classifications, ou réimportez un fichier pour recommencer.';
         updateAnswer({ text: reminder, finalText: reminder, status: 'COMPLETED' });
         updateStatus('COMPLETED');
@@ -546,7 +577,8 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         context?.update('creationArticlePendingClassifications', () => JSON.stringify(previewClassifications));
         context?.update('creationArticlePendingErrors', () => JSON.stringify(errors));
         const previewTable = renderClassificationPreviewTable(previewClassifications);
-        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.`;
+        const pendingPayload = { records: limited, classifications: previewClassifications, errors };
+        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.\n\nCREATION-ARTICLE:PENDING=${JSON.stringify(pendingPayload)}`;
         updateAnswer({ text: responseText, finalText: responseText, status: 'COMPLETED' });
         updateStatus('COMPLETED');
         context?.update('answer', _ => responseText);
