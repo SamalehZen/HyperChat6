@@ -189,8 +189,8 @@ export const FileImportIcon: React.FC = () => {
           toast({ title: 'Format non supporté. Importez un .xlsx', variant: 'destructive' });
           return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-          toast({ title: 'Fichier trop volumineux (>5 MB)', variant: 'destructive' });
+        if (file.size > 15 * 1024 * 1024) {
+          toast({ title: 'Fichier trop volumineux (>15 MB)', variant: 'destructive' });
           return;
         }
         const reader = new FileReader();
