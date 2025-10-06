@@ -264,9 +264,21 @@ export const FileImportLinks: React.FC = () => {
       )}
       {chatMode === ChatMode.ECART_TIC && (
         <>
-          <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/ecart_tic_template.xlsx" download>
+          <button
+            className={cn('text-xs underline text-muted-foreground hover:text-foreground')}
+            onClick={() => {
+              try {
+                const wb = XLSX.utils.book_new();
+                const wsA = XLSX.utils.aoa_to_sheet([["Article","Total"]]);
+                const wsB = XLSX.utils.aoa_to_sheet([["Catégorie","Budget","MotsClés","Famille"]]);
+                XLSX.utils.book_append_sheet(wb, wsA, 'Articles');
+                XLSX.utils.book_append_sheet(wb, wsB, 'Budgets');
+                XLSX.writeFile(wb, 'ecart_tic_template.xlsx');
+              } catch {}
+            }}
+          >
             Modèle Écart TIC (.xlsx)
-          </a>
+          </button>
         </>
       )}
     </div>
