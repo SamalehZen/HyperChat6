@@ -98,7 +98,21 @@ export const ecartTicTask = createTask<WorkflowEventSchema, WorkflowContextSchem
     const attachment = extractExcelFromMessages(messages);
     if (attachment?.base64) {
       try {
+        const MAX_XLSX_SIZE = 15 * 1024 * 1024;
+        const estimatedBytes = Math.floor((attachment.base64.length * 3) / 4);
+        if (estimatedBytes > MAX_XLSX_SIZE) {
+          const err = 'Fichier trop volumineux (>15MB). Veuillez fournir un .xlsx ≤ 15MB.';
+          updateAnswer({ text: err, finalText: err, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          return err;
+        }
         const buf = Buffer.from(attachment.base64, 'base64');
+        if (buf.length > MAX_XLSX_SIZE) {
+          const err = 'Fichier trop volumineux (>15MB). Veuillez fournir un .xlsx ≤ 15MB.';
+          updateAnswer({ text: err, finalText: err, status: 'COMPLETED' });
+          updateStatus('COMPLETED');
+          return err;
+        }
         const r = parseExcel(buf);
         parsed = { articles: r.articles, budgetsRows: r.budgetsRows };
       } catch (e: any) {
@@ -269,11 +283,13 @@ ${catList}
     const journalRows = journal.map(j => [j.article, j.amount, categories[j.from].name, categories[j.to].name, j.reason, j.step]);
 
     const resumeHeader = ['Indicateur', 'Valeur'];
+    const finalBudgetTotal = adjustedBudgets ? Object.values(adjustedBudgets).reduce((a, b) => a + b, 0) : sumBudget;
+    const finalGlobalDiff = finalBudgetTotal - sumTotals;
     const categoriesBalanced = bilanRows.filter(r => r[5] === '✅ Équilibré').length;
     const resumeRows = [
-      ['Total Budgets', Math.round(sumBudget * 100) / 100],
+      ['Total Budgets', Math.round(finalBudgetTotal * 100) / 100],
       ['Total Alloué', Math.round(sumTotals * 100) / 100],
-      ['Écart Global', Math.round((sumBudget - sumTotals) * 100) / 100],
+      ['Écart Global', Math.round((finalGlobalDiff) * 100) / 100],
       ['Catégories équilibrées', `${categoriesBalanced}/${catKeys.length}`],
       ['Catégories ajustées', `${catKeys.length - categoriesBalanced}`],
       ['Articles réalloués', `${journal.length}`],
@@ -312,7 +328,7 @@ ${catList}
     updateStep({ stepId: 5, text: 'Résumé', stepStatus: 'PENDING', subSteps: { resume: { status: 'PENDING' } } });
 
     // Send structured object for potential UI
-    updateObject({ summary: { totalBudget: sumBudget, totalAllocated: sumTotals, categories: catKeys.length, balanced: categoriesBalanced, reallocated: journal.length } });
+    updateObject({ summary: { totalBudget: finalBudgetTotal, totalAllocated: sumTotals, categories: catKeys.length, balanced: categoriesBalanced, reallocated: journal.length } });
 
     const finalText = [
       'Le traitement est terminé. Vous pouvez télécharger le fichier Excel final ci‑dessous.',
