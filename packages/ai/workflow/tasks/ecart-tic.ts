@@ -283,7 +283,7 @@ ${catList}
     const journalRows = journal.map(j => [j.article, j.amount, categories[j.from].name, categories[j.to].name, j.reason, j.step]);
 
     const resumeHeader = ['Indicateur', 'Valeur'];
-    const finalBudgetTotal = adjustedBudgets ? Object.values(adjustedBudgets).reduce((a, b) => a + b, 0) : sumBudget;
+    const finalBudgetTotal = catKeys.reduce((sum, k) => sum + (adjustedBudgets?.[k] ?? categories[k].budget), 0);
     const finalGlobalDiff = finalBudgetTotal - sumTotals;
     const categoriesBalanced = bilanRows.filter(r => r[5] === '✅ Équilibré').length;
     const resumeRows = [
