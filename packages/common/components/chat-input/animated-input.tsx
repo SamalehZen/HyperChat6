@@ -164,6 +164,15 @@ export const AnimatedChatInput = ({
             isNew: ChatModeConfig[ChatMode.SMART_PDF_TO_EXCEL].isNew,
             category: 'advanced',
         },
+        {
+            id: ChatMode.ECART_TIC,
+            name: 'Écart TIC',
+            icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
+            creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.ECART_TIC],
+            isAuthRequired: ChatModeConfig[ChatMode.ECART_TIC].isAuthRequired,
+            isNew: ChatModeConfig[ChatMode.ECART_TIC].isNew,
+            category: 'advanced',
+        },
         // Active model
         {
             id: ChatMode.GEMINI_2_5_FLASH,

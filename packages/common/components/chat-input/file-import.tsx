@@ -89,116 +89,134 @@ export const FileImportIcon: React.FC = () => {
   const { threadId: currentThreadId } = useParams();
   const { push } = useRouter();
 
-  if (chatMode !== ChatMode.CREATION_D_ARTICLE || !isSignedIn) return null;
+  if ((chatMode !== ChatMode.CREATION_D_ARTICLE && chatMode !== ChatMode.ECART_TIC) || !isSignedIn) return null;
 
   const handlePick = () => fileInputRef.current?.click();
 
   const handleFile = async (file: File) => {
     try {
-      toast({ title: t('article.import.reading') });
-
-      let records: ImportRecord[] = [];
-      let headerVariant: HeaderVariant | null = null;
-
-      if (file.name.toLowerCase().endsWith('.xlsx')) {
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: 'array' });
-        const firstSheetName = wb.SheetNames[0];
-        if (!firstSheetName) throw new Error('No sheet');
-        const ws = wb.Sheets[firstSheetName];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
-        const header = normalizeHeader(rows[0] || []);
-        const variant = getHeaderVariant(header);
-        if (!variant) {
-          toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
+      if (chatMode === ChatMode.CREATION_D_ARTICLE) {
+        toast({ title: t('article.import.reading') });
+        let records: ImportRecord[] = [];
+        let headerVariant: HeaderVariant | null = null;
+        if (file.name.toLowerCase().endsWith('.xlsx')) {
+          const buf = await file.arrayBuffer();
+          const wb = XLSX.read(buf, { type: 'array' });
+          const firstSheetName = wb.SheetNames[0];
+          if (!firstSheetName) throw new Error('No sheet');
+          const ws = wb.Sheets[firstSheetName];
+          const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          const header = normalizeHeader(rows[0] || []);
+          const variant = getHeaderVariant(header);
+          if (!variant) {
+            toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
+            return;
+          }
+          headerVariant = variant;
+          const idx = {
+            lib: header.indexOf('libelle_principal'),
+            ean: header.indexOf('code_barres_initial'),
+            nor: header.indexOf('numero_fournisseur_unique'),
+            art: variant === 'old' ? header.indexOf('numero_article') : -1,
+          };
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i] || [];
+            const lib = String(row[idx.lib] ?? '').trim();
+            const ean = String(row[idx.ean] ?? '').trim();
+            const nor = String(row[idx.nor] ?? '').trim();
+            const art = idx.art >= 0 ? String(row[idx.art] ?? '').trim() : '';
+            if (!lib || !ean || !nor) continue;
+            if (ean.length > 20) continue;
+            records.push({
+              libelle_principal: lib,
+              code_barres_initial: ean,
+              numero_fournisseur_unique: nor,
+              numero_article: art,
+            });
+          }
+        } else if (file.name.toLowerCase().endsWith('.csv')) {
+          const text = await file.text();
+          const { headerVariant: variant, rows } = parseCsvText(text);
+          if (!variant) {
+            toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
+            return;
+          }
+          headerVariant = variant;
+          for (const row of rows) {
+            const cols = normalizeHeader(row);
+            const lib = cols[0] ?? '';
+            const ean = cols[1] ?? '';
+            const nor = cols[2] ?? '';
+            const art = variant === 'old' ? (cols[3] ?? '') : '';
+            if (!lib || !ean || !nor) continue;
+            if (ean.length > 20) continue;
+            records.push({
+              libelle_principal: lib,
+              code_barres_initial: ean,
+              numero_fournisseur_unique: nor,
+              numero_article: art,
+            });
+          }
+        } else {
+          toast({ title: t('article.import.error', { reason: 'Unsupported file' }), variant: 'destructive' });
           return;
         }
-        headerVariant = variant;
-        const idx = {
-          lib: header.indexOf('libelle_principal'),
-          ean: header.indexOf('code_barres_initial'),
-          nor: header.indexOf('numero_fournisseur_unique'),
-          art: variant === 'old' ? header.indexOf('numero_article') : -1,
-        };
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i] || [];
-          const lib = String(row[idx.lib] ?? '').trim();
-          const ean = String(row[idx.ean] ?? '').trim();
-          const nor = String(row[idx.nor] ?? '').trim();
-          const art = idx.art >= 0 ? String(row[idx.art] ?? '').trim() : '';
-          if (!lib || !ean || !nor) continue;
-          if (ean.length > 20) continue;
-          records.push({
-            libelle_principal: lib,
-            code_barres_initial: ean,
-            numero_fournisseur_unique: nor,
-            numero_article: art,
-          });
+        let truncated = 0;
+        if (records.length > 300) {
+          truncated = records.length - 300;
+          records = records.slice(0, 300);
         }
-      } else if (file.name.toLowerCase().endsWith('.csv')) {
-        const text = await file.text();
-        const { headerVariant: variant, rows } = parseCsvText(text);
-        if (!variant) {
-          toast({ title: t('article.import.error', { reason: t('article.import.headerError') }), variant: 'destructive' });
+        const csv = toNormalizedCSV(records, headerVariant);
+        if (truncated > 0) toast({ title: t('article.import.truncated', { count: truncated }) });
+        toast({ title: t('article.import.successPreview', { count: records.length }) });
+        let threadId = currentThreadId?.toString();
+        let isNew = false;
+        if (!threadId) {
+          isNew = true;
+          const optimisticId = uuidv4();
+          const title = `${t('article.import.title')} (${records.length})`;
+          push(`/chat/${optimisticId}`);
+          createThread(optimisticId, { title });
+          threadId = optimisticId;
+        }
+        const formData = new FormData();
+        formData.append('query', csv);
+        formData.append('imageAttachmentCount', '0');
+        const items = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
+        await handleSubmit({ formData, newThreadId: isNew ? threadId : undefined, messages: items, useWebSearch });
+      } else if (chatMode === ChatMode.ECART_TIC) {
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+          toast({ title: 'Format non supporté. Importez un .xlsx', variant: 'destructive' });
           return;
         }
-        headerVariant = variant;
-        for (const row of rows) {
-          const cols = normalizeHeader(row);
-          const lib = cols[0] ?? '';
-          const ean = cols[1] ?? '';
-          const nor = cols[2] ?? '';
-          const art = variant === 'old' ? (cols[3] ?? '') : '';
-          if (!lib || !ean || !nor) continue;
-          if (ean.length > 20) continue;
-          records.push({
-            libelle_principal: lib,
-            code_barres_initial: ean,
-            numero_fournisseur_unique: nor,
-            numero_article: art,
-          });
+        if (file.size > 5 * 1024 * 1024) {
+          toast({ title: 'Fichier trop volumineux (>5 MB)', variant: 'destructive' });
+          return;
         }
-      } else {
-        toast({ title: t('article.import.error', { reason: 'Unsupported file' }), variant: 'destructive' });
-        return;
+        const reader = new FileReader();
+        const base64: string = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+        let threadId = currentThreadId?.toString();
+        let isNew = false;
+        if (!threadId) {
+          isNew = true;
+          const optimisticId = uuidv4();
+          const title = `Écart TIC — ${file.name}`;
+          push(`/chat/${optimisticId}`);
+          createThread(optimisticId, { title });
+          threadId = optimisticId;
+        }
+        const formData = new FormData();
+        formData.append('query', 'Écart TIC — import fichier');
+        formData.append('imageAttachment_0', base64);
+        formData.append('imageAttachmentCount', '1');
+        const items = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
+        await handleSubmit({ formData, newThreadId: isNew ? threadId : undefined, messages: items, useWebSearch: false });
+        toast({ title: 'Fichier chargé, traitement en cours…' });
       }
-
-      let truncated = 0;
-      if (records.length > 300) {
-        truncated = records.length - 300;
-        records = records.slice(0, 300);
-      }
-
-      const csv = toNormalizedCSV(records, headerVariant);
-
-      if (truncated > 0) {
-        toast({ title: t('article.import.truncated', { count: truncated }) });
-      }
-      toast({ title: t('article.import.successPreview', { count: records.length }) });
-
-      let threadId = currentThreadId?.toString();
-      let isNew = false;
-      if (!threadId) {
-        isNew = true;
-        const optimisticId = uuidv4();
-        // Use a concise title instead of full CSV
-        const title = `${t('article.import.title')} (${records.length})`;
-        push(`/chat/${optimisticId}`);
-        createThread(optimisticId, { title });
-        threadId = optimisticId;
-      }
-
-      const formData = new FormData();
-      formData.append('query', csv);
-      formData.append('imageAttachmentCount', '0');
-      const items = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
-
-      await handleSubmit({
-        formData,
-        newThreadId: isNew ? threadId : undefined,
-        messages: items,
-        useWebSearch,
-      });
     } catch (e: any) {
       toast({ title: t('article.import.error', { reason: e?.message || 'Unknown' }), variant: 'destructive' });
     } finally {
@@ -211,14 +229,14 @@ export const FileImportIcon: React.FC = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".xlsx,.csv"
+        accept={chatMode === ChatMode.ECART_TIC ? '.xlsx' : '.xlsx,.csv'}
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) handleFile(f);
         }}
       />
-      <Tooltip content={t('article.import.title')}>
+      <Tooltip content={chatMode === ChatMode.ECART_TIC ? 'Importer .xlsx — Écart TIC' : t('article.import.title')}>
         <Button variant="ghost" size="icon-sm" onClick={handlePick}>
           <IconPaperclip size={16} strokeWidth={2} />
         </Button>
@@ -231,15 +249,26 @@ export const FileImportLinks: React.FC = () => {
   const chatMode = useChatStore((s) => s.chatMode);
   const { isSignedIn } = useAuth();
   const { t } = useI18n();
-  if (chatMode !== ChatMode.CREATION_D_ARTICLE || !isSignedIn) return null;
+  if ((chatMode !== ChatMode.CREATION_D_ARTICLE && chatMode !== ChatMode.ECART_TIC) || !isSignedIn) return null;
   return (
     <div className="mb-2 flex items-center justify-end gap-3">
-      <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.csv" download>
-        {t('article.import.template')} (.csv)
-      </a>
-      <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.xlsx" download>
-        {t('article.import.template')} (.xlsx)
-      </a>
+      {chatMode === ChatMode.CREATION_D_ARTICLE && (
+        <>
+          <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.csv" download>
+            {t('article.import.template')} (.csv)
+          </a>
+          <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/article_import_template.xlsx" download>
+            {t('article.import.template')} (.xlsx)
+          </a>
+        </>
+      )}
+      {chatMode === ChatMode.ECART_TIC && (
+        <>
+          <a className={cn('text-xs underline text-muted-foreground hover:text-foreground')} href="/templates/ecart_tic_template.xlsx" download>
+            Modèle Écart TIC (.xlsx)
+          </a>
+        </>
+      )}
     </div>
   );
 };

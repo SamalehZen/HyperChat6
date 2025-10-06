@@ -35,6 +35,8 @@ export const modeRoutingTask = createTask<WorkflowEventSchema, WorkflowContextSc
             redirectTo('nomenclature-douaniere');
         } else if (mode === ChatMode.SMART_PDF_TO_EXCEL) {
             redirectTo('smart-pdf-to-excel');
+        } else if (mode === ChatMode.ECART_TIC) {
+            redirectTo('ecart-tic');
         } else {
             redirectTo('completion');
         }

@@ -18,6 +18,7 @@ export enum ChatMode {
     NOMENCLATURE_DOUANIERE = 'nomenclature-douaniere',
     SMART_PDF_TO_EXCEL = 'smart-pdf-to-excel',
     CREATION_D_ARTICLE = 'creation-d-article',
+    ECART_TIC = 'ecart-tic',
 }
 
 export const ChatModeConfig: Record<
@@ -163,6 +164,13 @@ export const ChatModeConfig: Record<
         isNew: true,
         isAuthRequired: true,
     },
+    [ChatMode.ECART_TIC]: {
+        webSearch: false,
+        imageUpload: false,
+        retry: true,
+        isNew: true,
+        isAuthRequired: true,
+    },
 };
 
 export const CHAT_MODE_CREDIT_COSTS = {
@@ -185,6 +193,7 @@ export const CHAT_MODE_CREDIT_COSTS = {
     [ChatMode.NOMENCLATURE_DOUANIERE]: 1,
     [ChatMode.SMART_PDF_TO_EXCEL]: 1,
     [ChatMode.CREATION_D_ARTICLE]: 2,
+    [ChatMode.ECART_TIC]: 2,
 };
 
 export const getChatModeName = (mode: ChatMode) => {
@@ -227,5 +236,7 @@ export const getChatModeName = (mode: ChatMode) => {
             return 'Smart PDF to Excel';
         case ChatMode.CREATION_D_ARTICLE:
             return 'Création d’article';
+        case ChatMode.ECART_TIC:
+            return 'Écart TIC';
     }
 };

@@ -142,6 +142,8 @@ export const getModelFromChatMode = (mode?: string): ModelEnum => {
             return ModelEnum.GEMINI_2_5_FLASH;
         case ChatMode.CREATION_D_ARTICLE:
             return ModelEnum.GEMINI_2_5_FLASH;
+        case ChatMode.ECART_TIC:
+            return ModelEnum.GEMINI_2_5_FLASH;
         case ChatMode.GEMINI_2_5_PRO:
             return ModelEnum.GEMINI_2_5_PRO;
         case ChatMode.DEEPSEEK_R1:
