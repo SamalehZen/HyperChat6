@@ -74,6 +74,13 @@ export const chatOptions = [
         icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
         creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.SMART_PDF_TO_EXCEL],
     },
+    {
+        label: 'Écart TIC',
+        description: 'Analyse, réallocation et équilibrage budgets (±10 €)',
+        value: ChatMode.ECART_TIC,
+        icon: <IconTable size={16} className="text-muted-foreground" strokeWidth={2} />,
+        creditCost: CHAT_MODE_CREDIT_COSTS[ChatMode.ECART_TIC],
+    },
 ];
 
 export const modelOptions = [

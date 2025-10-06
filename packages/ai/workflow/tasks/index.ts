@@ -15,3 +15,4 @@ export * from './suggestion';
 export * from './web-search';
 export * from './writer';
 export * from './creation-article';
+export * from './ecart-tic';
