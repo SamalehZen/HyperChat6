@@ -263,7 +263,9 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
     const pendingErrorsRaw = context?.get('creationArticlePendingErrors') as string | null | undefined;
     const hasPendingPreview = !!pendingRecordsRaw && !!pendingClassificationsRaw;
     if (hasPendingPreview) {
-      const normalizedQuestion = question.toLowerCase();
+      const latestUser = [...(messages || [])].reverse().find(m => m?.role === 'user');
+      const latestText = safeString(latestUser?.content || question || '');
+      const normalizedQuestion = latestText.toLowerCase();
       const wantsApproval = /\boui\b/.test(normalizedQuestion);
       const looksLikeNewCsv = hasCsv || normalizedQuestion.includes('libelle_principal');
       if (wantsApproval) {
