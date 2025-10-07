@@ -232,22 +232,10 @@ ${catList}
     totals = allocation.totals;
     gap = allocation.gap;
 
-    // Global adjustment if mismatch
+    // Budgets FIXES: aucun ajustement proportionnel des budgets
     const sumBudgetInitial = Object.keys(categories).reduce((s, k) => s + categories[k].budget, 0);
     const sumTotals = assigned.reduce((s, a) => s + a.amount, 0);
-    const globalDiff = sumBudgetInitial - sumTotals;
-    let adjustedBudgets: Record<string, number> | null = null;
-    if (Math.abs(globalDiff) > TOLERANCE) {
-      adjustedBudgets = {};
-      const underKeys = Object.keys(categories).filter(k => allocation.gap[k] > 0);
-      const pool = underKeys.length ? underKeys : Object.keys(categories);
-      const base = pool.map(k => Math.max(1, allocation.gap[k] > 0 ? allocation.gap[k] : categories[k].budget));
-      const baseSum = base.reduce((a, b) => a + b, 0) || 1;
-      pool.forEach((k, idx) => {
-        const delta = (globalDiff * (base[idx] / baseSum));
-        adjustedBudgets![k] = categories[k].budget - delta; // reduce if diff positive, increase if negative
-      });
-    }
+    const adjustedBudgets: Record<string, number> | null = null;
 
     updateStep({ stepId: 3, text: 'Réallocation', stepStatus: 'COMPLETED', subSteps: { reallocation: { status: 'COMPLETED', data: { moves: journal.length } } } });
 
