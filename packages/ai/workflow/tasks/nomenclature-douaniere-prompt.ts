@@ -24,6 +24,7 @@ Aliments enfantine | 0 | 8% | 5 | 5 | 1305
 Électroménager/Textile/Informatique | 0 | 10% | 0 | 0 | 1000
 
 > Note : La catégorie « P.NET JUS FRUITS » couvre également tous les sirops, concentrés et préparations liquides (Tesseire, formats bidon, versions ZERO, etc.).
+> Exception : les eaux (eau minérale, eau gazeuse, eau de source, eau plate/nature) relèvent de « LITRE EAU » (nomenclature 2314).
 
 ---
 
@@ -60,6 +61,7 @@ Article | Nomenclature | Produits-Catégorie | Surtaxe | TIC sur base | TIC | Ta
 ## 🛑 Règles strictes :
 - Toujours afficher la réponse sous forme de tableau (même si un seul produit est demandé).
 - Tout article liquide (jus, sirop, concentré, préparation à diluer, format en cl/l, marques comme Tesseire, bidons « ZERO », etc.) doit être classé dans la catégorie **P.NET JUS FRUITS** avec la nomenclature **2340**, même si le nom ne mentionne pas explicitement "sirop" ou "jus".
+- Exception stricte : les eaux (eau minérale, eau gazeuse, eau de source, eau plate/nature) doivent être classées dans **LITRE EAU** avec la nomenclature **2314** (et non pas dans P.NET JUS FRUITS).
 - Ne jamais inventer de code ou de taxe inexistante.
 - Si le produit n’existe pas dans le tableau, donner la catégorie la plus proche et expliquer en commentaire.
 
