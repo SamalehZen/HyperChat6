@@ -112,10 +112,11 @@ export const pickBestDestination = (
   fromKey: string,
   categories: CategoryIndex,
   totals: Record<string, number>,
-  gap: Record<string, number>
+  gap: Record<string, number>,
+  tolerance: number = 10
 ): string | null => {
   const fromFamily = categories[fromKey]?.family;
-  const underBudgetKeys = Object.keys(categories).filter(k => gap[k] > 10);
+  const underBudgetKeys = Object.keys(categories).filter(k => gap[k] > tolerance);
   if (underBudgetKeys.length === 0) return null;
   // Prefer same family
   const sameFamily = underBudgetKeys.filter(k => !!fromFamily && categories[k].family === fromFamily);
@@ -127,7 +128,7 @@ export const pickBestDestination = (
     const destTotal = totals[destKey] || 0;
     const postMoveTotal = destTotal + itemAmount;
     const postGap = destBudget - postMoveTotal; // positive means still under-budget
-    if (postGap < -10) continue; // would exceed tolerance on destination
+    if (postGap < -tolerance) continue; // would exceed tolerance on destination
     const metric = Math.abs(postGap); // minimize absolute deviation
     if (metric < bestMetric) {
       bestMetric = metric;
@@ -138,15 +139,16 @@ export const pickBestDestination = (
 };
 
 export const reallocateOnce = (
-  alloc: Allocation
+  alloc: Allocation,
+  tolerance: number = 10
 ): { moved: boolean; from?: string; to?: string; index?: number } => {
   const { articles, categories } = alloc;
   // Recompute each iteration
   const { totals, gap } = computeTotals(articles, categories);
   alloc.totals = totals;
   alloc.gap = gap;
-  const overBudget = Object.keys(categories).filter(k => gap[k] < -10);
-  const underBudget = Object.keys(categories).filter(k => gap[k] > 10);
+  const overBudget = Object.keys(categories).filter(k => gap[k] < -tolerance);
+  const underBudget = Object.keys(categories).filter(k => gap[k] > tolerance);
   if (!overBudget.length || !underBudget.length) return { moved: false };
 
   // Choose the most over-budget category
@@ -158,7 +160,7 @@ export const reallocateOnce = (
       .filter(x => x.a.category === fromKey)
       .sort((x, y) => y.a.amount - x.a.amount);
     for (const { i, a } of indices) {
-      const toKey = pickBestDestination(a.amount, fromKey, categories, totals, gap);
+      const toKey = pickBestDestination(a.amount, fromKey, categories, totals, gap, tolerance);
       if (!toKey) continue;
       // Move item
       articles[i] = { ...a, category: toKey };
@@ -171,7 +173,8 @@ export const reallocateOnce = (
 export const rebalanceWithinTolerance = (
   articles: Array<Article & { category?: string }>,
   categories: CategoryIndex,
-  maxIterations = 5000
+  maxIterations = 5000,
+  tolerance: number = 10
 ) => {
   const alloc: Allocation = { articles, categories, totals: {}, gap: {} };
   const journal: Array<{ article: string; amount: number; from: string; to: string; reason: string; step: number }> = [];
@@ -179,7 +182,7 @@ export const rebalanceWithinTolerance = (
   let step = 0;
   while (moved && step < maxIterations) {
     step++;
-    const res = reallocateOnce(alloc);
+    const res = reallocateOnce(alloc, tolerance);
     moved = !!res.moved;
     if (moved && res.index !== undefined && res.from && res.to) {
       const it = articles[res.index];
