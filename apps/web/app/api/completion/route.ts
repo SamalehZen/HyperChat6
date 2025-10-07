@@ -1,5 +1,5 @@
 import { getSession } from '@/app/api/_lib/auth';
-import { CHAT_MODE_CREDIT_COSTS, ChatModeConfig } from '@repo/shared/config';
+import { CHAT_MODE_CREDIT_COSTS, ChatMode, ChatModeConfig } from '@repo/shared/config';
 import { Geo, geolocation } from '@vercel/functions';
 import { NextRequest } from 'next/server';
 import {
@@ -41,6 +41,36 @@ export async function POST(request: NextRequest) {
         }
 
         const { data } = validatedBody;
+
+        if (data.mode === ChatMode.ECART_TIC && Array.isArray(data.messages)) {
+            const MAX_XLSX_SIZE = 15 * 1024 * 1024;
+            try {
+                for (let i = data.messages.length - 1; i >= 0; i--) {
+                    const m = data.messages[i];
+                    const content = m?.content;
+                    if (Array.isArray(content)) {
+                        for (const part of content) {
+                            if (part?.type === 'image' && typeof part?.image === 'string') {
+                                const dat = part.image as string;
+                                if (dat.startsWith('data:')) {
+                                    const mime = dat.split(';')[0].replace('data:', '');
+                                    if (/sheet|spreadsheet|excel|officedocument/i.test(mime)) {
+                                        const base64 = dat.split(',')[1] || '';
+                                        const estimatedBytes = Math.floor((base64.length * 3) / 4);
+                                        if (estimatedBytes > MAX_XLSX_SIZE) {
+                                            return new Response(
+                                                JSON.stringify({ error: 'Fichier trop volumineux (>15MB). Veuillez fournir un .xlsx ≤ 15MB.' }),
+                                                { status: 400, headers: { 'Content-Type': 'application/json' } }
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch {}
+        }
         const t0 = Date.now();
         try {
             console.log(`[TTFT] t0 request_received ts=${t0} threadId=${data.threadId} itemId=${data.threadItemId} mode=${data.mode}`);

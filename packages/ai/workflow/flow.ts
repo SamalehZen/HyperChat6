@@ -112,6 +112,9 @@ export type WorkflowContextSchema = {
     customInstructions?: string;
     onFinish: (data: any) => void;
     onUsage?: (data: { promptTokens?: number | null; completionTokens?: number | null }) => void;
+    creationArticlePendingRecords?: string | null;
+    creationArticlePendingClassifications?: string | null;
+    creationArticlePendingErrors?: string | null;
 };
 
 export const runWorkflow = ({
@@ -197,6 +200,9 @@ export const runWorkflow = ({
         showSuggestions,
         onFinish: onFinish as any,
         onUsage: onUsage as any,
+        creationArticlePendingRecords: null,
+        creationArticlePendingClassifications: null,
+        creationArticlePendingErrors: null,
     });
 
     // Use the typed builder
