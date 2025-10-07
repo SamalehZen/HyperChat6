@@ -3,6 +3,7 @@ import { ModelEnum } from '../../models';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { generateText, handleError, sendEvents } from '../utils';
 import * as XLSX from 'xlsx';
+
 import {
   Article,
   CategoryIndex,
@@ -81,6 +82,8 @@ const tryParseJsonFallback = (text: string): { articles: Article[]; budgetsRows:
   return null;
 };
 
+const TOLERANCE = 2;
+
 export const ecartTicTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
   name: 'ecart-tic',
   execute: async ({ events, context, signal }) => {
@@ -98,13 +101,16 @@ export const ecartTicTask = createTask<WorkflowEventSchema, WorkflowContextSchem
     const attachment = extractExcelFromMessages(messages);
     if (attachment?.base64) {
       try {
-        const MAX_XLSX_SIZE = 15 * 1024 * 1024;
-        const estimatedBytes = Math.floor((attachment.base64.length * 3) / 4);
-        if (estimatedBytes > MAX_XLSX_SIZE) {
-          const err = 'Fichier trop volumineux (>15MB). Veuillez fournir un .xlsx ≤ 15MB.';
-          updateAnswer({ text: err, finalText: err, status: 'COMPLETED' });
+        // Server-side size validation (5 MB)
+        const b64 = attachment.base64;
+        const padding = (b64.match(/=+$/) || [''])[0].length;
+        const bytes = Math.floor(b64.length * 3 / 4) - padding;
+        const MAX = 5 * 1024 * 1024;
+        if (bytes > MAX) {
+          const msg = `Fichier trop volumineux (>5 MB). Taille détectée: ${(bytes / (1024*1024)).toFixed(2)} MB`;
+          updateAnswer({ text: msg, finalText: msg, status: 'COMPLETED' });
           updateStatus('COMPLETED');
-          return err;
+          return msg;
         }
         const buf = Buffer.from(attachment.base64, 'base64');
         if (buf.length > MAX_XLSX_SIZE) {
@@ -228,26 +234,14 @@ ${catList}
 
     // Step: Réallocation
     updateStep({ stepId: 3, text: 'Réallocation', stepStatus: 'PENDING', subSteps: { reallocation: { status: 'PENDING' } } });
-    const { allocation, journal } = rebalanceWithinTolerance(assigned, categories, 10000);
+    const { allocation, journal } = rebalanceWithinTolerance(assigned, categories, 10000, TOLERANCE);
     totals = allocation.totals;
     gap = allocation.gap;
 
-    // Global adjustment if mismatch
-    const sumBudget = Object.keys(categories).reduce((s, k) => s + categories[k].budget, 0);
+    // Budgets FIXES: aucun ajustement proportionnel des budgets
+    const sumBudgetInitial = Object.keys(categories).reduce((s, k) => s + categories[k].budget, 0);
     const sumTotals = assigned.reduce((s, a) => s + a.amount, 0);
-    const globalDiff = sumBudget - sumTotals;
-    let adjustedBudgets: Record<string, number> | null = null;
-    if (Math.abs(globalDiff) > 10) {
-      adjustedBudgets = {};
-      const underKeys = Object.keys(categories).filter(k => allocation.gap[k] > 0);
-      const pool = underKeys.length ? underKeys : Object.keys(categories);
-      const base = pool.map(k => Math.max(1, allocation.gap[k] > 0 ? allocation.gap[k] : categories[k].budget));
-      const baseSum = base.reduce((a, b) => a + b, 0) || 1;
-      pool.forEach((k, idx) => {
-        const delta = (globalDiff * (base[idx] / baseSum));
-        adjustedBudgets![k] = categories[k].budget - delta; // reduce if diff positive, increase if negative
-      });
-    }
+    const adjustedBudgets: Record<string, number> | null = null;
 
     updateStep({ stepId: 3, text: 'Réallocation', stepStatus: 'COMPLETED', subSteps: { reallocation: { status: 'COMPLETED', data: { moves: journal.length } } } });
 
@@ -259,7 +253,7 @@ ${catList}
     const usedBudget = (k: string) => adjustedBudgets?.[k] ?? categories[k].budget;
     const statusOf = (k: string) => {
       const ecart = (usedBudget(k) - (totals[k] || 0));
-      return Math.abs(ecart) <= 10 ? '✅ Équilibré' : 'Ajusté';
+      return Math.abs(ecart) <= TOLERANCE ? '✅ Équilibré' : 'Ajusté';
     };
 
     const detailHeader = ['Article', 'Total (€)', 'Catégorie finale', 'Budget Catégorie (€)', 'Écart (€)', 'Statut'];
@@ -286,17 +280,20 @@ ${catList}
     const finalBudgetTotal = catKeys.reduce((sum, k) => sum + (adjustedBudgets?.[k] ?? categories[k].budget), 0);
     const finalGlobalDiff = finalBudgetTotal - sumTotals;
     const categoriesBalanced = bilanRows.filter(r => r[5] === '✅ Équilibré').length;
+    const sumBudgetUsed = catKeys.reduce((s, k) => s + usedBudget(k), 0);
     const resumeRows = [
-      ['Total Budgets', Math.round(finalBudgetTotal * 100) / 100],
+
+      ['Total Budgets', Math.round(sumBudgetUsed * 100) / 100],
       ['Total Alloué', Math.round(sumTotals * 100) / 100],
-      ['Écart Global', Math.round((finalGlobalDiff) * 100) / 100],
+      ['Écart Global', Math.round((sumBudgetUsed - sumTotals) * 100) / 100],
+
       ['Catégories équilibrées', `${categoriesBalanced}/${catKeys.length}`],
       ['Catégories ajustées', `${catKeys.length - categoriesBalanced}`],
       ['Articles réalloués', `${journal.length}`],
-      ['Situation finale', categoriesBalanced === catKeys.length ? '✅ Toutes dans ±10 €' : 'Ajustements requis'],
+      ['Situation finale', categoriesBalanced === catKeys.length ? `✅ Toutes dans ±${TOLERANCE} €` : 'Ajustements requis'],
     ];
 
-    // Stream preview
+    // Stream full table if small enough; otherwise show preview
     const previewRows = [detailHeader, ...detailRows.slice(0, 50)];
     const toMd = (rows: any[][]) => {
       if (!rows.length) return '';
@@ -307,7 +304,12 @@ ${catList}
       return ['| ' + header.map(fmt).join(' | ') + ' |', '| ' + sep.join(' | ') + ' |', ...body.map(r => '| ' + r.map(fmt).join(' | ') + ' |')].join('\n');
     };
 
-    updateAnswer({ text: `\n### Aperçu — Détail Articles (50 premières lignes)\n\n${toMd(previewRows)}\n\n### Résumé global\n\n${toMd([resumeHeader, ...resumeRows])}\n`, status: 'PENDING' });
+    const fullRows = [detailHeader, ...detailRows];
+    const detailsMd = fullRows.length <= 1001
+      ? `### Détail Articles (complet)\n\n${toMd(fullRows)}`
+      : `### Aperçu — Détail Articles (50 premières lignes)\n\n${toMd(previewRows)}\n\n> Détail complet trop volumineux pour l'affichage — utilisez le fichier XLSX ci‑dessous.`;
+
+    updateAnswer({ text: `\n${detailsMd}\n\n### Résumé global\n\n${toMd([resumeHeader, ...resumeRows])}\n`, status: 'PENDING' });
 
     // Build workbook for download
     const wb = XLSX.utils.book_new();
@@ -328,7 +330,9 @@ ${catList}
     updateStep({ stepId: 5, text: 'Résumé', stepStatus: 'PENDING', subSteps: { resume: { status: 'PENDING' } } });
 
     // Send structured object for potential UI
-    updateObject({ summary: { totalBudget: finalBudgetTotal, totalAllocated: sumTotals, categories: catKeys.length, balanced: categoriesBalanced, reallocated: journal.length } });
+
+    updateObject({ summary: { totalBudget: sumBudgetUsed, totalAllocated: sumTotals, categories: catKeys.length, balanced: categoriesBalanced, reallocated: journal.length } });
+
 
     const finalText = [
       'Le traitement est terminé. Vous pouvez télécharger le fichier Excel final ci‑dessous.',
