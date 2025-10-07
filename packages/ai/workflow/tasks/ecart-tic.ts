@@ -82,6 +82,8 @@ const tryParseJsonFallback = (text: string): { articles: Article[]; budgetsRows:
   return null;
 };
 
+const MAX_XLSX_SIZE = 15 * 1024 * 1024;
+
 const TOLERANCE = 2;
 
 export const ecartTicTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
