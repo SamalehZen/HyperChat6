@@ -82,7 +82,7 @@ const tryParseJsonFallback = (text: string): { articles: Article[]; budgetsRows:
   return null;
 };
 
-const TOLERANCE = 5;
+const TOLERANCE = 2;
 
 export const ecartTicTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
   name: 'ecart-tic',
