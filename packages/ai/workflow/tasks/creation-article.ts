@@ -578,7 +578,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         context?.update('creationArticlePendingErrors', () => JSON.stringify(errors));
         const previewTable = renderClassificationPreviewTable(previewClassifications);
         const pendingPayload = { records: limited, classifications: previewClassifications, errors };
-        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.\n\nCREATION-ARTICLE:PENDING=${JSON.stringify(pendingPayload)}`;
+        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.`;
         updateAnswer({ text: responseText, finalText: responseText, status: 'COMPLETED' });
         updateStatus('COMPLETED');
         context?.update('answer', _ => responseText);

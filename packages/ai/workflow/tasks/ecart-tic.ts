@@ -311,7 +311,7 @@ ${catList}
       ? `### Détail Articles (complet)\n\n${toMd(fullRows)}`
       : `### Aperçu — Détail Articles (50 premières lignes)\n\n${toMd(previewRows)}\n\n> Détail complet trop volumineux pour l'affichage — utilisez le fichier XLSX ci‑dessous.`;
 
-    updateAnswer({ text: `\n${detailsMd}\n\n### Résumé global\n\n${toMd([resumeHeader, ...resumeRows])}\n`, status: 'PENDING' });
+    /* consolidated final output handled below */
 
     // Build workbook for download
     const wb = XLSX.utils.book_new();
@@ -336,13 +336,10 @@ ${catList}
     updateObject({ summary: { totalBudget: sumBudgetUsed, totalAllocated: sumTotals, categories: catKeys.length, balanced: categoriesBalanced, reallocated: journal.length } });
 
 
-    const finalText = [
-      'Le traitement est terminé. Vous pouvez télécharger le fichier Excel final ci‑dessous.',
-      '',
-      `<a href="${dataUrl}" download="ecart-tic.xlsx">⬇️ Télécharger l’XLSX (4 onglets)</a>`,
-    ].join('\n');
+    const linkLine = `<a href="${dataUrl}" download="ecart-tic.xlsx">⬇️ Télécharger l’XLSX (4 onglets)</a>`;
+    const finalText = `${detailsMd}\n\n### Résumé global\n\n${toMd([resumeHeader, ...resumeRows])}\n\n${linkLine}`;
 
-    updateAnswer({ text: '', finalText, status: 'COMPLETED' });
+    updateAnswer({ text: finalText, finalText, status: 'COMPLETED' });
     updateStatus('COMPLETED');
     context?.update('answer', _ => finalText);
     context?.get('onFinish')?.({
