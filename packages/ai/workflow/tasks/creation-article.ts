@@ -232,13 +232,29 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         const m = msgs[i];
         if (m?.role === 'assistant') {
           const t = safeString(m?.content || '');
-          const idx = t.lastIndexOf('CREATION-ARTICLE:PENDING=');
-          if (idx >= 0) {
-            const after = t.slice(idx + 'CREATION-ARTICLE:PENDING='.length).trim();
-            try {
-              const obj = JSON.parse(after);
-              return obj as any;
-            } catch {}
+          const markerIdx = t.lastIndexOf('CREATION-ARTICLE:PENDING');
+          if (markerIdx >= 0) {
+            const slice = t.slice(markerIdx);
+            // Try fenced code block first
+            const fenceMatch = /```[a-zA-Z0-9_-]*\s*([\s\S]*?)```/m.exec(slice);
+            if (fenceMatch && fenceMatch[1]) {
+              const inner = fenceMatch[1];
+              try {
+                const first = inner.indexOf('{');
+                const last = inner.lastIndexOf('}');
+                if (first !== -1 && last !== -1 && last > first) {
+                  return JSON.parse(inner.slice(first, last + 1));
+                }
+              } catch {}
+            }
+            // Fallback: find first {...} after marker
+            const first = slice.indexOf('{');
+            const last = slice.lastIndexOf('}');
+            if (first !== -1 && last !== -1 && last > first) {
+              try {
+                return JSON.parse(slice.slice(first, last + 1));
+              } catch {}
+            }
           }
         }
       }
@@ -578,7 +594,7 @@ export const creationArticleTask = createTask<WorkflowEventSchema, WorkflowConte
         context?.update('creationArticlePendingErrors', () => JSON.stringify(errors));
         const previewTable = renderClassificationPreviewTable(previewClassifications);
         const pendingPayload = { records: limited, classifications: previewClassifications, errors };
-        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.\n\nCREATION-ARTICLE:PENDING=${JSON.stringify(pendingPayload)}`;
+        const responseText = `${previewTable}\n\nRéponds "oui" pour valider ces classifications.\n\nCREATION-ARTICLE:PENDING=\n\n\u0060\u0060\u0060json\n${JSON.stringify(pendingPayload)}\n\u0060\u0060\u0060`;
         updateAnswer({ text: responseText, finalText: responseText, status: 'COMPLETED' });
         updateStatus('COMPLETED');
         context?.update('answer', _ => responseText);
