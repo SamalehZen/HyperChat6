@@ -6,6 +6,7 @@ import { IconCheck, IconFileSpreadsheet, IconFileTypeCsv } from '@tabler/icons-r
 import { ComponentProps, ReactElement, useContext, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { tableElementToAOA } from '../../utils';
+import { isCyrusErefAOA, buildCyrusErefWorkbook } from '../../utils/xlsx-cyrus-eref';
 
 function downloadCSV(aoa: string[][], filename = 'extraction.csv') {
     const escape = (s: string) => '"' + s.replace(/"/g, '""') + '"';
@@ -20,6 +21,11 @@ function downloadCSV(aoa: string[][], filename = 'extraction.csv') {
 }
 
 function downloadXLSX(aoa: string[][], filename = 'extraction.xlsx') {
+    if (isCyrusErefAOA(aoa)) {
+        const built = buildCyrusErefWorkbook(XLSX as any, aoa, { sheetName: 'Articles', commentsSheetName: "Commentaires d’import" });
+        XLSX.writeFile(built.wb as any, filename);
+        return;
+    }
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Feuille1');

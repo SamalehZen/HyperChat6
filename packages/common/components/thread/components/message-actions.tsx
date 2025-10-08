@@ -7,6 +7,7 @@ import { ThreadItem } from '@repo/shared/types';
 import { Button, DropdownMenu, DropdownMenuTrigger } from '@repo/ui';
 import { IconCheck, IconCopy, IconMarkdown, IconRefresh, IconTrash, IconFileSpreadsheet } from '@tabler/icons-react';
 import { forwardRef, useMemo, useState } from 'react';
+import { isCyrusErefAOA, buildCyrusErefWorkbook } from '../../../utils/xlsx-cyrus-eref';
 type MessageActionsProps = {
     threadItem: ThreadItem;
     isLast: boolean;
@@ -47,9 +48,15 @@ export const MessageActions = forwardRef<HTMLDivElement, MessageActionsProps>(
                     tableLines.push(row);
                 }
                 if (tableLines.length === 0) return;
-                const ws = XLSX.utils.aoa_to_sheet(tableLines);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Articles');
+                let wb;
+                if (isCyrusErefAOA(tableLines)) {
+                    const built = buildCyrusErefWorkbook(XLSX as any, tableLines, { sheetName: 'Articles', commentsSheetName: "Commentaires d’import" });
+                    wb = built.wb as any;
+                } else {
+                    const ws = XLSX.utils.aoa_to_sheet(tableLines);
+                    wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Articles');
+                }
                 const filename = `creation-article-${threadItem.id}.xlsx`;
                 XLSX.writeFile(wb, filename);
             } catch (e) {
