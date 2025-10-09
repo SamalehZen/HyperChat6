@@ -1,0 +1,54 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
+const nextConfig = {
+    transpilePackages: ['next-mdx-remote'],
+    images: {
+        remotePatterns: [
+            { hostname: 'www.google.com' },
+
+            { hostname: 'zyqdiwxgffuy8ymd.public.blob.vercel-storage.com' },
+        ],
+    },
+
+    experimental: {
+        externalDir: true,
+    },
+    webpack: (config, options) => {
+        if (options.isServer) {
+            // Avoid bundling native canvas on server build
+            config.externals = config.externals || [];
+            config.externals.push({ canvas: 'canvas' });
+        } else {
+            // Prevent attempts to polyfill native canvas in client bundle
+            config.resolve.fallback = {
+                ...(config.resolve.fallback || {}),
+                fs: false,
+                module: false,
+                path: false,
+                canvas: false,
+            };
+        }
+        // Experimental features
+        config.experiments = {
+            ...config.experiments,
+            topLevelAwait: true,
+            layers: true,
+        };
+
+        return config;
+    },
+    async redirects() {
+        return [{ source: '/', destination: '/chat', permanent: true }];
+    },
+};
+
+export default withSentryConfig(nextConfig, {
+    // Sentry configuration (unchanged)
+    org: 'saascollect',
+    project: 'javascript-nextjs',
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    hideSourceMaps: true,
+    disableLogger: true,
+    automaticVercelMonitors: true,
+});
