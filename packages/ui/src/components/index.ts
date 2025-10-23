@@ -43,5 +43,6 @@ export * from './shine-border';
 
 // Export specific components that are needed
 export * from './grid-gradient-background';
+export { DotScreenShader } from './dot-screen-shader';
 
 export { AI_Prompt, ModelIcons } from './animated-ai-input';

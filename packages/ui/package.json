@@ -21,6 +21,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.468.0",
     "three": "^0.160.0",
+    "@react-three/fiber": "^8.15.19",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7"
   },

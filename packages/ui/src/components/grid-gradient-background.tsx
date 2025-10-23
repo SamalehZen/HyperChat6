@@ -6,12 +6,13 @@ import { ShaderAnimationBackground } from './shader-animation-background';
 import { NeuralNoiseBackground } from './neural-noise-background';
 import { RedLinesFogBackground } from './red-lines-fog-background';
 import { ShaderLinesBackground } from './shader-lines-background';
+import { DotScreenShader } from './dot-screen-shader';
 
 type GridGradientBackgroundProps = {
   side?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines';
+  variant?: 'new' | 'old' | 'mesh' | 'shader' | 'neural' | 'redlines' | 'shaderlines' | 'dotscreen';
 };
 
 export function GridGradientBackground({ side = 'left', className, style, variant = 'new' }: GridGradientBackgroundProps) {
@@ -29,6 +30,9 @@ export function GridGradientBackground({ side = 'left', className, style, varian
   }
   if (variant === 'shaderlines') {
     return <ShaderLinesBackground />;
+  }
+  if (variant === 'dotscreen') {
+    return <DotScreenShader />;
   }
 
   const haloColor = 'rgba(139,92,246,0.25)';
