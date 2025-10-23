@@ -1,182 +1,178 @@
-"use client";
+'use client';
 
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useEffect, useMemo } from 'react';
+import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
+import { shaderMaterial, useTrailTexture } from '@react-three/drei';
 import { useTheme } from 'next-themes';
-import { MutableRefObject, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 
-type DotScreenConfig = {
-  dotColor: string;
-  bgColor: string;
-  dotOpacity: number;
-};
-
-type PointerState = {
-  x: number;
-  y: number;
-  targetX: number;
-  targetY: number;
-};
-
-const vertexShader = `
-  varying vec2 vUv;
+const DotMaterial = shaderMaterial(
+  {
+    time: 0,
+    resolution: new THREE.Vector2(),
+    dotColor: new THREE.Color('#FFFFFF'),
+    bgColor: new THREE.Color('#121212'),
+    mouseTrail: null,
+    render: 0,
+    rotation: 0,
+    gridSize: 50,
+    dotOpacity: 0.05,
+  },
+  `
   void main() {
-    vUv = uv;
-    gl_Position = vec4(position, 1.0);
+    gl_Position = vec4(position.xy, 0.0, 1.0);
   }
-`;
+`,
+  `
+  uniform float time;
+  uniform int render;
+  uniform vec2 resolution;
+  uniform vec3 dotColor;
+  uniform vec3 bgColor;
+  uniform sampler2D mouseTrail;
+  uniform float rotation;
+  uniform float gridSize;
+  uniform float dotOpacity;
 
-const fragmentShader = `
-  precision highp float;
-  varying vec2 vUv;
-  uniform vec2 u_resolution;
-  uniform float u_time;
-  uniform vec2 u_pointer;
-  uniform vec3 u_dot_color;
-  uniform vec3 u_bg_color;
-  uniform float u_dot_opacity;
-  uniform float u_grid_size;
-  uniform float u_rotation;
+  vec2 rotate(vec2 uv, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    mat2 rotationMatrix = mat2(c, -s, s, c);
+    return rotationMatrix * (uv - 0.5) + 0.5;
+  }
 
-  float circle(vec2 st, float radius) {
-    return smoothstep(radius, radius - 0.35, length(st));
+  vec2 coverUv(vec2 uv) {
+    vec2 s = resolution.xy / max(resolution.x, resolution.y);
+    vec2 newUv = (uv - 0.5) * s + 0.5;
+    return clamp(newUv, 0.0, 1.0);
+  }
+
+  float sdfCircle(vec2 p, float r) {
+    return length(p - 0.5) - r;
   }
 
   void main() {
-    vec2 uv = vUv;
-    float aspect = u_resolution.x / max(u_resolution.y, 1.0);
-    vec2 pointer = uv - u_pointer;
-    pointer.x *= aspect;
-    float pointerTrail = exp(-length(pointer) * 8.0);
+    vec2 screenUv = gl_FragCoord.xy / resolution;
+    vec2 uv = coverUv(screenUv);
+    vec2 rotatedUv = rotate(uv, rotation);
 
-    vec2 gridUv = uv * u_grid_size;
-    float s = sin(u_rotation);
-    float c = cos(u_rotation);
-    mat2 rot = mat2(c, -s, s, c);
-    vec2 cell = (fract(gridUv) - 0.5) * rot;
+    vec2 gridUv = fract(rotatedUv * gridSize);
+    vec2 gridUvCenterInScreenCoords = rotate((floor(rotatedUv * gridSize) + 0.5) / gridSize, -rotation);
 
-    float timeWave = sin((gridUv.x + gridUv.y) * 0.4 + u_time * 0.4) * 0.1;
-    float dots = circle(cell + timeWave, 0.35);
-    float intensity = clamp(dots * u_dot_opacity * 2.8 + pointerTrail, 0.0, 1.0);
-    vec3 color = mix(u_bg_color, u_dot_color, intensity);
+    float baseDot = sdfCircle(gridUv, 0.25);
 
-    gl_FragColor = vec4(color, 1.0);
+    float screenMask = smoothstep(0.0, 1.0, 1.0 - uv.y);
+    vec2 centerDisplace = vec2(0.7, 1.1);
+    float circleMaskCenter = length(uv - centerDisplace);
+    float circleMaskFromCenter = smoothstep(0.5, 1.0, circleMaskCenter);
+    float combinedMask = screenMask * circleMaskFromCenter;
+    float circleAnimatedMask = sin(time * 2.0 + circleMaskCenter * 10.0);
+
+    float mouseInfluence = texture2D(mouseTrail, gridUvCenterInScreenCoords).r;
+    float scaleInfluence = max(mouseInfluence * 0.5, circleAnimatedMask * 0.3);
+
+    float dotSize = min(pow(circleMaskCenter, 2.0) * 0.3, 0.3);
+    float sdfDot = sdfCircle(gridUv, dotSize * (1.0 + scaleInfluence * 0.5));
+    float smoothDot = smoothstep(0.05, 0.0, sdfDot);
+    float opacityInfluence = max(mouseInfluence * 50.0, circleAnimatedMask * 0.5);
+
+    vec3 composition = mix(bgColor, dotColor, smoothDot * combinedMask * dotOpacity * (1.0 + opacityInfluence));
+    gl_FragColor = vec4(composition, 1.0);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
-`;
+`
+);
 
-function DotScreenPlane({ config, pointer }: { config: DotScreenConfig; pointer: MutableRefObject<PointerState> }) {
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const uniforms = useMemo(
-    () =>
-      ({
-        u_time: { value: 0 },
-        u_resolution: { value: new THREE.Vector2(1, 1) },
-        u_pointer: { value: new THREE.Vector2(0.5, 0.5) },
-        u_dot_color: { value: new THREE.Color(config.dotColor) },
-        u_bg_color: { value: new THREE.Color(config.bgColor) },
-        u_dot_opacity: { value: config.dotOpacity },
-        u_grid_size: { value: 100 },
-        u_rotation: { value: 0 },
-      }) satisfies Record<string, THREE.IUniform>,
-    []
-  );
+function Scene() {
+  const size = useThree((state) => state.size);
+  const viewport = useThree((state) => state.viewport);
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = resolvedTheme ?? theme ?? 'dark';
+  const rotation = 0;
+  const gridSize = 100;
 
-  useFrame((state, delta) => {
-    const material = materialRef.current;
-    if (!material) return;
-    const uTime = material.uniforms.u_time;
-    uTime.value = (uTime.value as number) + delta;
-    pointer.current.x += (pointer.current.targetX - pointer.current.x) * 0.12;
-    pointer.current.y += (pointer.current.targetY - pointer.current.y) * 0.12;
-    const uPointer = material.uniforms.u_pointer.value as THREE.Vector2;
-    uPointer.set(pointer.current.x, pointer.current.y);
-    const dpr = state.gl.getPixelRatio();
-    const width = state.size.width * dpr;
-    const height = state.size.height * dpr;
-    const uResolution = material.uniforms.u_resolution.value as THREE.Vector2;
-    if (uResolution.x !== width || uResolution.y !== height) {
-      uResolution.set(width, height);
+  const themeColors = useMemo(() => {
+    switch (currentTheme) {
+      case 'dark':
+        return {
+          dotColor: '#FFFFFF',
+          bgColor: '#121212',
+          dotOpacity: 0.025,
+        };
+      case 'light':
+        return {
+          dotColor: '#e1e1e1',
+          bgColor: '#F4F5F5',
+          dotOpacity: 0.15,
+        };
+      default:
+        return {
+          dotColor: '#FFFFFF',
+          bgColor: '#121212',
+          dotOpacity: 0.05,
+        };
     }
+  }, [currentTheme]);
+
+  const [trail, onMove] = useTrailTexture({
+    size: 512,
+    radius: 0.1,
+    maxAge: 400,
+    interpolate: 1,
+    ease(x) {
+      return x < 0.5
+        ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
+        : (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2;
+    },
   });
 
+  const dotMaterial = useMemo(() => new DotMaterial(), []);
+
   useEffect(() => {
-    const material = materialRef.current;
-    if (!material) return;
-    (material.uniforms.u_dot_color.value as THREE.Color).set(config.dotColor);
-    (material.uniforms.u_bg_color.value as THREE.Color).set(config.bgColor);
-    material.uniforms.u_dot_opacity.value = config.dotOpacity;
-  }, [config]);
+    dotMaterial.uniforms.dotColor.value.set(themeColors.dotColor);
+    dotMaterial.uniforms.bgColor.value.set(themeColors.bgColor);
+    dotMaterial.uniforms.dotOpacity.value = themeColors.dotOpacity;
+  }, [dotMaterial, themeColors]);
+
+  useFrame((state) => {
+    dotMaterial.uniforms.time.value = state.clock.elapsedTime;
+  });
+
+  const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
+    onMove(event);
+  };
+
+  const scale = Math.max(viewport.width, viewport.height) / 2;
 
   return (
-    <mesh>
+    <mesh scale={[scale, scale, 1]} onPointerMove={handlePointerMove}>
       <planeGeometry args={[2, 2]} />
-      <shaderMaterial ref={materialRef} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} />
+      <primitive
+        object={dotMaterial}
+        resolution={[size.width * viewport.dpr, size.height * viewport.dpr]}
+        rotation={rotation}
+        gridSize={gridSize}
+        mouseTrail={trail}
+        render={0}
+      />
     </mesh>
   );
 }
 
 export function DotScreenShader() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const pointer = useRef<PointerState>({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
-  const { resolvedTheme } = useTheme();
-
-  const config = useMemo<DotScreenConfig>(() => {
-    if (resolvedTheme === 'dark') {
-      return { dotColor: '#FFFFFF', bgColor: '#121212', dotOpacity: 0.025 };
-    }
-    if (resolvedTheme === 'light') {
-      return { dotColor: '#e1e1e1', bgColor: '#F4F5F5', dotOpacity: 0.15 };
-    }
-    return { dotColor: '#FFFFFF', bgColor: '#121212', dotOpacity: 0.05 };
-  }, [resolvedTheme]);
-
-  useEffect(() => {
-    pointer.current.x = 0.5;
-    pointer.current.y = 0.5;
-    pointer.current.targetX = 0.5;
-    pointer.current.targetY = 0.5;
-  }, [config]);
-
-  useEffect(() => {
-    const updatePointer = (clientX: number, clientY: number) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
-      const width = Math.max(rect.width, 1);
-      const height = Math.max(rect.height, 1);
-      const x = (clientX - rect.left) / width;
-      const y = (clientY - rect.top) / height;
-      pointer.current.targetX = THREE.MathUtils.clamp(x, 0, 1);
-      pointer.current.targetY = THREE.MathUtils.clamp(1 - y, 0, 1);
-    };
-
-    const handlePointerMove = (event: PointerEvent) => updatePointer(event.clientX, event.clientY);
-    const handleTouchMove = (event: TouchEvent) => {
-      if (event.touches[0]) {
-        updatePointer(event.touches[0].clientX, event.touches[0].clientY);
-      }
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('touchmove', handleTouchMove);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-    };
-  }, []);
-
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" aria-hidden="true">
+    <div className="absolute inset-0 w-full h-full pointer-events-none z-0" aria-hidden="true">
       <Canvas
-        orthographic
-        dpr={[1, 2]}
-        gl={{ alpha: true, antialias: true }}
-        camera={{ position: [0, 0, 1], zoom: 1 }}
-        style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
+        className="w-full h-full pointer-events-auto"
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          outputColorSpace: THREE.SRGBColorSpace,
+          toneMapping: THREE.NoToneMapping,
+        }}
       >
-        <color attach="background" args={[config.bgColor]} />
-        <DotScreenPlane config={config} pointer={pointer} />
+        <Scene />
       </Canvas>
     </div>
   );
