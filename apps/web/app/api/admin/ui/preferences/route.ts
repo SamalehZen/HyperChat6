@@ -15,7 +15,7 @@ import { getIp } from '@/app/api/completion/utils';
 import { publishUIPreferences } from '@/app/api/_lib/realtime-preferences';
 
 const schema = z.object({
-  backgroundVariant: z.enum(['new','old','mesh','shader','neural','redlines','shaderlines']),
+  backgroundVariant: z.enum(['new','old','mesh','shader','neural','redlines','shaderlines','dotscreen']),
   aiPromptShinePreset: z.string(),
 });
 
