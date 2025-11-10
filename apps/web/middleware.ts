@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
+const SITE_PAUSED = true;
+
 export default function middleware(req: NextRequest) {
   const url = new URL(req.url);
 
@@ -12,6 +14,7 @@ export default function middleware(req: NextRequest) {
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/completion') ||
     pathname === '/sign-in' ||
+    pathname === '/maintenance' ||
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
     pathname === '/favicon.ico' ||
@@ -20,6 +23,13 @@ export default function middleware(req: NextRequest) {
     pathname === '/manifest.json'
   ) {
     return NextResponse.next();
+  }
+
+  // If site is paused, redirect to maintenance
+  if (SITE_PAUSED) {
+    url.pathname = '/maintenance';
+    url.search = '';
+    return NextResponse.redirect(url);
   }
 
   // Require session cookie for everything else
