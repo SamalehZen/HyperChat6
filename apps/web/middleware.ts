@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const SITE_PAUSED = false;
+const SITE_PAUSED = true;
 
 export default function middleware(req: NextRequest) {
   const url = new URL(req.url);
